@@ -50,6 +50,8 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "ExploitFixes.h"
+#include "emit_blocker.h"
+#include "httpclient.h"
 
 typedef void (*initPluginFuncPtr)(void* getPluginObject);
 
@@ -206,6 +208,10 @@ bool InitialiseNorthstar()
 	InitialiseLogging();
 	InstallInitialHooks();
 	CreateLogFiles();
+
+	// Write launcher version to log
+	spdlog::info("NorthstarLauncher version: {}", version);
+
 	InitialiseInterfaceCreationHooks();
 
 	AddDllLoadCallback("tier0.dll", InitialiseTier0GameUtilFunctions);
@@ -281,6 +287,10 @@ bool InitialiseNorthstar()
 
 	// activate exploit fixes
 	AddDllLoadCallback("server.dll", ExploitFixes::LoadCallback);
+	AddDllLoadCallback("server.dll", InitialiseServerEmit_Blocker);
+
+	AddDllLoadCallback("server.dll", InitialiseHttpClient);
+
 
 	// run callbacks for any libraries that are already loaded by now
 	CallAllPendingDLLLoadCallbacks();
