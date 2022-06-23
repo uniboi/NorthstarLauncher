@@ -1,0 +1,6 @@
+{
+	"files.associations": {
+		"*.gnut": "squirrel",
+		"vector": "cpp"
+	}
+}
