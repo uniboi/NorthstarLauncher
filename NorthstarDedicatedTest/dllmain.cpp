@@ -45,6 +45,7 @@
 #include <string.h>
 #include "version.h"
 #include "pch.h"
+#include "hashing.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -289,6 +290,10 @@ bool InitialiseNorthstar()
 	// activate exploit fixes
 	AddDllLoadCallback("server.dll", ExploitFixes::LoadCallback);
 	AddDllLoadCallback("server.dll", InitialiseServerEmit_Blocker);
+
+	// expose hashing functions to squirrel vms
+	AddDllLoadCallbackForClient("client.dll", InitialiseScriptHashingClientAndUI);
+	AddDllLoadCallbackForClient("server.dll", InitialiseScriptHashingServer);
 
 	// run callbacks for any libraries that are already loaded by now
 	CallAllPendingDLLLoadCallbacks();

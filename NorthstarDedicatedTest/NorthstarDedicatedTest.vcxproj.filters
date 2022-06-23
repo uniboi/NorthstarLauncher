@@ -612,6 +612,9 @@
     <ClInclude Include="gameutils.h">
       <Filter>Header Files\Shared\Game Functions</Filter>
     </ClInclude>
+    <ClInclude Include="hashing.h">
+      <Filter>Header Files\Shared\Game Functions</Filter>
+    </ClInclude>
     <ClInclude Include="memalloc.h">
       <Filter>Header Files\Shared</Filter>
     </ClInclude>
@@ -1584,6 +1587,9 @@
       <Filter>Source Files\Shared</Filter>
     </ClCompile>
     <ClCompile Include="gameutils.cpp">
+      <Filter>Source Files\Shared\Game Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="hashing.cpp">
       <Filter>Source Files\Shared\Game Functions</Filter>
     </ClCompile>
     <ClCompile Include="chatcommand.cpp">

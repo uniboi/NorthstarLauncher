@@ -134,6 +134,7 @@
     <ClInclude Include="dedicatedmaterialsystem.h" />
     <ClInclude Include="filesystem.h" />
     <ClInclude Include="gameutils.h" />
+    <ClInclude Include="hashing.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="hookutils.h" />
     <ClInclude Include="include\crypto\aes_platform.h" />
@@ -590,6 +591,7 @@
     <ClCompile Include="emit_blocker.cpp" />
     <ClCompile Include="filesystem.cpp" />
     <ClCompile Include="gameutils.cpp" />
+    <ClCompile Include="hashing.cpp" />
     <ClCompile Include="hooks.cpp" />
     <ClCompile Include="hookutils.cpp" />
     <ClCompile Include="keyvalues.cpp" />
