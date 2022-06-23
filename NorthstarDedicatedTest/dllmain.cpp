@@ -52,7 +52,6 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "ExploitFixes.h"
-#include "emit_blocker.h"
 
 typedef void (*initPluginFuncPtr)(void* getPluginObject);
 
@@ -289,7 +288,6 @@ bool InitialiseNorthstar()
 
 	// activate exploit fixes
 	AddDllLoadCallback("server.dll", ExploitFixes::LoadCallback);
-	AddDllLoadCallback("server.dll", InitialiseServerEmit_Blocker);
 
 	// expose hashing functions to squirrel vms
 	AddDllLoadCallbackForClient("client.dll", InitialiseScriptHashingClientAndUI);
