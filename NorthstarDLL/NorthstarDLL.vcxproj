@@ -505,6 +505,7 @@
     <ClCompile Include="scripts\client\scriptmodmenu.cpp" />
     <ClCompile Include="scripts\client\scriptserverbrowser.cpp" />
     <ClCompile Include="scripts\client\scriptservertoclientstringcommand.cpp" />
+    <ClCompile Include="scripts\client\cursorposition.cpp" />
     <ClCompile Include="scripts\scriptdatatables.cpp" />
     <ClCompile Include="scripts\scripthttprequesthandler.cpp" />
     <ClCompile Include="scripts\scriptjson.cpp" />
