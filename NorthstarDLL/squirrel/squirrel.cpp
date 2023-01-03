@@ -90,6 +90,18 @@ eSQReturnType SQReturnTypeFromString(const char* pReturnType)
 		return eSQReturnType::Default; // previous default value
 }
 
+ScriptContext ScriptContextFromString(std::string string)
+{
+	if (string == "UI")
+		return ScriptContext::UI;
+	if (string == "CLIENT")
+		return ScriptContext::CLIENT;
+	if (string == "SERVER")
+		return ScriptContext::SERVER;
+	else
+		return ScriptContext::INVALID;
+}
+
 const char* SQTypeNameFromID(int type)
 {
 	switch (type)
@@ -146,13 +158,17 @@ template <ScriptContext context> void SquirrelManager<context>::GenerateSquirrel
 {
 	s->RegisterSquirrelFunc = RegisterSquirrelFunc;
 	s->__sq_defconst = __sq_defconst;
+
 	s->__sq_compilebuffer = __sq_compilebuffer;
 	s->__sq_call = __sq_call;
 	s->__sq_raiseerror = __sq_raiseerror;
+
 	s->__sq_newarray = __sq_newarray;
 	s->__sq_arrayappend = __sq_arrayappend;
+
 	s->__sq_newtable = __sq_newtable;
 	s->__sq_newslot = __sq_newslot;
+
 	s->__sq_pushroottable = __sq_pushroottable;
 	s->__sq_pushstring = __sq_pushstring;
 	s->__sq_pushinteger = __sq_pushinteger;
@@ -162,6 +178,11 @@ template <ScriptContext context> void SquirrelManager<context>::GenerateSquirrel
 	s->__sq_pushvector = __sq_pushvector;
 	s->__sq_pushobject = __sq_pushobject;
 	s->__sq_getstring = __sq_getstring;
+	s->__sq_getthisentity = __sq_getthisentity;
+	s->__sq_getobject = __sq_getobject;
+
+	s->__sq_stackinfos = __sq_stackinfos;
+
 	s->__sq_getinteger = __sq_getinteger;
 	s->__sq_getfloat = __sq_getfloat;
 	s->__sq_getbool = __sq_getbool;
@@ -172,6 +193,10 @@ template <ScriptContext context> void SquirrelManager<context>::GenerateSquirrel
 	s->__sq_createuserdata = __sq_createuserdata;
 	s->__sq_setuserdatatypeid = __sq_setuserdatatypeid;
 	s->__sq_getfunction = __sq_getfunction;
+
+	s->__sq_getentityfrominstance = __sq_getentityfrominstance;
+	s->__sq_GetEntityConstant_CBaseEntity = __sq_GetEntityConstant_CBaseEntity;
+
 	s->__sq_schedule_call_external = AsyncCall_External;
 }
 
@@ -353,23 +378,37 @@ template <ScriptContext context> CSquirrelVM* __fastcall CreateNewVMHook(void* a
 	return sqvm;
 }
 
-template <ScriptContext context> void (*__fastcall DestroyVM)(void* a1, HSquirrelVM* sqvm);
-template <ScriptContext context> void __fastcall DestroyVMHook(void* a1, HSquirrelVM* sqvm)
+template <ScriptContext context> bool (*__fastcall CSquirrelVM_init)(CSquirrelVM* vm, ScriptContext realContext, float time);
+template <ScriptContext context> bool __fastcall CSquirrelVM_initHook(CSquirrelVM* vm, ScriptContext realContext, float time)
+{
+	bool ret = CSquirrelVM_init<context>(vm, realContext, time);
+	for (Mod mod : g_pModManager->m_LoadedMods)
+	{
+		if (mod.initScript.size() != 0)
+		{
+			std::string name = mod.initScript.substr(mod.initScript.find_last_of('/') + 1);
+			std::string path = std::string("scripts/vscripts/") + mod.initScript;
+			if (g_pSquirrel<context>->compilefile(vm, path.c_str(), name.c_str(), 0))
+				g_pSquirrel<context>->compilefile(vm, path.c_str(), name.c_str(), 1);
+		}
+	}
+	return ret;
+}
+
+template <ScriptContext context> void (*__fastcall DestroyVM)(void* a1, CSquirrelVM* sqvm);
+template <ScriptContext context> void __fastcall DestroyVMHook(void* a1, CSquirrelVM* sqvm)
 {
 	ScriptContext realContext = context; // ui and client use the same function so we use this for prints
-	if (IsUIVM(context, sqvm))
+	if (IsUIVM(context, sqvm->sqvm))
 	{
 		realContext = ScriptContext::UI;
 		g_pSquirrel<ScriptContext::UI>->VMDestroyed();
-		g_pPluginManager->InformSQVMDestroyed(ScriptContext::UI);
-		// Don't call DestroyVM here because it crashes.
-		// Respawn Code :tm:
+		DestroyVM<ScriptContext::CLIENT>(a1, sqvm); // If we pass UI here it crashes
 	}
 	else
 	{
 		g_pSquirrel<context>->VMDestroyed();
-		g_pPluginManager->InformSQVMDestroyed(context);
-		DestroyVM<ScriptContext::CLIENT>(a1, sqvm); // If we pass UI here it crashes
+		DestroyVM<context>(a1, sqvm);
 	}
 
 	spdlog::info("DestroyVM {} {}", GetContextName(realContext), (void*)sqvm);
@@ -588,6 +627,45 @@ template <ScriptContext context> void SquirrelManager<context>::ProcessMessageBu
 	_call(m_pSQVM->sqvm, message.args.size());
 }
 
+ADD_SQFUNC(
+	"string",
+	NSGetCurrentModName,
+	"",
+	"Returns the mod name of the script running this function",
+	ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	int depth = g_pSquirrel<context>->getinteger(sqvm, 1);
+	if (auto mod = g_pSquirrel<context>->getcallingmod(sqvm, depth); mod == nullptr)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, "NSGetModName was called from a non-mod script. This shouldn't be possible");
+		return SQRESULT_ERROR;
+	}
+	else
+	{
+		g_pSquirrel<context>->pushstring(sqvm, mod->Name.c_str());
+	}
+	return SQRESULT_NOTNULL;
+}
+
+ADD_SQFUNC(
+	"string",
+	NSGetCallingModName,
+	"int depth = 0",
+	"Returns the mod name of the script running this function",
+	ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	int depth = g_pSquirrel<context>->getinteger(sqvm, 1);
+	if (auto mod = g_pSquirrel<context>->getcallingmod(sqvm, depth); mod == nullptr)
+	{
+		g_pSquirrel<context>->pushstring(sqvm, "Unknown");
+	}
+	else
+	{
+		g_pSquirrel<context>->pushstring(sqvm, mod->Name.c_str());
+	}
+	return SQRESULT_NOTNULL;
+}
+
 ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(client.dll)
@@ -597,8 +675,10 @@ ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
 
 	g_pSquirrel<ScriptContext::CLIENT>->__sq_compilebuffer = module.Offset(0x3110).As<sq_compilebufferType>();
 	g_pSquirrel<ScriptContext::CLIENT>->__sq_pushroottable = module.Offset(0x5860).As<sq_pushroottableType>();
+	g_pSquirrel<ScriptContext::CLIENT>->__sq_compilefile = module.Offset(0xF950).As<sq_compilefileType>();
 	g_pSquirrel<ScriptContext::UI>->__sq_compilebuffer = g_pSquirrel<ScriptContext::CLIENT>->__sq_compilebuffer;
 	g_pSquirrel<ScriptContext::UI>->__sq_pushroottable = g_pSquirrel<ScriptContext::CLIENT>->__sq_pushroottable;
+	g_pSquirrel<ScriptContext::UI>->__sq_compilefile = g_pSquirrel<ScriptContext::CLIENT>->__sq_compilefile;
 
 	g_pSquirrel<ScriptContext::CLIENT>->__sq_call = module.Offset(0x8650).As<sq_callType>();
 	g_pSquirrel<ScriptContext::UI>->__sq_call = g_pSquirrel<ScriptContext::CLIENT>->__sq_call;
@@ -664,6 +744,8 @@ ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
 	g_pSquirrel<ScriptContext::UI>->messageBuffer = g_pSquirrel<ScriptContext::CLIENT>->messageBuffer;
 	g_pSquirrel<ScriptContext::CLIENT>->__sq_getfunction = module.Offset(0x572FB0).As<sq_getfunctionType>();
 	g_pSquirrel<ScriptContext::UI>->__sq_getfunction = g_pSquirrel<ScriptContext::CLIENT>->__sq_getfunction;
+	g_pSquirrel<ScriptContext::CLIENT>->__sq_stackinfos = module.Offset(0x35970).As<sq_stackinfosType>();
+	g_pSquirrel<ScriptContext::UI>->__sq_stackinfos = g_pSquirrel<ScriptContext::CLIENT>->__sq_stackinfos;
 
 	MAKEHOOK(
 		module.Offset(0x108E0),
@@ -688,6 +770,8 @@ ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
 
 	MAKEHOOK(module.Offset(0x10190), &CallScriptInitCallbackHook<ScriptContext::CLIENT>, &CallScriptInitCallback<ScriptContext::CLIENT>);
 
+	MAKEHOOK(module.Offset(0xE3B0), &CSquirrelVM_initHook<ScriptContext::CLIENT>, &CSquirrelVM_init<ScriptContext::CLIENT>);
+
 	RegisterConCommand("script_client", ConCommand_script<ScriptContext::CLIENT>, "Executes script code on the client vm", FCVAR_CLIENTDLL);
 	RegisterConCommand("script_ui", ConCommand_script<ScriptContext::UI>, "Executes script code on the ui vm", FCVAR_CLIENTDLL);
 
@@ -711,6 +795,7 @@ ON_DLL_LOAD_RELIESON("server.dll", ServerSquirrel, ConCommand, (CModule module))
 	g_pSquirrel<ScriptContext::SERVER>->__sq_compilebuffer = module.Offset(0x3110).As<sq_compilebufferType>();
 	g_pSquirrel<ScriptContext::SERVER>->__sq_pushroottable = module.Offset(0x5840).As<sq_pushroottableType>();
 	g_pSquirrel<ScriptContext::SERVER>->__sq_call = module.Offset(0x8620).As<sq_callType>();
+	g_pSquirrel<ScriptContext::SERVER>->__sq_compilefile = module.Offset(0x1CD80).As<sq_compilefileType>();
 
 	g_pSquirrel<ScriptContext::SERVER>->__sq_newarray = module.Offset(0x39F0).As<sq_newarrayType>();
 	g_pSquirrel<ScriptContext::SERVER>->__sq_arrayappend = module.Offset(0x3C70).As<sq_arrayappendType>();
@@ -749,6 +834,7 @@ ON_DLL_LOAD_RELIESON("server.dll", ServerSquirrel, ConCommand, (CModule module))
 	g_pSquirrel<ScriptContext::SERVER>->logger = NS::log::SCRIPT_SV;
 	// Message buffer stuff
 	g_pSquirrel<ScriptContext::SERVER>->__sq_getfunction = module.Offset(0x6C85).As<sq_getfunctionType>();
+	g_pSquirrel<ScriptContext::SERVER>->__sq_stackinfos = module.Offset(0x35920).As<sq_stackinfosType>();
 
 	MAKEHOOK(
 		module.Offset(0x1DD10),
@@ -762,7 +848,7 @@ ON_DLL_LOAD_RELIESON("server.dll", ServerSquirrel, ConCommand, (CModule module))
 	MAKEHOOK(module.Offset(0x26E20), &DestroyVMHook<ScriptContext::SERVER>, &DestroyVM<ScriptContext::SERVER>);
 	MAKEHOOK(module.Offset(0x799E0), &ScriptCompileErrorHook<ScriptContext::SERVER>, &SQCompileError<ScriptContext::SERVER>);
 	MAKEHOOK(module.Offset(0x1D5C0), &CallScriptInitCallbackHook<ScriptContext::SERVER>, &CallScriptInitCallback<ScriptContext::SERVER>);
-
+	MAKEHOOK(module.Offset(0x17BE0), &CSquirrelVM_initHook<ScriptContext::SERVER>, &CSquirrelVM_init<ScriptContext::SERVER>);
 	// FCVAR_CHEAT and FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS allows clients to execute this, but since it's unsafe we only allow it when cheats
 	// are enabled for script_client and script_ui, we don't use cheats, so clients can execute them on themselves all they want
 	RegisterConCommand(

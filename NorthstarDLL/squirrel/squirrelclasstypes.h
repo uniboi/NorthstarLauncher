@@ -73,6 +73,7 @@ struct SQFuncRegistration
 
 enum class ScriptContext : int
 {
+	INVALID = -1,
 	SERVER,
 	CLIENT,
 	UI,
@@ -192,6 +193,7 @@ typedef SQRESULT (*sq_compilebufferType)(
 	HSquirrelVM* sqvm, CompileBufferState* compileBuffer, const char* file, int a1, SQBool bShouldThrowError);
 typedef SQRESULT (*sq_callType)(HSquirrelVM* sqvm, SQInteger iArgs, SQBool bShouldReturn, SQBool bThrowError);
 typedef SQInteger (*sq_raiseerrorType)(HSquirrelVM* sqvm, const SQChar* pError);
+typedef bool (*sq_compilefileType)(CSquirrelVM* sqvm, const char* path, const char* name, int a4);
 
 // sq stack array funcs
 typedef void (*sq_newarrayType)(HSquirrelVM* sqvm, SQInteger iStackpos);
@@ -222,6 +224,8 @@ typedef SQRESULT (*sq_getuserdataType)(HSquirrelVM* sqvm, SQInteger iStackpos, v
 typedef SQFloat* (*sq_getvectorType)(HSquirrelVM* sqvm, SQInteger iStackpos);
 typedef SQBool (*sq_getthisentityType)(HSquirrelVM*, void** ppEntity);
 typedef void (*sq_getobjectType)(HSquirrelVM*, SQInteger iStackPos, SQObject* pOutObj);
+
+typedef long long (*sq_stackinfosType)(HSquirrelVM* sqvm, int iLevel, SQStackInfos* pOutObj, int iCallStackSize);
 
 // sq stack userpointer funcs
 typedef void* (*sq_createuserdataType)(HSquirrelVM* sqvm, SQInteger iSize);
