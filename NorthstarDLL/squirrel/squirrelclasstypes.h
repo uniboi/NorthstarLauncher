@@ -1,5 +1,6 @@
 #pragma once
 #include "squirreldatatypes.h"
+#include "../anim_test/RecordedAnimation.h"
 
 #include <queue>
 
@@ -240,6 +241,7 @@ typedef int (*sq_getfunctionType)(HSquirrelVM* sqvm, const char* name, SQObject*
 typedef SQRESULT (*sq_pushnewstructinstanceType)(HSquirrelVM* sqvm, int fieldCount);
 typedef SQRESULT (*sq_sealstructslotType)(HSquirrelVM* sqvm, int slotIndex);
 
+typedef RecordedAnimation *(*sq_getrecordedanimationType)(HSquirrelVM* sqvm, int stackpos);
 #pragma endregion
 
 // These "external" versions of the types are for plugins

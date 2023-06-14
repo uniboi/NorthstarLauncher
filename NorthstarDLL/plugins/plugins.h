@@ -1,5 +1,6 @@
 #pragma once
 #include "plugin_abi.h"
+#include <vadefs.h>
 
 const int IDR_RCDATA1 = 101;
 
@@ -48,7 +49,7 @@ class PluginManager
 	void InformSQVMDestroyed(ScriptContext context);
 	void PushPresence(PluginGameStatePresence* data);
 
-	void InformDLLLoad(PluginLoadDLL dll, void* data);
+	void InformDLLLoad(PluginLoadDLL dll, void* data, uintptr_t address);
 
   private:
 	std::string pluginPath;

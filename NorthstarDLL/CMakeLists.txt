@@ -139,6 +139,7 @@ add_library(NorthstarDLL SHARED
             "util/version.h"
             "util/wininfo.cpp"
             "util/wininfo.h"
+            "anim_test/RecordedAnimation.h"
             "audio_asm.asm"
             "dllmain.cpp"
             "dllmain.h"

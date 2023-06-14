@@ -7,6 +7,7 @@
 #include "core/convar/convar.h"
 #include "server/serverpresence.h"
 #include <optional>
+#include <vadefs.h>
 
 #include "util/version.h"
 #include "pluginbackend.h"
@@ -280,13 +281,13 @@ void PluginManager::PushPresence(PluginGameStatePresence* data)
 	}
 }
 
-void PluginManager::InformDLLLoad(PluginLoadDLL dll, void* data)
+void PluginManager::InformDLLLoad(PluginLoadDLL dll, void* data, uintptr_t address)
 {
 	for (auto plugin : m_vLoadedPlugins)
 	{
 		if (plugin.inform_dll_load != NULL)
 		{
-			plugin.inform_dll_load(dll, data);
+			plugin.inform_dll_load(dll, data, address);
 		}
 	}
 }

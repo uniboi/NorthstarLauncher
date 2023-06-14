@@ -110,6 +110,8 @@ class SquirrelManagerBase
 	sq_pushnewstructinstanceType __sq_pushnewstructinstance;
 	sq_sealstructslotType __sq_sealstructslot;
 
+	sq_getrecordedanimationType sq_getrecordedanimation;
+
 #pragma endregion
 
 #pragma region SQVM func wrappers

@@ -879,6 +879,8 @@ ON_DLL_LOAD_RELIESON("server.dll", ServerSquirrel, ConCommand, (CModule module))
 	g_pSquirrel<ScriptContext::SERVER>->__sq_pushnewstructinstance = module.Offset(0x53e0).As<sq_pushnewstructinstanceType>();
 	g_pSquirrel<ScriptContext::SERVER>->__sq_sealstructslot = module.Offset(0x5510).As<sq_sealstructslotType>();
 
+	g_pSquirrel<ScriptContext::SERVER>->sq_getrecordedanimation = module.Offset(0x99b30).As<sq_getrecordedanimationType>();
+
 	MAKEHOOK(
 		module.Offset(0x1DD10),
 		&RegisterSquirrelFunctionHook<ScriptContext::SERVER>,
