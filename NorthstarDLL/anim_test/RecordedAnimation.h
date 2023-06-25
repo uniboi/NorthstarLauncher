@@ -57,29 +57,4 @@ struct RecordedAnimation
 	bool notRefcounted_maybe; /* +0x32e only increases if this is false */
 	char unknown_813;
 	short refcount_maybe; /* increases when an animation is loaded */
-
-	~RecordedAnimation()
-	{
-		for (size_t i = 0; i < 15; i++)
-		{
-			delete[] this->sequences_1[i];
-		}
-
-		for (size_t i = 0; i < 47; i++)
-		{
-			delete[] this->sequences[i];
-		}
-
-		for (size_t i = 0; i < 3000; i++)
-		{
-			delete &this->frames[i];
-		}
-		delete[] this->frames;
-
-		for (size_t i = 0; i < 3000; i++)
-		{
-			delete &this->layers[i];
-		}
-		delete[] this->layers;
-	}
 };

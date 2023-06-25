@@ -20,8 +20,9 @@
 AUTOHOOK_INIT()
 
 VAR_AT(server.dll + 0xbce630, int, g_CreatedRecordedAnimCount);
-FUNCTION_AT(server.dll + 0x996e0, long long, __fastcall, InsertAnimInLoadedList, (RecordedAnimation * anim))
-FUNCTION_AT(server.dll + 0x99c50, void, __fastcall, sq_PushRecordedAnimationFromData, (RecordedAnimation * anim))
+FUNCTION_AT(server.dll + 0x996e0, RecordedAnimation*, __fastcall, CreateNewRecordedAnimation, (void))
+FUNCTION_AT(server.dll + 0x99270, long long, __fastcall, InsertAnimInLoadedList, (RecordedAnimation * anim))
+FUNCTION_AT(server.dll + 0x99c50, void, __fastcall, sq_PushRecordedAnimationFromData, (HSquirrelVM * sqvm, RecordedAnimation* anim))
 
 constexpr int BINARY_FORMAT_VERSION = 1;
 
@@ -89,35 +90,53 @@ void serialize(RecordedAnimation* data, const char* fname)
 {
 	std::ofstream stream(fname, std::ios::binary);
 
+	spdlog::info("write version");
 	serializeBlob(&stream, (void*)&BINARY_FORMAT_VERSION, sizeof(int));
+	spdlog::info("write sequences1");
 	serializeStrings(&stream, data->sequences_1, SEQUENCES_1_LEN);
 
+	spdlog::info("write unknown120");
 	for (int i = 0; i < UNKNOWN_120_LEN; i++)
 	{
 		serializeBlob(&stream, &data->unknown_120[i].unknown_0, sizeof(float));
 		serializeBlob(&stream, &data->unknown_120[i].unknown_1, sizeof(float));
 	}
 
+	spdlog::info("write sequences");
 	serializeStrings(&stream, data->sequences, SEQUENCES_LEN);
 
+	spdlog::info("write unk616");
 	for (int i = 0; i < UNKNOWN_616_LEN; i++)
 	{
 		serializeBlob(&stream, &data->unknown_616[i], sizeof(long long));
 	}
 
+	spdlog::info("write origin");
 	serializeBlob(&stream, &data->origin, sizeof(Vector3));
+	spdlog::info("write angles");
 	serializeBlob(&stream, &data->angles, sizeof(Vector3));
+	spdlog::info("write framecount");
 	serializeBlob(&stream, &data->frameCount, sizeof(int));
+	spdlog::info("write layercount");
 	serializeBlob(&stream, &data->layerCount, sizeof(int));
+	spdlog::info("write frames");
 	serializeBlob(&stream, data->frames, sizeof(RecordedAnimationFrame) * data->frameCount);
+	spdlog::info("write layers");
 	serializeBlob(&stream, data->layers, sizeof(RecordedAnimationLayer) * data->layerCount);
+	spdlog::info("write loffset");
 	serializeBlob(&stream, &data->loadedOffset_maybe, sizeof(long long));
+	spdlog::info("write uoffset");
 	serializeBlob(&stream, &data->userdataOffset_maybe, sizeof(int));
+	spdlog::info("write isrefcount");
 	serializeBlob(&stream, &data->notRefcounted_maybe, sizeof(bool));
+	spdlog::info("write unk813");
 	serializeBlob(&stream, &data->unknown_813, sizeof(char));
+	spdlog::info("write refcount");
 	serializeBlob(&stream, &data->refcount_maybe, sizeof(short));
 
+	spdlog::info("closing stream");
 	stream.close();
+	spdlog::info("finished writing");
 }
 
 void deserialize(const char* fname, RecordedAnimation* out)
@@ -170,6 +189,13 @@ void deserialize(const char* fname, RecordedAnimation* out)
 	stream.close();
 }
 
+void deserialize2(const char* fname, RecordedAnimation* out)
+{
+	std::ifstream stream(fname, std::ios::binary);
+	deserializeBlob(&stream, out, sizeof(*out));
+	stream.close();
+}
+
 ADD_SQFUNC("void", LoaderGetAnim, "var anim", "", ScriptContext::SERVER)
 {
 	spdlog::info("loading anim from stack");
@@ -205,15 +231,18 @@ ADD_SQFUNC("var", LoadAnim, "", "", ScriptContext::SERVER)
 	deserialize("anim_save.anim", &anim);
 
 	anim.userdataOffset_maybe = g_CreatedRecordedAnimCount++;
-	anim.refcount_maybe = 1;
-	anim.notRefcounted_maybe = false;
-	anim.frameCount = 0;
-	anim.layerCount = 0;
+	anim.refcount_maybe = 0;
 
-	spdlog::info("loaded origin from disk <{}, {}, {}>", anim.origin.x, anim.origin.y, anim.origin.z);
-	spdlog::info("loaded angles from disk <{}, {}, {}>", anim.angles.x, anim.angles.y, anim.angles.z);
+	long long insertResult = InsertAnimInLoadedList(&anim);
 
-	sq_PushRecordedAnimationFromData(&anim);
+	if (insertResult == NULL)
+	{
+		spdlog::warn("could not load animation in list");
+	}
+	else
+	{
+		sq_PushRecordedAnimationFromData(sqvm, &anim);
+	}
 
 	return SQRESULT_NOTNULL;
 }
@@ -229,12 +258,89 @@ ADD_SQFUNC("var", CopyAnim, "var anim", "", ScriptContext::SERVER)
 
 	spdlog::info("saved animdata");
 
-	RecordedAnimation copy;
-	std::ifstream istream("anim_save.anim", std::ios::binary);
-	istream.read((char*)&copy, sizeof(copy));
-	istream.close();
+	// char *buffer = new char[816];
+	RecordedAnimation buffer;
+	deserialize2("anim_save.anim", &buffer);
 
-	// sq_PushRecordedAnimationFromData((RecordedAnimation *)buffer);
+	spdlog::info("loaded animdata");
+	spdlog::info("anim diff: {}", memcmp(anim, &buffer, sizeof(RecordedAnimation)));
+
+	buffer.userdataOffset_maybe = g_CreatedRecordedAnimCount++;
+	buffer.refcount_maybe = 0;
+
+	// RecordedAnimation* n = CreateNewRecordedAnimation();
+	// sq_PushRecordedAnimationFromData(sqvm, n);
+
+	// long long insertResult = InsertAnimInLoadedList(&buffer);
+
+	// if (insertResult == NULL)
+	// {
+	// 	spdlog::warn("could not load animation in list");
+	// }
+	// else
+	// {
+	// 	sq_PushRecordedAnimationFromData(sqvm, anim);
+	// }
+
+	return SQRESULT_NOTNULL;
+}
+
+ADD_SQFUNC("void", AnimTest, "var anim", "", ScriptContext::SERVER)
+{
+	RecordedAnimation* anim = g_pSquirrel<context>->sq_getrecordedanimation(sqvm, 1);
+	
+	if(anim)
+	{
+		spdlog::info("valid recording");
+	}
+	else
+	{
+		
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("var", CopyAnimFromDisk, "var anim", "", ScriptContext::SERVER)
+{
+	spdlog::info("loading cached animation from stack");
+	RecordedAnimation* anim = g_pSquirrel<context>->sq_getrecordedanimation(sqvm, 2);
+
+	if (!anim)
+	{
+		spdlog::warn("unable to load animation from stack");
+		return SQRESULT_ERROR;
+	}
+
+	serialize(anim, "anim_save.anim");
+	spdlog::info("saved animation on disk");
+
+	spdlog::info("loading anim from disk");
+	RecordedAnimation copy;
+	deserialize("anim_save.anim", &copy);
+
+	spdlog::info("manipulating copy");
+	copy.userdataOffset_maybe = g_CreatedRecordedAnimCount++;
+	copy.refcount_maybe = 0;
+	// copy.sequences_1 = anim->sequences_1;
+	// copy.unknown_120 = anim->unknown_120;
+	// copy.sequences = anim->sequences;
+	// copy.unknown_616 = anim->unknown_616;
+	copy.frames = anim->frames;
+	copy.layers = anim->layers;
+
+	long long insertResult = InsertAnimInLoadedList(&copy);
+
+	if (insertResult == NULL)
+	{
+		spdlog::warn("could not load animation in list");
+		return SQRESULT_ERROR;
+	}
+	else
+	{
+		spdlog::info("pushing copy on stack");
+		sq_PushRecordedAnimationFromData(sqvm, &copy);
+	}
 
 	return SQRESULT_NOTNULL;
 }
