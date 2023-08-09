@@ -1,7 +1,7 @@
 #pragma once
 
+#include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
-//#include "include/rapidjson/allocators.h"
 
 extern "C" void* _malloc_base(size_t size);
 extern "C" void* _calloc_base(size_t const count, size_t const size);
@@ -24,7 +24,7 @@ class SourceAllocator
 		if (size) // behavior of malloc(0) is implementation defined.
 			return _malloc_base(size);
 		else
-			return NULL; // standardize to returning NULL.
+			return nullptr; // standardize to returning NULL.
 	}
 	void* Realloc(void* originalPtr, size_t originalSize, size_t newSize)
 	{
@@ -32,7 +32,7 @@ class SourceAllocator
 		if (newSize == 0)
 		{
 			_free_base(originalPtr);
-			return NULL;
+			return nullptr;
 		}
 		return _realloc_base(originalPtr, newSize);
 	}

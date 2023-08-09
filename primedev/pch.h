@@ -36,6 +36,8 @@ typedef void (*callable_v)(void* v);
 
 #include "logging/dbg.h"
 
+//#include "rapidjson/rapidjson.h"
+
 #include "spdlog/spdlog.h"
 #include "logging/logging.h"
 #include "MinHook.h"
