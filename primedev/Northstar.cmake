@@ -4,6 +4,7 @@ find_package(minhook REQUIRED)
 find_package(libcurl REQUIRED)
 
 add_library(NorthstarDLL SHARED
+            "appframework/IAppSystem.h"
             "client/audio.cpp"
             "client/audio.h"
             "client/chatcommand.cpp"
@@ -132,6 +133,8 @@ add_library(NorthstarDLL SHARED
             "squirrel/squirrelautobind.h"
             "squirrel/squirrelclasstypes.h"
             "squirrel/squirreldatatypes.h"
+            "tier1/interface.cpp"
+			"tier1/interface.h"
             "util/printcommands.cpp"
             "util/printcommands.h"
             "util/printmaps.cpp"

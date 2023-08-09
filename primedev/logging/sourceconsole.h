@@ -61,6 +61,6 @@ class CGameConsole
 	CConsoleDialog* m_pConsole;
 };
 
-extern SourceInterface<CGameConsole>* g_pSourceGameConsole;
+extern CGameConsole* g_pGameConsole;
 
 void InitialiseConsoleOnInterfaceCreation();

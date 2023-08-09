@@ -1,5 +1,8 @@
 #pragma once
 #include "convar.h"
+#include "appframework/IAppSystem.h"
+
+typedef int CVarDLLIdentifier_t;
 
 //-----------------------------------------------------------------------------
 // Forward declarations
@@ -23,20 +26,69 @@ class CCVarIteratorInternal // Fully reversed table, just look at the virtual fu
 //-----------------------------------------------------------------------------
 // Default implementation
 //-----------------------------------------------------------------------------
-class CCvar
+class ICvar : public IAppSystem
 {
   public:
-	M_VMETHOD(ConCommandBase*, FindCommandBase, 14, (const char* pszCommandName), (this, pszCommandName));
-	M_VMETHOD(ConVar*, FindVar, 16, (const char* pszVarName), (this, pszVarName));
-	M_VMETHOD(ConCommand*, FindCommand, 18, (const char* pszCommandName), (this, pszCommandName));
-	M_VMETHOD(CCVarIteratorInternal*, FactoryInternalIterator, 41, (), (this));
+	virtual CVarDLLIdentifier_t AllocateDLLIdentifier() = 0;
 
+	// Register, unregister commands
+	virtual void RegisterConCommand(ConCommandBase* pCommandBase) = 0;
+	virtual void UnregisterConCommand(ConCommandBase* pCommandBase) = 0;
+	virtual void UnregisterConCommands(CVarDLLIdentifier_t id) = 0;
+
+	virtual const char* GetCommandLineValue(const char* pVariableName) = 0;
+
+	virtual ConCommandBase* FindCommandBase(const char* name) = 0;
+	virtual const ConCommandBase* FindCommandBase(const char* name) const = 0;
+	virtual ConVar* FindVar(const char* var_name) = 0;
+	virtual const ConVar* FindVar(const char* var_name) const = 0;
+	virtual ConCommand* FindCommand(const char* name) = 0;
+	virtual const ConCommand* FindCommand(const char* name) const = 0;
+
+	virtual void sub_18000CF30() = 0;
+	virtual void sub_18000E6F0() = 0;
+
+	virtual void sub_18000C200() = 0;
+	virtual void sub_18000E610() = 0;
+	virtual void sub_180009DE0() = 0;
+
+	virtual void sub_18000C190() = 0; // InstallConsoleDisplayFunc
+	virtual void sub_18000E5A0() = 0; // RemoveConsoleDisplayFunc
+
+	virtual void ConsoleColorPrintf(const SourceColor& clr, const char* pFormat, ...) const = 0;
+	virtual void ConsolePrintf(const char* pFormat, ...) const = 0;
+	virtual void ConsoleDPrintf(const char* pFormat, ...) const = 0;
+
+	virtual void sub_18000EC50() = 0;
+
+	virtual void sub_18000C170() = 0;
+
+	virtual void sub_18000F4B0() = 0;
+	virtual void sub_unk() = 0;
+	virtual void sub_18000AEB0() = 0;
+	virtual void sub_18000AEC0() = 0;
+	virtual void sub_18000C530() = 0;
+	virtual void sub_18000DD60() = 0;
+	virtual void sub_18000DCD0() = 0;
+	virtual void sub_18000DDF0() = 0;
+	virtual void sub_18000B8A0() = 0;
+	virtual void sub_18000D3C0() = 0;
+	virtual CCVarIteratorInternal* FactoryInternalIterator() = 0;
+
+	// M_VMETHOD(ConCommandBase*, FindCommandBase, 14, (const char* pszCommandName), (this, pszCommandName));
+	// M_VMETHOD(ConVar*, FindVar, 16, (const char* pszVarName), (this, pszVarName));
+	// M_VMETHOD(ConCommand*, FindCommand, 18, (const char* pszCommandName), (this, pszCommandName));
+	// M_VMETHOD(CCVarIteratorInternal*, FactoryInternalIterator, 41, (), (this));
+};
+
+class CCvar : public ICvar
+{
+  public:
 	std::unordered_map<std::string, ConCommandBase*> DumpToMap();
 };
 
 // use the R2 namespace for game funcs
 namespace R2
 {
-	extern SourceInterface<CCvar>* g_pCVarInterface;
 	extern CCvar* g_pCVar;
 } // namespace R2

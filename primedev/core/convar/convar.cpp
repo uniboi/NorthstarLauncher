@@ -1,7 +1,7 @@
 #include "bits.h"
 #include "cvar.h"
 #include "convar.h"
-#include "core/sourceinterface.h"
+#include "tier1/interface.h"
 
 #include <float.h>
 
@@ -35,8 +35,7 @@ ON_DLL_LOAD("engine.dll", ConVar, (CModule module))
 	g_pConVar_Vtable = module.Offset(0x67FD28);
 	g_pIConVar_Vtable = module.Offset(0x67FDC8);
 
-	R2::g_pCVarInterface = new SourceInterface<CCvar>("vstdlib.dll", "VEngineCvar007");
-	R2::g_pCVar = *R2::g_pCVarInterface;
+	R2::g_pCVar = Sys_GetFactoryPtr("vstdlib.dll", "VEngineCvar007").RCast<CCvar*>();
 }
 
 //-----------------------------------------------------------------------------

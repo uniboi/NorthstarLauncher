@@ -3,52 +3,56 @@
 #include "core/sourceinterface.h"
 #include "core/convar/concommand.h"
 #include "util/printcommands.h"
+#include "tier1/interface.h"
 
-SourceInterface<CGameConsole>* g_pSourceGameConsole;
+AUTOHOOK_INIT()
+
+CGameConsole* g_pGameConsole = nullptr;
 
 void ConCommand_toggleconsole(const CCommand& arg)
 {
-	if ((*g_pSourceGameConsole)->IsConsoleVisible())
-		(*g_pSourceGameConsole)->Hide();
+	if (g_pGameConsole->IsConsoleVisible())
+		g_pGameConsole->Hide();
 	else
-		(*g_pSourceGameConsole)->Activate();
+		g_pGameConsole->Activate();
 }
 
 void ConCommand_showconsole(const CCommand& arg)
 {
-	(*g_pSourceGameConsole)->Activate();
+	g_pGameConsole->Activate();
 }
 
 void ConCommand_hideconsole(const CCommand& arg)
 {
-	(*g_pSourceGameConsole)->Hide();
+	g_pGameConsole->Hide();
 }
 
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
 // clang-format off
-HOOK(OnCommandSubmittedHook, OnCommandSubmitted, 
-void, __fastcall, (CConsoleDialog* consoleDialog, const char* pCommand))
+AUTOHOOK(CGameConsole_OnCommandSubmitted, client.dll + 0x4A2550, void, __fastcall,
+	(CConsoleDialog* pConsoleDialog, const char* pszCommand))
 // clang-format on
 {
-	consoleDialog->m_pConsolePanel->Print("] ");
-	consoleDialog->m_pConsolePanel->Print(pCommand);
-	consoleDialog->m_pConsolePanel->Print("\n");
+	DevMsg(eLog::NONE, "] %s\n", pszCommand);
 
-	TryPrintCvarHelpForCommand(pCommand);
+	TryPrintCvarHelpForCommand(pszCommand);
 
-	OnCommandSubmitted(consoleDialog, pCommand);
+	CGameConsole_OnCommandSubmitted(pConsoleDialog, pszCommand);
 }
 
 // called from sourceinterface.cpp in client createinterface hooks, on GameClientExports001
 void InitialiseConsoleOnInterfaceCreation()
 {
-	(*g_pSourceGameConsole)->Initialize();
-	// hook OnCommandSubmitted so we print inputted commands
-	OnCommandSubmittedHook.Dispatch((LPVOID)(*g_pSourceGameConsole)->m_pConsole->m_vtable->OnCommandSubmitted);
+	g_pGameConsole->Initialize();
 }
 
 ON_DLL_LOAD_CLIENT_RELIESON("client.dll", SourceConsole, ConCommand, (CModule module))
 {
-	g_pSourceGameConsole = new SourceInterface<CGameConsole>("client.dll", "GameConsole004");
+	AUTOHOOK_DISPATCH()
+
+	g_pGameConsole = Sys_GetFactoryPtr("client.dll", "GameConsole004").RCast<CGameConsole*>();
 
 	RegisterConCommand("toggleconsole", ConCommand_toggleconsole, "Show/hide the console.", FCVAR_DONTRECORD);
 	RegisterConCommand("showconsole", ConCommand_showconsole, "Show the console.", FCVAR_DONTRECORD);

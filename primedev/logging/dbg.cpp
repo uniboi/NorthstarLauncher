@@ -1,7 +1,7 @@
 #include "dbg.h"
 
 #include "util/utils.h"
-#include "logging/sourceconsole.h"
+#include "core/convar/cvar.h"
 #include "logging/logging.h"
 #include <dedicated/dedicatedlogtoclient.h>
 #include <regex>
@@ -147,11 +147,9 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	DediClientMsg(svMessage.c_str());
 
 	// Log to game console
-	// TODO [Fifty]: Use "VEngineCvar007" interface to print instead of this fuckery
-	if (g_bEngineVguiInitilazed && (*g_pSourceGameConsole)->m_pConsole)
+	if (g_bEngineVguiInitilazed && R2::g_pCVar)
 	{
-		(*g_pSourceGameConsole)->m_pConsole->m_pConsolePanel->ColorPrint(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
-		//(*g_pSourceGameConsole)->m_pConsole->m_pConsolePanel->Print(svMessage.c_str());
+		R2::g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
 	}
 
 	//-----------------------------------
