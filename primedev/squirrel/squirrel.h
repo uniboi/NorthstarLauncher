@@ -3,7 +3,6 @@
 #include "squirrelclasstypes.h"
 #include "squirrelautobind.h"
 #include "core/math/vector.h"
-#include "plugins/plugin_abi.h"
 #include "mods/modmanager.h"
 
 eLog SQ_GetLogContextScript(ScriptContext nSqContext);
@@ -422,7 +421,6 @@ template <ScriptContext context> class SquirrelManager : public virtual Squirrel
 	SQRESULT setupfunc(const SQChar* funcname);
 	void AddFuncOverride(std::string name, SQFunction func);
 	void ProcessMessageBuffer();
-	void GenerateSquirrelFunctionsStruct(SquirrelFunctions* s);
 };
 
 template <ScriptContext context> SquirrelManager<context>* g_pSquirrel;

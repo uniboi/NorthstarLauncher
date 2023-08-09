@@ -3,7 +3,6 @@
 #include "dedicated/dedicated.h"
 #include "util/version.h"
 #include "mods/modmanager.h"
-#include "plugins/plugins.h"
 
 #include <minidumpapiset.h>
 
@@ -517,14 +516,7 @@ void CCrashHandler::FormatLoadedMods()
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatLoadedPlugins()
 {
-	if (g_pPluginManager)
-	{
-		spdlog::error("Loaded Plugins:");
-		for (const Plugin& plugin : g_pPluginManager->m_vLoadedPlugins)
-		{
-			spdlog::error("\t{}", plugin.name);
-		}
-	}
+	// Stub
 }
 
 //-----------------------------------------------------------------------------

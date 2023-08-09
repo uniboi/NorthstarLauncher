@@ -1,6 +1,4 @@
 #include "gamepresence.h"
-#include "plugins/pluginbackend.h"
-#include "plugins/plugins.h"
 #include "dedicated/dedicated.h"
 #include "server/serverpresence.h"
 #include "masterserver/masterserver.h"
@@ -37,7 +35,6 @@ void GameStatePresence::RunFrame()
 	{
 		auto test = g_pSquirrel<ScriptContext::CLIENT>->Call("NorthstarCodeCallback_GenerateGameState");
 	}
-	g_pPluginCommunicationhandler->GeneratePresenceObjects();
 }
 
 ADD_SQFUNC("void", NSPushGameStateData, "GameStateStruct gamestate", "", ScriptContext::CLIENT)
