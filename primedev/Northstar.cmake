@@ -144,8 +144,8 @@ add_library(NorthstarDLL SHARED
             "util/wininfo.h"
             "audio_asm.asm"
             "dllmain.cpp"
-            "dllmain.h"
             "ns_version.h"
+			"Northstar.def"
 )
 
 target_link_libraries(NorthstarDLL PRIVATE
