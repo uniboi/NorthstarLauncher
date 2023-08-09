@@ -1,16 +1,16 @@
-# NorthstarLauncher
+# PrimeLauncher
 
-add_executable(NorthstarLauncher
+add_executable(PrimeLauncher
                "primelauncher/main.cpp"
                "primelauncher/resources.rc"
 )
 
-target_compile_definitions(NorthstarLauncher PRIVATE
+target_compile_definitions(PrimeLauncher PRIVATE
                            UNICODE
                            _UNICODE
 )
 
-target_link_libraries(NorthstarLauncher PRIVATE
+target_link_libraries(PrimeLauncher PRIVATE
                       shlwapi.lib
                       kernel32.lib
                       user32.lib
@@ -27,7 +27,8 @@ target_link_libraries(NorthstarLauncher PRIVATE
                       WS2_32.lib
 )
 
-set_target_properties(NorthstarLauncher PROPERTIES
+set_target_properties(PrimeLauncher PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
+					  OUTPUT_NAME r2primelauncher
                       LINK_FLAGS "/MANIFEST:NO /DEBUG /STACK:8000000"
 )
