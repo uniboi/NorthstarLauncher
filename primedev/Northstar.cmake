@@ -40,6 +40,7 @@ add_library(NorthstarDLL SHARED
             "core/math/color.cpp"
             "core/math/color.h"
             "core/math/vector.h"
+			"core/dllmain.cpp"
             "core/hooks.cpp"
             "core/hooks.h"
             "core/macros.h"
@@ -146,7 +147,6 @@ add_library(NorthstarDLL SHARED
             "util/wininfo.cpp"
             "util/wininfo.h"
             "audio_asm.asm"
-            "dllmain.cpp"
             "ns_version.h"
 			"Northstar.def"
 )
@@ -164,7 +164,7 @@ target_link_libraries(NorthstarDLL PRIVATE
                       version.lib
 )
 
-target_precompile_headers(NorthstarDLL PRIVATE pch.h)
+target_precompile_headers(NorthstarDLL PRIVATE core/stdafx.h)
 
 target_compile_definitions(NorthstarDLL PRIVATE
                            UNICODE

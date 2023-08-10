@@ -7,7 +7,7 @@ add_library(loader_wsock32_proxy SHARED
             "wsockproxy/loader.cpp"
             "wsockproxy/loader.h"
             "wsockproxy/wsock32.asm"
-            "wsockproxy/wsock32.def"
+            "WSockProxy.def"
 )
 
 target_link_libraries(loader_wsock32_proxy PRIVATE
