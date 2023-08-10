@@ -3,17 +3,15 @@
 #include <system_error>
 #include <sstream>
 #include <fstream>
-#include <filesystem>
+#include "util/filesystem.h"
 #include <iostream>
-
-namespace fs = std::filesystem;
 
 void LibraryLoadError(DWORD dwMessageId, const wchar_t* libName, const wchar_t* location)
 {
 	char text[4096];
 	std::string message = std::system_category().message(dwMessageId);
 	sprintf_s(text, "Failed to load the %ls at \"%ls\" (%lu):\n\n%hs", libName, location, dwMessageId, message.c_str());
-	if (dwMessageId == 126 && std::filesystem::exists(location))
+	if (dwMessageId == 126 && FileExists(location))
 	{
 		sprintf_s(
 			text,
@@ -80,7 +78,7 @@ bool LoadNorthstar()
 		// Check if "Northstar.dll" exists in profile directory, if it doesnt fall back to root
 		swprintf_s(buffer, L"%s\\%s\\Northstar.dll", exePath, std::wstring(strProfile.begin(), strProfile.end()).c_str());
 
-		if (!fs::exists(fs::path(buffer)))
+		if (!FileExists(fs::path(buffer)))
 			swprintf_s(buffer, L"%s\\Northstar.dll", exePath);
 
 		std::wcout << L"[*] Using: " << buffer << std::endl;

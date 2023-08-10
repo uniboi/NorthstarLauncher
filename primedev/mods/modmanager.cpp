@@ -654,16 +654,16 @@ void ModManager::LoadMods()
 	}
 
 	// get mod directories
-	std::filesystem::directory_iterator classicModsDir = fs::directory_iterator(GetModFolderPath());
-	std::filesystem::directory_iterator remoteModsDir = fs::directory_iterator(GetRemoteModFolderPath());
+	fs::directory_iterator classicModsDir = fs::directory_iterator(GetModFolderPath());
+	fs::directory_iterator remoteModsDir = fs::directory_iterator(GetRemoteModFolderPath());
 
-	for (std::filesystem::directory_iterator modIterator : {classicModsDir, remoteModsDir})
+	for (fs::directory_iterator modIterator : {classicModsDir, remoteModsDir})
 		for (fs::directory_entry dir : modIterator)
-			if (fs::exists(dir.path() / "mod.json"))
+			if (FileExists(dir.path() / "mod.json"))
 				modDirs.push_back(dir.path());
 
 	// Special case for Thunderstore mods dir
-	std::filesystem::directory_iterator thunderstoreModsDir = fs::directory_iterator(GetThunderstoreModFolderPath());
+	fs::directory_iterator thunderstoreModsDir = fs::directory_iterator(GetThunderstoreModFolderPath());
 	// Set up regex for `AUTHOR-MOD-VERSION` pattern
 	std::regex pattern(R"(.*\\([a-zA-Z0-9_]+)-([a-zA-Z0-9_]+)-(\d+\.\d+\.\d+))");
 	for (fs::directory_entry dir : thunderstoreModsDir)
@@ -675,11 +675,11 @@ void ModManager::LoadMods()
 			spdlog::warn("The following directory did not match 'AUTHOR-MOD-VERSION': {}", dir.path().string());
 			continue; // skip loading mod that doesn't match
 		}
-		if (fs::exists(modsDir) && fs::is_directory(modsDir))
+		if (FileExists(modsDir) && fs::is_directory(modsDir))
 		{
 			for (fs::directory_entry subDir : fs::directory_iterator(modsDir))
 			{
-				if (fs::exists(subDir.path() / "mod.json"))
+				if (FileExists(subDir.path() / "mod.json"))
 				{
 					modDirs.push_back(subDir.path());
 				}
@@ -782,7 +782,7 @@ void ModManager::LoadMods()
 		}
 
 		// read vpk paths
-		if (fs::exists(mod.m_ModDirectory / "vpk"))
+		if (FileExists(mod.m_ModDirectory / "vpk"))
 		{
 			// read vpk cfg
 			std::ifstream vpkJsonStream(mod.m_ModDirectory / "vpk/vpk.json");
@@ -828,7 +828,7 @@ void ModManager::LoadMods()
 		}
 
 		// read rpak paths
-		if (fs::exists(mod.m_ModDirectory / "paks"))
+		if (FileExists(mod.m_ModDirectory / "paks"))
 		{
 			// read rpak cfg
 			std::ifstream rpakJsonStream(mod.m_ModDirectory / "paks/rpak.json");
@@ -930,7 +930,7 @@ void ModManager::LoadMods()
 		}
 
 		// read keyvalues paths
-		if (fs::exists(mod.m_ModDirectory / "keyvalues"))
+		if (FileExists(mod.m_ModDirectory / "keyvalues"))
 		{
 			for (fs::directory_entry file : fs::recursive_directory_iterator(mod.m_ModDirectory / "keyvalues"))
 			{
@@ -944,7 +944,7 @@ void ModManager::LoadMods()
 		}
 
 		// read pdiff
-		if (fs::exists(mod.m_ModDirectory / "mod.pdiff"))
+		if (FileExists(mod.m_ModDirectory / "mod.pdiff"))
 		{
 			std::ifstream pdiffStream(mod.m_ModDirectory / "mod.pdiff");
 
@@ -961,7 +961,7 @@ void ModManager::LoadMods()
 		}
 
 		// read bink video paths
-		if (fs::exists(mod.m_ModDirectory / "media"))
+		if (FileExists(mod.m_ModDirectory / "media"))
 		{
 			for (fs::directory_entry file : fs::recursive_directory_iterator(mod.m_ModDirectory / "media"))
 				if (fs::is_regular_file(file) && file.path().extension() == ".bik")
@@ -969,7 +969,7 @@ void ModManager::LoadMods()
 		}
 
 		// try to load audio
-		if (fs::exists(mod.m_ModDirectory / "audio"))
+		if (FileExists(mod.m_ModDirectory / "audio"))
 		{
 			for (fs::directory_entry file : fs::directory_iterator(mod.m_ModDirectory / "audio"))
 			{
@@ -995,7 +995,7 @@ void ModManager::LoadMods()
 		if (!m_LoadedMods[i].m_bEnabled)
 			continue;
 
-		if (fs::exists(m_LoadedMods[i].m_ModDirectory / MOD_OVERRIDE_DIR))
+		if (FileExists(m_LoadedMods[i].m_ModDirectory / MOD_OVERRIDE_DIR))
 		{
 			for (fs::directory_entry file : fs::recursive_directory_iterator(m_LoadedMods[i].m_ModDirectory / MOD_OVERRIDE_DIR))
 			{

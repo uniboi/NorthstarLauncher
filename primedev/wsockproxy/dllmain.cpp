@@ -1,7 +1,7 @@
 #include "loader.h"
 
 #include <shlwapi.h>
-#include <filesystem>
+#include "util/filesystem.h"
 
 HINSTANCE hLThis = 0;
 FARPROC p[857];
@@ -49,22 +49,22 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID)
 		swprintf_s(buffer2, L"%s\\wsock32.dll", buffer2);
 		try
 		{
-			std::filesystem::copy_file(buffer2, buffer1);
+			fs::copy_file(buffer2, buffer1);
 		}
 		catch (const std::exception& e1)
 		{
-			if (!std::filesystem::exists(buffer1))
+			if (!FileExists(buffer1))
 			{
 				// fallback by copying to temp dir...
 				// because apparently games installed by EA Desktop app don't have write permissions in their directories
-				auto temp_dir = std::filesystem::temp_directory_path() / L"wsock32.org.dll";
+				auto temp_dir = fs::temp_directory_path() / L"wsock32.org.dll";
 				try
 				{
-					std::filesystem::copy_file(buffer2, temp_dir);
+					fs::copy_file(buffer2, temp_dir);
 				}
 				catch (const std::exception& e2)
 				{
-					if (!std::filesystem::exists(temp_dir))
+					if (!FileExists(temp_dir))
 					{
 						swprintf_s(
 							buffer2,

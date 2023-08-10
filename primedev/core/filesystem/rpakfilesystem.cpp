@@ -140,7 +140,9 @@ void LoadPostloadPaks(const char* pPath)
 void LoadCustomMapPaks(char** pakName, bool* bNeedToFreePakName)
 {
 	// whether the vanilla game has this rpak
-	bool bHasOriginalPak = fs::exists(fs::path("r2/paks/Win64/") / *pakName);
+
+
+	bool bHasOriginalPak = FileExists(fs::path("r2/paks/Win64/") / *pakName);
 
 	// note, loading from ./ is necessary otherwise paks will load from gamedir/r2/paks
 	for (Mod& mod : g_pModManager->m_LoadedMods)

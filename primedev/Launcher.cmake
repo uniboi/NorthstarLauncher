@@ -1,6 +1,8 @@
 # PrimeLauncher
 
 add_executable(PrimeLauncher
+               "util/filesystem.cpp"
+			   "util/filesystem.h"
                "primelauncher/main.cpp"
                "primelauncher/resources.rc"
 )

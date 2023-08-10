@@ -136,6 +136,8 @@ add_library(NorthstarDLL SHARED
             "squirrel/squirreldatatypes.h"
             "tier1/interface.cpp"
 			"tier1/interface.h"
+			"util/filesystem.cpp"
+			"util/filesystem.h"
             "util/printcommands.cpp"
             "util/printcommands.h"
             "util/printmaps.cpp"

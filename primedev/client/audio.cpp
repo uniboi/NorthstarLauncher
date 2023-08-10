@@ -42,7 +42,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 	fs::path samplesFolder = path;
 	samplesFolder = samplesFolder.replace_extension();
 
-	if (!fs::exists(samplesFolder))
+	if (!FileExists(samplesFolder))
 	{
 		Error(
 			eLog::AUDIO,

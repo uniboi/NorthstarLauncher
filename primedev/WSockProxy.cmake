@@ -3,6 +3,8 @@
 find_package(minhook REQUIRED)
 
 add_library(loader_wsock32_proxy SHARED
+            "util/filesystem.cpp"
+			"util/filesystem.h"
             "wsockproxy/dllmain.cpp"
             "wsockproxy/loader.cpp"
             "wsockproxy/loader.h"

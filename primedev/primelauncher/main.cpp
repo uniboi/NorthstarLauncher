@@ -1,7 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <tlhelp32.h>
-#include <filesystem>
+#include "util/filesystem.h"
 #include <sstream>
 #include <fstream>
 #include <shlwapi.h>
@@ -11,8 +11,6 @@
 
 #include <winsock2.h>
 #include <WS2tcpip.h>
-
-namespace fs = std::filesystem;
 
 extern "C"
 {
@@ -86,7 +84,7 @@ void LibraryLoadError(DWORD dwMessageId, const wchar_t* libName, const wchar_t* 
 		dwMessageId,
 		message.c_str());
 
-	if (dwMessageId == 126 && std::filesystem::exists(location))
+	if (dwMessageId == 126 && FileExists(location))
 	{
 		sprintf_s(
 			text,
@@ -95,10 +93,10 @@ void LibraryLoadError(DWORD dwMessageId, const wchar_t* libName, const wchar_t* 
 			"https://aka.ms/vs/17/release/vc_redist.x64.exe\n2. Repair game files",
 			text);
 	}
-	else if (!fs::exists("Titanfall2.exe") && (fs::exists("..\\Titanfall2.exe") || fs::exists("..\\..\\Titanfall2.exe")))
+	else if (!FileExists("Titanfall2.exe") && (FileExists("..\\Titanfall2.exe") || FileExists("..\\..\\Titanfall2.exe")))
 	{
-		auto curDir = std::filesystem::current_path().filename().string();
-		auto aboveDir = std::filesystem::current_path().parent_path().filename().string();
+		auto curDir = fs::current_path().filename().string();
+		auto aboveDir = fs::current_path().parent_path().filename().string();
 		sprintf_s(
 			text,
 			"%s\n\nWe detected that in your case you have extracted the files into a *subdirectory* of your Titanfall 2 "
@@ -108,7 +106,7 @@ void LibraryLoadError(DWORD dwMessageId, const wchar_t* libName, const wchar_t* 
 			curDir.c_str(),
 			aboveDir.c_str());
 	}
-	else if (!fs::exists("Titanfall2.exe"))
+	else if (!FileExists("Titanfall2.exe"))
 	{
 		sprintf_s(
 			text,
@@ -116,7 +114,7 @@ void LibraryLoadError(DWORD dwMessageId, const wchar_t* libName, const wchar_t* 
 			"to any random folder.",
 			text);
 	}
-	else if (fs::exists("Titanfall2.exe"))
+	else if (FileExists("Titanfall2.exe"))
 	{
 		sprintf_s(
 			text,
@@ -305,7 +303,7 @@ bool LoadNorthstar()
 		// Check if "Northstar.dll" exists in profile directory, if it doesnt fall back to root
 		swprintf_s(buffer, L"%s\\%s\\Northstar.dll", exePath, std::wstring(strProfile.begin(), strProfile.end()).c_str());
 
-		if (!fs::exists(fs::path(buffer)))
+		if (!FileExists(fs::path(buffer)))
 			swprintf_s(buffer, L"%s\\Northstar.dll", exePath);
 
 		std::wcout << L"[*] Using: " << buffer << std::endl;

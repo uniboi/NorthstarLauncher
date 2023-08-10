@@ -1,4 +1,5 @@
 #include "core/tier0.h"
+#include "util/utils.h"
 
 #include <filesystem>
 #include <regex>
@@ -7,19 +8,18 @@ AUTOHOOK_INIT()
 
 typedef LANGID (*Tier0_DetectDefaultLanguageType)();
 
-bool CheckLangAudioExists(char* lang)
+bool CheckLangAudioExists(char* pszLang)
 {
-	std::string path {"r2\\sound\\general_"};
-	path += lang;
-	path += ".mstr";
-	return fs::exists(path);
+	fs::path lang = Format("r2\\sound\\general_%s.mstr", pszLang);
+
+	return FileExists(lang);
 }
 
 std::vector<std::string> file_list(fs::path dir, std::regex ext_pattern)
 {
 	std::vector<std::string> result;
 
-	if (!fs::exists(dir) || !fs::is_directory(dir))
+	if (!FileExists(dir) || !fs::is_directory(dir))
 		return result;
 
 	using iterator = fs::directory_iterator;

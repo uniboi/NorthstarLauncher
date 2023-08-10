@@ -389,7 +389,7 @@ ADD_SQFUNC("bool", NSDoesFileExist, "string file", "", ScriptContext::SERVER | S
 		return SQRESULT_ERROR;
 	}
 
-	g_pSquirrel<context>->pushbool(sqvm, fs::exists(dir / (fileName)));
+	g_pSquirrel<context>->pushbool(sqvm, FileExists(dir / (fileName)));
 	return SQRESULT_NOTNULL;
 }
 
@@ -418,7 +418,7 @@ ADD_SQFUNC("int", NSGetFileSize, "string file", "", ScriptContext::SERVER | Scri
 		// we don't want stuff such as "file does not exist, file is unavailable" to be lethal, so we just try/catch fs errors
 		g_pSquirrel<context>->pushinteger(sqvm, (int)(fs::file_size(dir / fileName) / 1024));
 	}
-	catch (std::filesystem::filesystem_error const& ex)
+	catch (fs::filesystem_error const& ex)
 	{
 		spdlog::error("GET FILE SIZE FAILED! Is the path valid?");
 		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
