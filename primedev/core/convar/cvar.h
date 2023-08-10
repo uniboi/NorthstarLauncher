@@ -87,8 +87,5 @@ class CCvar : public ICvar
 	std::unordered_map<std::string, ConCommandBase*> DumpToMap();
 };
 
-// use the R2 namespace for game funcs
-namespace R2
-{
-	extern CCvar* g_pCVar;
-} // namespace R2
+
+extern CCvar* g_pCVar;

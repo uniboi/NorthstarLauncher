@@ -22,8 +22,4 @@ std::unordered_map<std::string, ConCommandBase*> CCvar::DumpToMap()
 	return allConVars;
 }
 
-// use the R2 namespace for game funcs
-namespace R2
-{
-	CCvar* g_pCVar;
-} // namespace R2
+CCvar* g_pCVar;

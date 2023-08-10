@@ -118,15 +118,15 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	if (g_bConsole_UseAnsiColor)
 	{
 		std::string svAnsiString = Log_GetColor(eContext, eLevel).ToANSIColor();
-		svMessage += NS::Utils::Format("%s[%s] ", svAnsiString.c_str(), pszName);
+		svMessage += Format("%s[%s] ", svAnsiString.c_str(), pszName);
 	}
 	else
 	{
-		svMessage += NS::Utils::Format("[%s] ", pszName);
+		svMessage += Format("[%s] ", pszName);
 	}
 
 	// Add the message itself
-	svMessage += NS::Utils::FormatV(fmt, vArgs);
+	svMessage += FormatV(fmt, vArgs);
 
 	//-----------------------------------
 	// Emit to all loggers
@@ -147,9 +147,9 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	DediClientMsg(svMessage.c_str());
 
 	// Log to game console
-	if (g_bEngineVguiInitilazed && R2::g_pCVar)
+	if (g_bEngineVguiInitilazed && g_pCVar)
 	{
-		R2::g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
+		g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
 	}
 
 	//-----------------------------------
