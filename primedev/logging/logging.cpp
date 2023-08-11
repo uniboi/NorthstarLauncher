@@ -62,7 +62,6 @@ void SpdLog_PreInit(void)
 void SpdLog_Init(void)
 {
 	g_WinLogger = spdlog::stdout_logger_mt("win_console");
-	spdlog::set_default_logger(g_WinLogger);
 	spdlog::set_level(spdlog::level::trace);
 
 	// NOTE [Fifty]: This may be bad as it writes to disk for every message?

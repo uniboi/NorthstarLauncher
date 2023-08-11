@@ -83,7 +83,6 @@ class CCrashHandler
 	PVOID m_hExceptionFilter;
 	EXCEPTION_POINTERS* m_pExceptionInfos;
 
-	bool m_bHasSetConsolehandler;
 	bool m_bAllExceptionsFatal;
 	bool m_bHasShownCrashMsg;
 	bool m_bState;

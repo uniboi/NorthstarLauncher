@@ -5,6 +5,7 @@
 #include <util/utils.h>
 #include <util/filesystem.h>
 #include "logging/logging.h"
+#include "tier0/dbg.h"
 
 #define CRASHHANDLER_MAX_FRAMES 32
 #define CRASHHANDLER_GETMODULEHANDLE_FAIL "GetModuleHandleExA failed!"
@@ -83,7 +84,7 @@ BOOL WINAPI ConsoleCtrlRoutine(DWORD dwCtrlType)
 	switch (dwCtrlType)
 	{
 	case CTRL_CLOSE_EVENT:
-		spdlog::info("Exiting due to console close...");
+		DevMsg(eLog::NONE, "Exiting due to console close...");
 		delete g_pCrashHandler;
 		g_pCrashHandler = nullptr;
 		std::exit(EXIT_SUCCESS);
@@ -117,7 +118,6 @@ CCrashHandler::~CCrashHandler()
 void CCrashHandler::Init()
 {
 	m_hExceptionFilter = AddVectoredExceptionHandler(TRUE, ExceptionFilter);
-	m_bHasSetConsolehandler = SetConsoleCtrlHandler(ConsoleCtrlRoutine, TRUE);
 }
 
 //-----------------------------------------------------------------------------
@@ -129,11 +129,6 @@ void CCrashHandler::Shutdown()
 	{
 		RemoveVectoredExceptionHandler(m_hExceptionFilter);
 		m_hExceptionFilter = nullptr;
-	}
-
-	if (m_bHasSetConsolehandler)
-	{
-		SetConsoleCtrlHandler(ConsoleCtrlRoutine, FALSE);
 	}
 }
 
