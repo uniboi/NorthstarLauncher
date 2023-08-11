@@ -123,7 +123,10 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	//-----------------------------------
 	// Format header
 	std::string svAnsiString = Log_GetColor(eContext, eLevel).ToANSIColor();
-	svMessage += FormatA("%s[%s] ", svAnsiString.c_str(), pszName);
+	if (eContext != eLog::NONE)
+	{
+		svMessage += FormatA("%s[%s] ", svAnsiString.c_str(), pszName);
+	}
 
 	// Add the message itself
 	svMessage += FormatAV(fmt, vArgs);
