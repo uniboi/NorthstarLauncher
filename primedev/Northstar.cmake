@@ -40,7 +40,7 @@ add_library(NorthstarDLL SHARED
             "core/math/color.cpp"
             "core/math/color.h"
             "core/math/vector.h"
-			"core/dllmain.cpp"
+			"core/init.cpp"
             "core/hooks.cpp"
             "core/hooks.h"
             "core/macros.h"

@@ -75,30 +75,10 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionInfo)
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: console control signal handler
-//-----------------------------------------------------------------------------
-BOOL WINAPI ConsoleCtrlRoutine(DWORD dwCtrlType)
-{
-	// NOTE [Fifty]: When closing the process by closing the console we don't want
-	//               to trigger the crash handler so we remove it
-	switch (dwCtrlType)
-	{
-	case CTRL_CLOSE_EVENT:
-		DevMsg(eLog::NONE, "Exiting due to console close...");
-		delete g_pCrashHandler;
-		g_pCrashHandler = nullptr;
-		std::exit(EXIT_SUCCESS);
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CCrashHandler::CCrashHandler()
-	: m_hExceptionFilter(nullptr), m_pExceptionInfos(nullptr), m_bHasSetConsolehandler(false), m_bAllExceptionsFatal(false),
+	: m_hExceptionFilter(nullptr), m_pExceptionInfos(nullptr), m_bAllExceptionsFatal(false),
 	  m_bHasShownCrashMsg(false), m_bState(false)
 {
 	Init();

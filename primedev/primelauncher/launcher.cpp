@@ -72,6 +72,27 @@ std::wstring Launcher_GetExePath()
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: Print emblem
+//-----------------------------------------------------------------------------
+void Launcher_PrintEmblem()
+{
+	for (int i = 0; i < ARRAY_SIZE(NSP_EMBLEM); i++)
+	{
+		DevMsg(eLog::NONE, "%s\n", NSP_EMBLEM[i]);
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Print northstar information
+//-----------------------------------------------------------------------------
+void Launcher_PrintNSPInfo()
+{
+	DevMsg(eLog::NONE, "Northstar Prime version: %s\n", "0.0-dev");
+	DevMsg(eLog::NONE, "CommandLine: %s\n", GetCommandLineA());
+	DevMsg(eLog::NONE, "+---------------------------------------------------------------+\n");
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CNorthstarLauncher::CNorthstarLauncher()
@@ -175,6 +196,10 @@ void CNorthstarLauncher::InitNorthstarSubsystems()
 	// Setup spdlog
 	SpdLog_Init();
 	SpdLog_CreateLoggers();
+
+	// Print emblem and sys info
+	Launcher_PrintEmblem();
+	Launcher_PrintNSPInfo();
 }
 
 #ifdef LAUNCHER

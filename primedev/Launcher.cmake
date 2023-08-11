@@ -19,6 +19,8 @@ add_executable(PrimeLauncher
 			   "windows/wconsole.h"
 )
 
+target_precompile_headers(PrimeLauncher PRIVATE core/stdafx.h)
+
 target_compile_definitions(PrimeLauncher PRIVATE
                            LAUNCHER
                            UNICODE

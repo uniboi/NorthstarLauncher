@@ -1,5 +1,4 @@
-#ifndef PCH_H
-#define PCH_H
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #define _CRT_SECURE_NO_WARNINGS
@@ -8,8 +7,9 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // temp because i'm very lazy and want to use inet_addr, remove later
 #define RAPIDJSON_HAS_STDSTRING 1
 
-// add headers that you want to pre-compile here
+#ifdef NORTHSTAR
 #include "core/memalloc.h"
+#endif
 
 #include <windows.h>
 #include <psapi.h>
@@ -19,19 +19,24 @@
 #include <sstream>
 
 #define EXPORT extern "C" __declspec(dllexport)
+#define ARRAY_SIZE(arr) ((sizeof(arr) / sizeof(*arr)))
 
+#ifdef NORTHSTAR
 typedef void (*callable)();
 typedef void (*callable_v)(void* v);
 
 // clang-format off
 #define assert_msg(exp, msg) assert((exp, msg))
 //clang-format on
+#endif
 
 #include "util/filesystem.h"
 
+#ifdef NORTHSTAR
 #include "core/macros.h"
-
 #include "core/structs.h"
+#endif
+
 #include "core/math/color.h"
 
 #include "logging/logging.h"
@@ -42,10 +47,23 @@ typedef void (*callable_v)(void* v);
 //#include "rapidjson/rapidjson.h"
 
 #include "spdlog/spdlog.h"
+
+#ifdef NORTHSTAR
 #include "MinHook.h"
 #include "curl/curl.h"
 
 #include "core/hooks.h"
 #include "core/memory.h"
+#endif
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
+static const char* const NSP_EMBLEM[] = {
+	R"(+---------------------------------------------------------------+)",
+	R"(|  _  _         _   _       _              ___     _            |)",
+	R"(| | \| |___ _ _| |_| |_  __| |_ __ _ _ _  | _ \_ _(_)_ __  ___  |)",
+	R"(| | .` / _ \ '_|  _| ' \(_-<  _/ _` | '_| |  _/ '_| | '  \/ -_) |)",
+	R"(| |_|\_\___/_|  \__|_||_/__/\__\__,_|_|   |_| |_| |_|_|_|_\___| |)",
+	R"(|                                                               |)",
+	R"(+---------------------------------------------------------------+)"
+};
 #endif

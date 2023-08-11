@@ -22,6 +22,8 @@ add_library(loader_wsock32_proxy SHARED
             "WSockProxy.def"
 )
 
+target_precompile_headers(loader_wsock32_proxy PRIVATE core/stdafx.h)
+
 target_link_libraries(loader_wsock32_proxy PRIVATE
                       minhook
                       mswsock.lib
