@@ -5,10 +5,12 @@ find_package(minhook REQUIRED)
 add_library(loader_wsock32_proxy SHARED
             "util/filesystem.cpp"
 			"util/filesystem.h"
+			"util/utils.cpp"
+            "util/utils.h"
+			"primelauncher/launcher.cpp"
+			"primelauncher/launcher.h"
             "wsockproxy/dllmain.cpp"
-            "wsockproxy/loader.cpp"
-            "wsockproxy/loader.h"
-            "wsockproxy/wsock32.asm"
+            "wsockproxy/proxy.cpp"
             "WSockProxy.def"
 )
 
@@ -33,9 +35,8 @@ target_link_libraries(loader_wsock32_proxy PRIVATE
                       odbccp32.lib
 )
 
-target_precompile_headers(loader_wsock32_proxy PRIVATE wsockproxy/pch.h)
-
 target_compile_definitions(loader_wsock32_proxy PRIVATE
+                           WSOCKPROXY
                            UNICODE
                            _UNICODE
 )

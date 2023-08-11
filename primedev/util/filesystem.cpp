@@ -16,7 +16,8 @@ std::error_code FSGetLastErrorCode() noexcept
 //-----------------------------------------------------------------------------
 bool FileExists(fs::path path) noexcept
 {
-	return fs::exists(path, fsErrorCode);
+	std::error_code errorCode;
+	return fs::exists(path, errorCode);
 }
 
 //-----------------------------------------------------------------------------
@@ -24,7 +25,8 @@ bool FileExists(fs::path path) noexcept
 //-----------------------------------------------------------------------------
 bool IsDirectory(fs::path path) noexcept
 {
-	return fs::is_directory(path, fsErrorCode);
+	std::error_code errorCode;
+	return fs::is_directory(path, errorCode);
 }
 
 //-----------------------------------------------------------------------------
@@ -32,5 +34,27 @@ bool IsDirectory(fs::path path) noexcept
 //-----------------------------------------------------------------------------
 bool CopyFile(fs::path from, fs::path to) noexcept
 {
-	return fs::copy_file(from, to, fsErrorCode);
+	std::error_code errorCode;
+	fs::copy_file(from, to, errorCode);
+
+	if (errorCode.value() == 0)
+		return true;
+
+	fsErrorCode = errorCode;
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+bool CreateDirectories(fs::path path) noexcept
+{
+	std::error_code errorCode;
+	fs::create_directories(path, errorCode);
+
+	if (errorCode.value() == 0)
+		return true;
+
+	fsErrorCode = errorCode;
+	return false;
 }

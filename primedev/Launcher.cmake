@@ -3,11 +3,16 @@
 add_executable(PrimeLauncher
                "util/filesystem.cpp"
 			   "util/filesystem.h"
+			   "util/utils.cpp"
+			   "util/utils.h"
+			   "primelauncher/launcher.cpp"
+			   "primelauncher/launcher.h"
                "primelauncher/main.cpp"
                "primelauncher/resources.rc"
 )
 
 target_compile_definitions(PrimeLauncher PRIVATE
+                           LAUNCHER
                            UNICODE
                            _UNICODE
 )

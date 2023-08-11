@@ -118,15 +118,15 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	if (g_bConsole_UseAnsiColor)
 	{
 		std::string svAnsiString = Log_GetColor(eContext, eLevel).ToANSIColor();
-		svMessage += Format("%s[%s] ", svAnsiString.c_str(), pszName);
+		svMessage += FormatA("%s[%s] ", svAnsiString.c_str(), pszName);
 	}
 	else
 	{
-		svMessage += Format("[%s] ", pszName);
+		svMessage += FormatA("[%s] ", pszName);
 	}
 
 	// Add the message itself
-	svMessage += FormatV(fmt, vArgs);
+	svMessage += FormatAV(fmt, vArgs);
 
 	//-----------------------------------
 	// Emit to all loggers

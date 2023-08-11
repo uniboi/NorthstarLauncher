@@ -1,5 +1,8 @@
-#include <ctype.h>
 #include "utils.h"
+
+#include <ctype.h>
+#include <stdarg.h>
+#include <chrono>
 
 bool skip_valid_ansi_csi_sgr(char*& str)
 {
@@ -84,7 +87,7 @@ void RemoveAsciiControlSequences(char* str, bool allow_color_codes)
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-std::string FormatV(const char* fmt, va_list vArgs)
+std::string FormatAV(const char* fmt, va_list vArgs)
 {
 	va_list vArgsCopy;
 	va_copy(vArgsCopy, vArgs);
@@ -98,6 +101,21 @@ std::string FormatV(const char* fmt, va_list vArgs)
 		svResult.resize(iLen);
 		std::vsnprintf(svResult.data(), iLen + 1, fmt, vArgs);
 	}
+	
+	return svResult;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+std::string FormatA(const char* fmt, ...)
+{
+	std::string svResult;
+
+	va_list vArgs;
+	va_start(vArgs, fmt);
+	svResult = FormatAV(fmt, vArgs);
+	va_end(vArgs);
 
 	return svResult;
 }
@@ -105,16 +123,37 @@ std::string FormatV(const char* fmt, va_list vArgs)
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-std::string Format(const char* fmt, ...)
+std::wstring FormatWV(const wchar_t* fmt, va_list vArgs)
 {
-	std::string svResult;
+	va_list vArgsCopy;
+	va_copy(vArgsCopy, vArgs);
+	int iLen = std::vswprintf(NULL, 0, fmt, vArgsCopy);
+	va_end(vArgsCopy);
+
+	std::wstring wsvResult;
+
+	if (iLen > 0)
+	{
+		wsvResult.resize(iLen);
+		std::vswprintf(reinterpret_cast<wchar_t*>(wsvResult.data()), iLen + 1, fmt, vArgs);
+	}
+
+	return wsvResult;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+std::wstring FormatW(const wchar_t* fmt, ...)
+{
+	std::wstring wsvResult;
 
 	va_list vArgs;
 	va_start(vArgs, fmt);
-	svResult = FormatV(fmt, vArgs);
+	wsvResult = FormatWV(fmt, vArgs);
 	va_end(vArgs);
 
-	return svResult;
+	return wsvResult;
 }
 
 //-----------------------------------------------------------------------------

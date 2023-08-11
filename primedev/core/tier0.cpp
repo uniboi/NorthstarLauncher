@@ -1,8 +1,8 @@
 #include "tier0.h"
+#include "tier0/commandline.h"
 
 IMemAlloc* g_pMemAllocSingleton;
 
-CommandLineType CommandLine;
 Plat_FloatTimeType Plat_FloatTime;
 ThreadInServerFrameThreadType ThreadInServerFrameThread;
 
@@ -24,7 +24,7 @@ ON_DLL_LOAD("tier0.dll", Tier0GameFuncs, (CModule module))
 	TryCreateGlobalMemAlloc();
 
 	// setup tier0 funcs
-	CommandLine = module.GetExport("CommandLine").RCast<CommandLineType>();
+	CommandLine = module.GetExport("CommandLine").RCast<CCommandLine* (*)()>();
 	Plat_FloatTime = module.GetExport("Plat_FloatTime").RCast<Plat_FloatTimeType>();
 	ThreadInServerFrameThread = module.GetExport("ThreadInServerFrameThread").RCast<ThreadInServerFrameThreadType>();
 }

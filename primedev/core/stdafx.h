@@ -34,6 +34,8 @@ typedef void (*callable_v)(void* v);
 #include "core/structs.h"
 #include "core/math/color.h"
 
+#include "tier0/commandline.h"
+
 #include "logging/dbg.h"
 
 //#include "rapidjson/rapidjson.h"

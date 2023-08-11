@@ -10,7 +10,7 @@ typedef LANGID (*Tier0_DetectDefaultLanguageType)();
 
 bool CheckLangAudioExists(char* pszLang)
 {
-	fs::path lang = Format("r2\\sound\\general_%s.mstr", pszLang);
+	fs::path lang = FormatA("r2\\sound\\general_%s.mstr", pszLang);
 
 	return FileExists(lang);
 }
