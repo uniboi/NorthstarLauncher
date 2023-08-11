@@ -103,10 +103,9 @@ typedef void(*LogMsgFn)(eLogLevel eLevel, const char* pszMessage, int nCode);
 inline LogMsgFn g_pLogMsg = nullptr;
 #endif
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
 // Directory we put log files in ( %profile%\\logs\\%timestamp%\\ )
 inline std::string g_svLogDirectory;
-
-#if defined(LAUNCHER) || defined(WSOCKPROXY)
 
 // Windows terminal logger
 inline std::shared_ptr<spdlog::logger> g_WinLogger;

@@ -32,7 +32,7 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 
 	bInitialised = true;
 
-	g_svLogDirectory = pszProfile;
+	g_svProfileDir = pszProfile;
 	g_pLogMsg = pLogMsg;
 
 	InitialiseVersion();
