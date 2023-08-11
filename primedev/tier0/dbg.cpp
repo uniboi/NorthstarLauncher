@@ -13,6 +13,10 @@
 #include "util/utils.h"
 #include "logging/logging.h"
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
+#include "windows/wconsole.h"
+#endif
+
 const std::regex AnsiRegex("\\\033\\[.*?m");
 
 //-----------------------------------------------------------------------------
@@ -182,6 +186,11 @@ void CoreMsg(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszNa
 void LogMsg(eLogLevel eLevel, const char* pszMessage, int nCode)
 {
 	std::string svMessage = pszMessage;
+
+	if (!g_bConsole_UseAnsiColor)
+	{
+		svMessage = std::regex_replace(svMessage, AnsiRegex, "");
+	}
 
 	// Log to win console
 	g_WinLogger->debug("{}", svMessage);

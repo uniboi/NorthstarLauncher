@@ -83,7 +83,7 @@ BOOL WINAPI ConsoleCtrlRoutine(DWORD dwCtrlType)
 	switch (dwCtrlType)
 	{
 	case CTRL_CLOSE_EVENT:
-		//spdlog::info("Exiting due to console close...");
+		spdlog::info("Exiting due to console close...");
 		delete g_pCrashHandler;
 		g_pCrashHandler = nullptr;
 		std::exit(EXIT_SUCCESS);

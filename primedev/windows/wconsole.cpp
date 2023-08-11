@@ -5,6 +5,7 @@
 
 #include "tier0/commandline.h"
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
 //-----------------------------------------------------------------------------
 // Purpose: Initilazes the windows console
 //-----------------------------------------------------------------------------
@@ -34,7 +35,9 @@ void Console_Init(void)
 		}
 	}
 }
+#endif
 
+#ifdef NORTHSTAR
 //-----------------------------------------------------------------------------
 // Purpose: Closes the console window if wanted
 //-----------------------------------------------------------------------------
@@ -50,8 +53,4 @@ void Console_PostInit(void)
 	(void)FreeConsole();
 	(void)PostMessageA(hConsole, WM_CLOSE, 0, 0);
 }
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void Console_Shutdown(void) {}
+#endif
