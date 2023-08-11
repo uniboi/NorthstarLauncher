@@ -2,9 +2,11 @@
 
 #include <Windows.h>
 #include <Shlwapi.h>
+#include "spdlog/spdlog.h"
 #include "util/filesystem.h"
 #include "util/utils.h"
 #include "tier0/commandline.h"
+#include "tier0/crashhandler.h"
 
 
 //-----------------------------------------------------------------------------
@@ -157,7 +159,12 @@ void CNorthstarLauncher::InitCoreSubsystems()
 //-----------------------------------------------------------------------------
 void CNorthstarLauncher::InitNorthstarSubsystems()
 {
-	// crashhandler
+	g_svLogDirectory = fmt::format("{:s}\\logs\\{:s}", m_svProfile, CreateTimeStamp());
+
+	g_pCrashHandler = new CCrashHandler();
+
+	int* pTest = 0;
+	*pTest = 50;
 	// spdlog
 }
 

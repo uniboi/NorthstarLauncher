@@ -9,6 +9,8 @@ add_executable(PrimeLauncher
 			   "primelauncher/launcher.h"
                "primelauncher/main.cpp"
                "primelauncher/resources.rc"
+               "tier0/crashhandler.cpp"
+               "tier0/crashhandler.h"
 )
 
 target_compile_definitions(PrimeLauncher PRIVATE
@@ -23,6 +25,7 @@ target_link_libraries(PrimeLauncher PRIVATE
                       user32.lib
                       gdi32.lib
                       winspool.lib
+					  dbghelp.lib
                       comdlg32.lib
                       advapi32.lib
                       shell32.lib

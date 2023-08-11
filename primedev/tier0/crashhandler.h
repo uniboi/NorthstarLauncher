@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Windows.h>
 #include <mutex>
 
 //-----------------------------------------------------------------------------
@@ -73,8 +74,9 @@ class CCrashHandler
 	void FormatModules();
 
 	//-----------------------------------------------------------------------------
-	// Minidump
+	// Disk
 	//-----------------------------------------------------------------------------
+	void WriteLogToDisk();
 	void WriteMinidump();
 
   private:
@@ -92,6 +94,12 @@ class CCrashHandler
 	std::string m_svError;
 
 	std::mutex m_Mutex;
+
+	std::string m_svLog;
 };
 
 extern CCrashHandler* g_pCrashHandler;
+
+
+// TODO[Fifty]: move this to logging.h
+inline std::string g_svLogDirectory;

@@ -9,6 +9,8 @@ add_library(loader_wsock32_proxy SHARED
             "util/utils.h"
 			"primelauncher/launcher.cpp"
 			"primelauncher/launcher.h"
+			"tier0/crashhandler.cpp"
+			"tier0/crashhandler.h"
             "wsockproxy/dllmain.cpp"
             "wsockproxy/proxy.cpp"
             "WSockProxy.def"

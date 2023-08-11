@@ -1,10 +1,9 @@
 #include "crashhandler.h"
-#include "config/profile.h"
-#include "dedicated/dedicated.h"
-#include "util/version.h"
-#include "mods/modmanager.h"
-
+#include <fstream>
 #include <minidumpapiset.h>
+#include <Psapi.h>
+#include <util/utils.h>
+#include <util/filesystem.h>
 
 #define CRASHHANDLER_MAX_FRAMES 32
 #define CRASHHANDLER_GETMODULEHANDLE_FAIL "GetModuleHandleExA failed!"
@@ -54,8 +53,8 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionInfo)
 	g_pCrashHandler->FormatLoadedPlugins();
 	g_pCrashHandler->FormatModules();
 
-	// Flush
-	NS::log::FlushLoggers();
+	// Write to disk
+	g_pCrashHandler->WriteLogToDisk();
 
 	// Write minidump
 	g_pCrashHandler->WriteMinidump();
@@ -83,7 +82,7 @@ BOOL WINAPI ConsoleCtrlRoutine(DWORD dwCtrlType)
 	switch (dwCtrlType)
 	{
 	case CTRL_CLOSE_EVENT:
-		spdlog::info("Exiting due to console close...");
+		//spdlog::info("Exiting due to console close...");
 		delete g_pCrashHandler;
 		g_pCrashHandler = nullptr;
 		std::exit(EXIT_SUCCESS);
@@ -189,7 +188,7 @@ void CCrashHandler::SetCrashedModule()
 	LPCSTR pModuleBase = reinterpret_cast<LPCSTR>(pCrashAddress - reinterpret_cast<LPCSTR>(hCrashedModule));
 
 	m_svCrashedModule = pszCrashedModuleFileName;
-	m_svCrashedOffset = fmt::format("{:#x}", reinterpret_cast<DWORD64>(pModuleBase));
+	m_svCrashedOffset = FormatA("0x%x", reinterpret_cast<DWORD64>(pModuleBase));
 }
 
 //-----------------------------------------------------------------------------
@@ -291,14 +290,14 @@ void CCrashHandler::ShowPopUpMessage()
 
 	m_bHasShownCrashMsg = true;
 
-	if (!IsDedicatedServer())
+	if (true) // todo: isdedi
 	{
-		std::string svMessage = fmt::format(
-			"Northstar has crashed! Crash info can be found at {}/logs!\n\n{}\n{} + {}",
-			GetNorthstarPrefix(),
+		std::string svMessage = FormatA(
+			"Northstar has crashed! Crash info can be found at %s/logs!\n\n%s\n%s + %s",
+			"", // todo: profile
 			GetExceptionString(),
-			m_svCrashedModule,
-			m_svCrashedOffset);
+			m_svCrashedModule.c_str(),
+			m_svCrashedOffset.c_str());
 
 		MessageBoxA(GetForegroundWindow(), svMessage.c_str(), "Northstar has crashed!", MB_ICONERROR | MB_OK);
 	}
@@ -309,15 +308,13 @@ void CCrashHandler::ShowPopUpMessage()
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatException()
 {
-	spdlog::error("-------------------------------------------");
-	spdlog::error("Northstar has crashed!");
-	spdlog::error("\tVersion: {}", version);
+	m_svLog += "crash:\n{\n";
 	if (!m_svError.empty())
 	{
-		spdlog::info("\tEncountered an error when gathering crash information!");
-		spdlog::info("\tWinApi Error: {}", m_svError.c_str());
+		m_svLog += "\tEncountered an error when gathering crash information!";
+		m_svLog += FormatA("\tWinApi Error: %s\n", m_svError.c_str());
 	}
-	spdlog::error("\t{}", GetExceptionString());
+	m_svLog += FormatA("\t%s\n", GetExceptionString());
 
 	DWORD dwExceptionCode = m_pExceptionInfos->ExceptionRecord->ExceptionCode;
 	if (dwExceptionCode == EXCEPTION_ACCESS_VIOLATION || dwExceptionCode == EXCEPTION_IN_PAGE_ERROR)
@@ -326,16 +323,17 @@ void CCrashHandler::FormatException()
 		ULONG_PTR uExceptionInfo1 = m_pExceptionInfos->ExceptionRecord->ExceptionInformation[1];
 
 		if (!uExceptionInfo0)
-			spdlog::error("\tAttempted to read from: {:#x}", uExceptionInfo1);
+			m_svLog += FormatA("\tAttempted to read from: 0x%x\n", uExceptionInfo1);
 		else if (uExceptionInfo0 == 1)
-			spdlog::error("\tAttempted to write to: {:#x}", uExceptionInfo1);
+			m_svLog += FormatA("\tAttempted to write to: 0x%x\n", uExceptionInfo1);
 		else if (uExceptionInfo0 == 8)
-			spdlog::error("\tData Execution Prevention (DEP) at: {:#x}", uExceptionInfo1);
+			m_svLog += FormatA("\tData Execution Prevention (DEP) at: 0x%x\n", uExceptionInfo1);
 		else
-			spdlog::error("\tUnknown access violation at: {:#x}", uExceptionInfo1);
+			m_svLog += FormatA("\tUnknown access violation at: 0x%x\n", uExceptionInfo1);
 	}
 
-	spdlog::error("\tAt: {} + {}", m_svCrashedModule, m_svCrashedOffset);
+	m_svLog += FormatA("\tAt: %s + %s\n", m_svCrashedModule.c_str(), m_svCrashedOffset.c_str());
+	m_svLog += "}\n";
 }
 
 //-----------------------------------------------------------------------------
@@ -343,7 +341,7 @@ void CCrashHandler::FormatException()
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatCallstack()
 {
-	spdlog::error("Callstack:");
+	m_svLog += "callstack:\n{\n";
 
 	PVOID pFrames[CRASHHANDLER_MAX_FRAMES];
 
@@ -377,7 +375,7 @@ void CCrashHandler::FormatCallstack()
 
 		// Get relative address
 		LPCSTR pCrashOffset = reinterpret_cast<LPCSTR>(pAddress - reinterpret_cast<LPCSTR>(hModule));
-		std::string svCrashOffset = fmt::format("{:#x}", reinterpret_cast<DWORD64>(pCrashOffset));
+		std::string svCrashOffset = FormatA("0x%x", reinterpret_cast<DWORD64>(pCrashOffset));
 
 		// Should we log this frame
 		if (bSkipExceptionHandlingFrames)
@@ -393,8 +391,9 @@ void CCrashHandler::FormatCallstack()
 		}
 
 		// Log module + offset
-		spdlog::error("\t{} + {:#x}", pszModuleFileName, reinterpret_cast<DWORD64>(pCrashOffset));
+		m_svLog += FormatA("\t%s + 0x%x\n", pszModuleFileName, reinterpret_cast<DWORD64>(pCrashOffset));
 	}
+	m_svLog += "}\n";
 }
 
 //-----------------------------------------------------------------------------
@@ -402,7 +401,7 @@ void CCrashHandler::FormatCallstack()
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatFlags(const CHAR* pszRegister, DWORD nValue)
 {
-	spdlog::error("\t{}: {:#b}", pszRegister, nValue);
+	m_svLog += FormatA("\t%s: 0x%x\n", pszRegister, nValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -410,7 +409,7 @@ void CCrashHandler::FormatFlags(const CHAR* pszRegister, DWORD nValue)
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatIntReg(const CHAR* pszRegister, DWORD64 nValue)
 {
-	spdlog::error("\t{}: {:#x}", pszRegister, nValue);
+	m_svLog += FormatA("\t%s: 0x%x\n", pszRegister, nValue);
 }
 
 //-----------------------------------------------------------------------------
@@ -424,8 +423,8 @@ void CCrashHandler::FormatFloatReg(const CHAR* pszRegister, M128A nValue)
 		static_cast<DWORD>(nValue.High & UINT_MAX),
 		static_cast<DWORD>(nValue.High >> 32)};
 
-	spdlog::error(
-		"\t{}: [ {:G}, {:G}, {:G}, {:G} ]; [ {:#x}, {:#x}, {:#x}, {:#x} ]",
+	m_svLog += FormatA(
+		"\t%s: [ %f, %f, %f, %f ]; [ 0x%x, 0x%x, 0x%x, 0x%x ]\n",
 		pszRegister,
 		static_cast<float>(nVec[0]),
 		static_cast<float>(nVec[1]),
@@ -442,7 +441,7 @@ void CCrashHandler::FormatFloatReg(const CHAR* pszRegister, M128A nValue)
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatRegisters()
 {
-	spdlog::error("Registers:");
+	m_svLog += "registers:\n{\n";
 
 	PCONTEXT pContext = m_pExceptionInfos->ContextRecord;
 
@@ -482,6 +481,8 @@ void CCrashHandler::FormatRegisters()
 	FormatFloatReg("Xmm13", pContext->Xmm13);
 	FormatFloatReg("Xmm14", pContext->Xmm14);
 	FormatFloatReg("Xmm15", pContext->Xmm15);
+
+	m_svLog += "}\n";
 }
 
 //-----------------------------------------------------------------------------
@@ -489,26 +490,7 @@ void CCrashHandler::FormatRegisters()
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatLoadedMods()
 {
-	if (g_pModManager)
-	{
-		spdlog::error("Enabled mods:");
-		for (const Mod& mod : g_pModManager->m_LoadedMods)
-		{
-			if (!mod.m_bEnabled)
-				continue;
-
-			spdlog::error("\t{}", mod.Name);
-		}
-
-		spdlog::error("Disabled mods:");
-		for (const Mod& mod : g_pModManager->m_LoadedMods)
-		{
-			if (mod.m_bEnabled)
-				continue;
-
-			spdlog::error("\t{}", mod.Name);
-		}
-	}
+	// Stub
 }
 
 //-----------------------------------------------------------------------------
@@ -524,7 +506,7 @@ void CCrashHandler::FormatLoadedPlugins()
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatModules()
 {
-	spdlog::error("Loaded modules:");
+	m_svLog += "modules:\n{\n";
 	HMODULE hModules[1024];
 	DWORD cbNeeded;
 
@@ -536,9 +518,30 @@ void CCrashHandler::FormatModules()
 			if (GetModuleFileNameExA(GetCurrentProcess(), hModules[i], szModulePath, sizeof(szModulePath)))
 			{
 				const CHAR* pszModuleFileName = strrchr(szModulePath, '\\') + 1;
-				spdlog::error("\t{}", pszModuleFileName);
+				m_svLog += FormatA("\t%s\n", pszModuleFileName);
 			}
 		}
+	}
+	m_svLog += "}\n";
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Writes crash log to disk
+//-----------------------------------------------------------------------------
+void CCrashHandler::WriteLogToDisk()
+{
+	// Ensure the path exists
+	CreateDirectories(g_svLogDirectory);
+
+	// Write the file
+	std::fstream fs;
+
+	fs.open(FormatA("%s\\crash_log.txt", g_svLogDirectory.c_str()), std::fstream::out);
+
+	if (fs.good())
+	{
+		fs << m_svLog;
+		fs.close();
 	}
 }
 
@@ -547,6 +550,7 @@ void CCrashHandler::FormatModules()
 //-----------------------------------------------------------------------------
 void CCrashHandler::WriteMinidump()
 {
+	/*
 	time_t time = std::time(nullptr);
 	tm currentTime = *std::localtime(&time);
 	std::stringstream stream;
@@ -571,7 +575,7 @@ void CCrashHandler::WriteMinidump()
 		CloseHandle(hMinidumpFile);
 	}
 	else
-		spdlog::error("Failed to write minidump file {}!", stream.str());
+		spdlog::error("Failed to write minidump file {}!", stream.str());*/
 }
 
 //-----------------------------------------------------------------------------

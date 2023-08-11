@@ -1,5 +1,4 @@
 #include "logging/logging.h"
-#include "logging/crashhandler.h"
 #include "core/memalloc.h"
 #include "config/profile.h"
 #include "util/version.h"
@@ -51,10 +50,6 @@ bool InitialiseNorthstar()
 	// Init logging
 	SpdLog_Init();
 	SpdLog_CreateLoggers();
-
-	g_pCrashHandler = new CCrashHandler();
-	bool bAllFatal = strstr(GetCommandLineA(), "-crash_handle_all") != NULL;
-	g_pCrashHandler->SetAllFatal(bAllFatal);
 
 	// Write launcher version to log
 	Sys_PrintOSVer();
