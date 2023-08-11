@@ -40,5 +40,5 @@ target_link_libraries(PrimeLauncher PRIVATE
 set_target_properties(PrimeLauncher PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
 					  OUTPUT_NAME r2primelauncher
-                      LINK_FLAGS "/MANIFEST:NO /DEBUG /STACK:8000000"
+                      LINK_FLAGS "/MANIFEST:NO /DEBUG /STACK:8000000 /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
 )
