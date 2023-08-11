@@ -1,4 +1,4 @@
 LIBRARY dedicated
 
 EXPORTS
-    InitialiseNorthstar @1
+    NorthstarPrime_Initilase @1

@@ -156,11 +156,18 @@ std::wstring FormatW(const wchar_t* fmt, ...)
 	return wsvResult;
 }
 
+std::string g_svTimeStamp;
+
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
 std::string CreateTimeStamp()
 {
+	if (!g_svTimeStamp.empty())
+	{
+		return g_svTimeStamp;
+	}
+
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
 	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
@@ -172,5 +179,7 @@ std::string CreateTimeStamp()
 	oss << std::put_time(&localtime, "%Y-%m-%d_%H-%M-%S");
 	oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
 
-	return oss.str();
+	g_svTimeStamp = oss.str();
+
+	return g_svTimeStamp;
 }

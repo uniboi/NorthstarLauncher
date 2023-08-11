@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-static std::string NORTHSTAR_FOLDER_PREFIX;
+extern std::string g_svProfileDir;
 
-void InitialiseNorthstarPrefix();
 std::string GetNorthstarPrefix();

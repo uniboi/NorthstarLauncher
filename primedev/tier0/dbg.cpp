@@ -1,14 +1,19 @@
 #include "dbg.h"
 
-#include "util/utils.h"
-#include "core/convar/cvar.h"
-#include "logging/logging.h"
-#include <dedicated/dedicatedlogtoclient.h>
 #include <regex>
+
+#ifdef NORTHSTAR
+#include "core/convar/cvar.h"
+#include "dedicated/dedicatedlogtoclient.h"
 #include "dedicated/dedicated.h"
+#endif
+
+#include "tier0/commandline.h"
+#include "core/math/color.h"
+#include "util/utils.h"
+#include "logging/logging.h"
 
 const std::regex AnsiRegex("\\\033\\[.*?m");
-std::mutex g_LogMutex;
 
 //-----------------------------------------------------------------------------
 // Purpose: Get the log context string
@@ -75,6 +80,7 @@ Color Log_GetColor(eLog eContext, eLogLevel eLevel)
 	return Color(255, 255, 255);
 }
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
 //-----------------------------------------------------------------------------
 // Purpose: Get logger based on the log level
 // Input  : eLevel -
@@ -99,6 +105,7 @@ std::shared_ptr<spdlog::logger> Log_GetLogger(eLogLevel eLevel)
 
 	return spdlog::get(svName);
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: Prints to all outputs based on parameters, va_list version
@@ -115,15 +122,8 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 
 	//-----------------------------------
 	// Format header
-	if (g_bConsole_UseAnsiColor)
-	{
-		std::string svAnsiString = Log_GetColor(eContext, eLevel).ToANSIColor();
-		svMessage += FormatA("%s[%s] ", svAnsiString.c_str(), pszName);
-	}
-	else
-	{
-		svMessage += FormatA("[%s] ", pszName);
-	}
+	std::string svAnsiString = Log_GetColor(eContext, eLevel).ToANSIColor();
+	svMessage += FormatA("%s[%s] ", svAnsiString.c_str(), pszName);
 
 	// Add the message itself
 	svMessage += FormatAV(fmt, vArgs);
@@ -133,15 +133,16 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	//-----------------------------------
 	std::lock_guard<std::mutex> lock(g_LogMutex);
 
-	g_WinLogger->debug("{}", svMessage);
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
+	LogMsg(eLevel, svMessage.c_str(), iCode);
+#endif
+
+#ifdef NORTHSTAR
+	// Log through launcher
+	g_pLogMsg(eLevel, svMessage.c_str(), iCode);
 
 	// Remove ansi escape sequences
 	svMessage = std::regex_replace(svMessage, AnsiRegex, "");
-
-	// Log to file
-	std::shared_ptr<spdlog::logger> pLogger = Log_GetLogger(eLevel);
-	if (pLogger.get()) // "-nologfiles" or programmer error can cause this to fail
-		pLogger->info("{:s}", svMessage);
 
 	// Log to clients if enabled
 	DediClientMsg(svMessage.c_str());
@@ -151,17 +152,7 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	{
 		g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
 	}
-
-	//-----------------------------------
-	// Terminate process if needed
-	//-----------------------------------
-	if (iCode)
-	{
-		if (!IsDedicatedServer())
-			MessageBoxA(NULL, svMessage.c_str(), "Northstar Error", MB_ICONERROR | MB_OK);
-
-		TerminateProcess(GetCurrentProcess(), iCode);
-	}
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -180,6 +171,39 @@ void CoreMsg(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszNa
 	CoreMsgV(eContext, eLevel, iCode, pszName, fmt, vArgs);
 	va_end(vArgs);
 }
+
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void LogMsg(eLogLevel eLevel, const char* pszMessage, int nCode)
+{
+	std::string svMessage = pszMessage;
+
+	// Log to win console
+	g_WinLogger->debug("{}", svMessage);
+
+	// Remove ANSI sequences
+	svMessage = std::regex_replace(svMessage, AnsiRegex, "");
+
+	// Log to file
+	std::shared_ptr<spdlog::logger> pLogger = Log_GetLogger(eLevel);
+	if (pLogger.get())
+		pLogger->info("{:s}", svMessage);
+
+	//-----------------------------------
+	// Terminate process if needed
+	//-----------------------------------
+	if (nCode)
+	{
+		if (CommandLine()->CheckParm("-dedicated") == nullptr)
+		{
+			MessageBoxA(NULL, svMessage.c_str(), "Northstar Prime Error", MB_ICONERROR | MB_OK);
+		}
+		TerminateProcess(GetCurrentProcess(), nCode);
+	}
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: Prints a LOG_INFO level message
@@ -230,6 +254,7 @@ void Error(eLog eContext, int nCode, const char* fmt, ...)
 	va_end(vArgs);
 }
 
+#if 0
 //-----------------------------------------------------------------------------
 // Purpose: Prints a message with a custom header, ONLY USE FOR PLUGINS OR RENAME
 // Input  : eLevel -
@@ -244,3 +269,4 @@ void PluginMsg(eLogLevel eLevel, const char* pszName, const char* fmt, ...)
 	CoreMsgV(eLog::PLUGIN, eLevel, 0, pszName, fmt, vArgs);
 	va_end(vArgs);
 }
+#endif

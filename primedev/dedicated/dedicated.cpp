@@ -274,7 +274,6 @@ void, __fastcall, (void* sqvm))
 	static ConVar* Cvar_fatal_script_errors = g_pCVar->FindVar("fatal_script_errors");
 	if (Cvar_fatal_script_errors->GetBool())
 	{
-		NS::log::FlushLoggers();
 		abort();
 	}
 }

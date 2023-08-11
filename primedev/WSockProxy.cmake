@@ -3,6 +3,8 @@
 find_package(minhook REQUIRED)
 
 add_library(loader_wsock32_proxy SHARED
+            "logging/logging.cpp"
+			"logging/logging.h"
             "util/filesystem.cpp"
 			"util/filesystem.h"
 			"util/utils.cpp"
@@ -11,8 +13,12 @@ add_library(loader_wsock32_proxy SHARED
 			"primelauncher/launcher.h"
 			"tier0/crashhandler.cpp"
 			"tier0/crashhandler.h"
+			"tier0/dbg.cpp"
+			"tier0/dbg.h"
             "wsockproxy/dllmain.cpp"
             "wsockproxy/proxy.cpp"
+			"windows/wconsole.cpp"
+			"windows/wconsole.h"
             "WSockProxy.def"
 )
 

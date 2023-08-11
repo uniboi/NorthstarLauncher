@@ -5,8 +5,11 @@
 #include "spdlog/spdlog.h"
 #include "util/filesystem.h"
 #include "util/utils.h"
+#include "logging/logging.h"
 #include "tier0/commandline.h"
 #include "tier0/crashhandler.h"
+#include "tier0/dbg.h"
+#include "windows/wconsole.h"
 
 
 //-----------------------------------------------------------------------------
@@ -161,11 +164,17 @@ void CNorthstarLauncher::InitNorthstarSubsystems()
 {
 	g_svLogDirectory = fmt::format("{:s}\\logs\\{:s}", m_svProfile, CreateTimeStamp());
 
+	// Check if install dir is writable
+	SpdLog_PreInit();
+
 	g_pCrashHandler = new CCrashHandler();
 
-	int* pTest = 0;
-	*pTest = 50;
-	// spdlog
+	// Create console
+	Console_Init();
+
+	// Setup spdlog
+	SpdLog_Init();
+	SpdLog_CreateLoggers();
 }
 
 #ifdef LAUNCHER
@@ -193,18 +202,18 @@ void CNorthstarLauncher::InjectNorthstar()
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
-	bool (*NorthstarPrime_Initilase)();
-	NorthstarPrime_Initilase = reinterpret_cast<bool (*)()>(GetProcAddress(hNorthstar, "InitialiseNorthstar"));
+	bool (*NorthstarPrime_Initilase)(LogMsgFn pLogMsg, const char* pszProfile);
+	NorthstarPrime_Initilase = reinterpret_cast<bool (*)(LogMsgFn, const char*)>(GetProcAddress(hNorthstar, "NorthstarPrime_Initilase"));
 
 	if (!NorthstarPrime_Initilase)
 	{
 		// TODO [Fifty]: Use Error
 		MessageBoxA(
-			NULL, "Loaded Northstar.dll doesn't export InitialiseNorthstar!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+			NULL, "Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
-	NorthstarPrime_Initilase();
+	NorthstarPrime_Initilase(reinterpret_cast<LogMsgFn>(LogMsg), m_svProfile.c_str());
 
 #ifdef LAUNCHER
 	// Launch the game

@@ -4,6 +4,7 @@
 #include "squirrelautobind.h"
 #include "core/math/vector.h"
 #include "mods/modmanager.h"
+#include "logging/logging.h"
 
 eLog SQ_GetLogContextScript(ScriptContext nSqContext);
 eLog SQ_GetLogContextNative(ScriptContext nSqContext);

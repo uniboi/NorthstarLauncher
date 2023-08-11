@@ -34,13 +34,14 @@ typedef void (*callable_v)(void* v);
 #include "core/structs.h"
 #include "core/math/color.h"
 
+#include "logging/logging.h"
+
 #include "tier0/commandline.h"
 #include "tier0/dbg.h"
 
 //#include "rapidjson/rapidjson.h"
 
 #include "spdlog/spdlog.h"
-#include "logging/logging.h"
 #include "MinHook.h"
 #include "curl/curl.h"
 

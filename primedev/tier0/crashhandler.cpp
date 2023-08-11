@@ -4,6 +4,7 @@
 #include <Psapi.h>
 #include <util/utils.h>
 #include <util/filesystem.h>
+#include "logging/logging.h"
 
 #define CRASHHANDLER_MAX_FRAMES 32
 #define CRASHHANDLER_GETMODULEHANDLE_FAIL "GetModuleHandleExA failed!"

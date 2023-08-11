@@ -1,6 +1,8 @@
 # PrimeLauncher
 
 add_executable(PrimeLauncher
+               "logging/logging.cpp"
+			   "logging/logging.h"
                "util/filesystem.cpp"
 			   "util/filesystem.h"
 			   "util/utils.cpp"
@@ -11,6 +13,10 @@ add_executable(PrimeLauncher
                "primelauncher/resources.rc"
                "tier0/crashhandler.cpp"
                "tier0/crashhandler.h"
+			   "tier0/dbg.cpp"
+			   "tier0/dbg.h"
+			   "windows/wconsole.cpp"
+			   "windows/wconsole.h"
 )
 
 target_compile_definitions(PrimeLauncher PRIVATE

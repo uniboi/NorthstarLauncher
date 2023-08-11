@@ -17,42 +17,23 @@
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
-	switch (dwReason)
-	{
-	case DLL_PROCESS_DETACH:
-		SpdLog_Shutdown();
-		break;
-	}
-
 	return TRUE;
 }
 
-bool InitialiseNorthstar()
+//-----------------------------------------------------------------------------
+// Purpose: Northstar Entry point
+//-----------------------------------------------------------------------------
+bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 {
+	// TODO[Fifty]: Check arguments
 	static bool bInitialised = false;
 	if (bInitialised)
 		return false;
 
 	bInitialised = true;
 
-	// Initilaze working profile directory
-	InitialiseNorthstarPrefix();
-
-	// Initilaze log directory
-	g_svLogDirectory = fmt::format("{:s}\\logs\\{:s}", GetNorthstarPrefix(), CreateTimeStamp());
-
-	// Checks if we can write into install directory
-	SpdLog_PreInit();
-
-	// Make sure we have a console window
-	Console_Init();
-
-	// Init logging
-	SpdLog_Init();
-	SpdLog_CreateLoggers();
-
-	// Write launcher version to log
-	Sys_PrintOSVer();
+	g_svLogDirectory = pszProfile;
+	g_pLogMsg = pLogMsg;
 
 	InitialiseVersion();
 

@@ -1,6 +1,6 @@
 #include "squirrel.h"
+
 #include "mods/modsavefiles.h"
-#include "logging/logging.h"
 #include "core/convar/concommand.h"
 #include "mods/modmanager.h"
 #include "dedicated/dedicated.h"

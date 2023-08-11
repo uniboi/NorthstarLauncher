@@ -99,7 +99,3 @@ class CCrashHandler
 };
 
 extern CCrashHandler* g_pCrashHandler;
-
-
-// TODO[Fifty]: move this to logging.h
-inline std::string g_svLogDirectory;
