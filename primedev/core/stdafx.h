@@ -46,7 +46,9 @@ typedef void (*callable_v)(void* v);
 
 //#include "rapidjson/rapidjson.h"
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
 #include "spdlog/spdlog.h"
+#endif
 
 #ifdef NORTHSTAR
 #include "MinHook.h"
