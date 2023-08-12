@@ -163,7 +163,7 @@ void CNorthstarLauncher::InitCoreSubsystems()
 
 	if (!hTier0 && FileExists(wsvTier0Path))
 	{
-		MessageBoxA(NULL, "Failed to load tier0.dll. The file exists. This means you're missing msvc redistributables.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+		MessageBoxA(NULL, "Failed to load tier0.dll. The file exists. This means you're missing x64 msvc 2012 redistributables.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
