@@ -48,8 +48,6 @@ add_library(NorthstarDLL SHARED
             "core/memalloc.h"
             "core/memory.cpp"
             "core/memory.h"
-            "core/sourceinterface.cpp"
-            "core/sourceinterface.h"
             "core/structs.h"
             "core/tier0.cpp"
             "core/tier0.h"
