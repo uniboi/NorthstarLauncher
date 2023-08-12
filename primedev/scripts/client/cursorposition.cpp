@@ -1,13 +1,13 @@
 #include "squirrel/squirrel.h"
-#include "util/wininfo.h"
+#include "windows/window.h"
 
 ADD_SQFUNC("vector ornull", NSGetCursorPosition, "", "", ScriptContext::UI)
 {
 	RECT rcClient;
 	POINT p;
-	if (GetCursorPos(&p) && ScreenToClient(*g_gameHWND, &p) && GetClientRect(*g_gameHWND, &rcClient))
+	if (GetCursorPos(&p) && ScreenToClient(*g_hGameWindow, &p) && GetClientRect(*g_hGameWindow, &rcClient))
 	{
-		if (GetAncestor(GetForegroundWindow(), GA_ROOTOWNER) != *g_gameHWND)
+		if (GetAncestor(GetForegroundWindow(), GA_ROOTOWNER) != *g_hGameWindow)
 			return SQRESULT_NULL;
 
 		g_pSquirrel<context>->pushvector(

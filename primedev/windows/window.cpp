@@ -2,6 +2,8 @@
 
 AUTOHOOK_INIT()
 
+HWND* g_hGameWindow = nullptr;
+
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
@@ -17,5 +19,7 @@ AUTOHOOK(Respawn_CreateWindow, engine.dll + 0x1CD0E0, bool, __fastcall,
 //-----------------------------------------------------------------------------
 ON_DLL_LOAD_CLIENT("engine.dll", CreateWindowLog, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	AUTOHOOK_DISPATCH();
+
+	g_hGameWindow = module.Offset(0x7d88a0).RCast<HWND*>();
 }
