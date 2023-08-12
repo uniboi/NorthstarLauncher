@@ -207,6 +207,7 @@ void LogMsg(eLogLevel eLevel, const char* pszMessage, int nCode)
 	//-----------------------------------
 	// Terminate process if needed
 	//-----------------------------------
+	// NOTE [Fifty]: Needs tier0 to be loaded otherwise CommandLine will be null
 	if (nCode)
 	{
 		if (CommandLine()->CheckParm("-dedicated") == nullptr)

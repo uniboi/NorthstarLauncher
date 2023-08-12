@@ -18,8 +18,6 @@
 //-----------------------------------------------------------------------------
 void SpdLog_PreInit(void)
 {
-	// This is called before SpdLog_Init so we can't use any logging helpers
-
 	// NOTE [Fifty]: Instead of checking every reason as to why we might not be able to write to a directory
 	//               it is easier to just try to create a file
 	FILE* pFile = fopen(".nstemp", "w");
@@ -36,7 +34,7 @@ void SpdLog_PreInit(void)
 		"The current directory isn't writable!\n"
 		"Please move the game into a writable directory to be able to continue\n\n"
 		"Click \"OK\" to open the wiki in your browser",
-		"Northstar Error",
+		"Northstar Prime Error",
 		MB_ICONERROR | MB_OKCANCEL);
 
 	// User chose to open the troubleshooting wiki page
