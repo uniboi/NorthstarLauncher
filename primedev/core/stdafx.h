@@ -56,6 +56,33 @@ typedef void (*callable_v)(void* v);
 #include "core/memory.h"
 #endif
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+inline void LogPtrAdr(const char* szName, void* pVar)
+{
+    LPCSTR pVarPtr = static_cast<LPCSTR>(pVar);
+    HMODULE hCrashedModule;
+    if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, pVarPtr, &hCrashedModule))
+    {
+        Error(eLog::NONE, NO_ERROR, "Failed to get module for var: '%s'\n", szName);
+        return;
+    }
+
+    // Get module filename
+    CHAR szCrashedModulePath[MAX_PATH];
+    GetModuleFileNameExA(GetCurrentProcess(), hCrashedModule, szCrashedModulePath, sizeof(szCrashedModulePath));
+
+    const CHAR* pszCrashedModuleFileName = strrchr(szCrashedModulePath, '\\') + 1;
+
+    // Get relative address
+    LPCSTR pRelativeAddress = reinterpret_cast<LPCSTR>(pVarPtr - reinterpret_cast<LPCSTR>(hCrashedModule));
+
+    DevMsg(eLog::NONE, "Ptr '%s' is at: %s + %#x\n", szName, pszCrashedModuleFileName, (void*)pRelativeAddress);
+}
+
+//-----------------------------------------------------------------------------
+// 
 #if defined(LAUNCHER) || defined(WSOCKPROXY)
 static const char* const NSP_EMBLEM[] = {
 	R"(+---------------------------------------------------------------+)",
