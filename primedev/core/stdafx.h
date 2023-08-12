@@ -64,23 +64,23 @@ typedef void (*callable_v)(void* v);
 inline void LogPtrAdr(const char* szName, void* pVar)
 {
     LPCSTR pVarPtr = static_cast<LPCSTR>(pVar);
-    HMODULE hCrashedModule;
-    if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, pVarPtr, &hCrashedModule))
+    HMODULE hPtrModule;
+    if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, pVarPtr, &hPtrModule))
     {
         Error(eLog::NONE, NO_ERROR, "Failed to get module for var: '%s'\n", szName);
         return;
     }
 
     // Get module filename
-    CHAR szCrashedModulePath[MAX_PATH];
-    GetModuleFileNameExA(GetCurrentProcess(), hCrashedModule, szCrashedModulePath, sizeof(szCrashedModulePath));
+    CHAR szModulePath[MAX_PATH];
+    GetModuleFileNameExA(GetCurrentProcess(), hPtrModule, szModulePath, sizeof(szModulePath));
 
-    const CHAR* pszCrashedModuleFileName = strrchr(szCrashedModulePath, '\\') + 1;
+    const CHAR* pszModuleFileName = strrchr(szModulePath, '\\') + 1;
 
     // Get relative address
-    LPCSTR pRelativeAddress = reinterpret_cast<LPCSTR>(pVarPtr - reinterpret_cast<LPCSTR>(hCrashedModule));
+    LPCSTR pRelativeAddress = reinterpret_cast<LPCSTR>(pVarPtr - reinterpret_cast<LPCSTR>(hPtrModule));
 
-    DevMsg(eLog::NONE, "Ptr '%s' is at: %s + %#x\n", szName, pszCrashedModuleFileName, (void*)pRelativeAddress);
+    DevMsg(eLog::NONE, "Ptr '%s' is at: %s + %#x\n", szName, pszModuleFileName, (void*)pRelativeAddress);
 }
 
 //-----------------------------------------------------------------------------
