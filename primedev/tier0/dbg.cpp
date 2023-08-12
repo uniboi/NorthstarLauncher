@@ -158,7 +158,7 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	// Log to game console
 	if (g_bEngineVguiInitilased && g_pCVar)
 	{
-		g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
+		g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), "%s", svMessage.c_str());
 	}
 #endif
 }
