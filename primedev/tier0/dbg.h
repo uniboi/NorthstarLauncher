@@ -2,9 +2,6 @@
 
 #include "logging/logging.h"
 
-// TODO [Fifty]: Move this
-inline bool g_bEngineVguiInitilazed = false;
-
 inline std::mutex g_LogMutex;
 
 #if defined(LAUNCHER) || defined(WSOCKPROXY)

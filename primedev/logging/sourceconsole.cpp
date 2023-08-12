@@ -41,12 +41,6 @@ AUTOHOOK(CGameConsole_OnCommandSubmitted, client.dll + 0x4A2550, void, __fastcal
 	CGameConsole_OnCommandSubmitted(pConsoleDialog, pszCommand);
 }
 
-// called from sourceinterface.cpp in client createinterface hooks, on GameClientExports001
-void InitialiseConsoleOnInterfaceCreation()
-{
-	g_pGameConsole->Initialize();
-}
-
 ON_DLL_LOAD_CLIENT_RELIESON("client.dll", SourceConsole, ConCommand, (CModule module))
 {
 	AUTOHOOK_DISPATCH()

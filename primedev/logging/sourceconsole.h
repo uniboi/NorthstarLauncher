@@ -61,5 +61,3 @@ class CGameConsole
 };
 
 extern CGameConsole* g_pGameConsole;
-
-void InitialiseConsoleOnInterfaceCreation();

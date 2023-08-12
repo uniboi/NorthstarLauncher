@@ -6,6 +6,7 @@
 #include "core/convar/cvar.h"
 #include "dedicated/dedicatedlogtoclient.h"
 #include "dedicated/dedicated.h"
+#include <vgui/vgui_baseui_interface.h>
 #endif
 
 #include "tier0/commandline.h"
@@ -155,7 +156,7 @@ void CoreMsgV(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszN
 	DediClientMsg(svMessage.c_str());
 
 	// Log to game console
-	if (g_bEngineVguiInitilazed && g_pCVar)
+	if (g_bEngineVguiInitilased && g_pCVar)
 	{
 		g_pCVar->ConsoleColorPrintf(Log_GetColor(eContext, eLevel).ToSourceColor(), svMessage.c_str());
 	}
