@@ -177,7 +177,7 @@ void LoadCustomMapPaks(char** pakName, bool* bNeedToFreePakName)
 }
 
 // clang-format off
-HOOK(LoadPakAsyncHook, LoadPakAsync,
+AUTOHOOK(LoadPakAsync, rtech_game.dll + 0xb0f0,
 int, __fastcall, (char* pPath, void* unknownSingleton, int flags, void* pCallback0, void* pCallback1))
 // clang-format on
 {
@@ -236,7 +236,7 @@ int, __fastcall, (char* pPath, void* unknownSingleton, int flags, void* pCallbac
 }
 
 // clang-format off
-HOOK(UnloadPakHook, UnloadPak,
+AUTOHOOK(UnloadPak, rtech_game.dll + 0xb280,
 void*, __fastcall, (int nPakHandle, void* pCallback))
 // clang-format on
 {
@@ -258,7 +258,7 @@ void*, __fastcall, (int nPakHandle, void* pCallback))
 // we hook this exclusively for resolving stbsp paths, but seemingly it's also used for other stuff like vpk, rpak, mprj and starpak loads
 // tbh this actually might be for memory mapped files or something, would make sense i think
 // clang-format off
-HOOK(ReadFileAsyncHook, ReadFileAsync, 
+AUTOHOOK(ReadFileAsync, rtech_game.dll + 0x1e20, 
 void*, __fastcall, (const char* pPath, void* pCallback))
 // clang-format on
 {
@@ -342,8 +342,4 @@ ON_DLL_LOAD("engine.dll", RpakFilesystem, (CModule module))
 
 	g_pakLoadApi = module.Offset(0x5BED78).Deref().RCast<PakLoadFuncs*>();
 	pUnknownPakLoadSingleton = module.Offset(0x7C5E20).RCast<void**>();
-
-	LoadPakAsyncHook.Dispatch((LPVOID*)g_pakLoadApi->LoadPakAsync);
-	UnloadPakHook.Dispatch((LPVOID*)g_pakLoadApi->UnloadPak);
-	ReadFileAsyncHook.Dispatch((LPVOID*)g_pakLoadApi->ReadFileAsync);
 }

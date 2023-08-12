@@ -46,7 +46,7 @@ std::string ReadVPKOriginalFile(const char* path)
 }
 
 // clang-format off
-HOOK(AddSearchPathHook, AddSearchPath,
+AUTOHOOK(AddSearchPath, filesystem_stdio.dll + 0xb510,
 void, __fastcall, (IFileSystem * fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType))
 // clang-format on
 {
@@ -102,7 +102,7 @@ bool TryReplaceFile(const char* pPath, bool shouldCompile)
 
 // force modded files to be read from mods, not cache
 // clang-format off
-HOOK(ReadFromCacheHook, ReadFromCache,
+AUTOHOOK(ReadFromCache, filesystem_stdio.dll + 0xfe50,
 bool, __fastcall, (IFileSystem * filesystem, char* pPath, void* result))
 // clang-format off
 {
@@ -137,7 +137,7 @@ FileHandle_t, __fastcall, (IFileSystem* filesystem, const char* pPath, const cha
 	return CBaseFileSystem__OpenEx(filesystem, pPath, pOptions, flags, pPathID, ppszResolvedFilename);
 }
 
-HOOK(MountVPKHook, MountVPK, VPKData*, , (IFileSystem * fileSystem, const char* pVpkPath))
+AUTOHOOK(MountVPK, filesystem_stdio.dll + 0xbea0, VPKData*, , (IFileSystem * fileSystem, const char* pVpkPath))
 {
 	DevMsg(eLog::FS, "MountVPK %s\n", pVpkPath);
 	VPKData* ret = MountVPK(fileSystem, pVpkPath);
@@ -174,8 +174,4 @@ ON_DLL_LOAD("filesystem_stdio.dll", Filesystem, (CModule module))
 	AUTOHOOK_DISPATCH()
 
 	g_pFilesystem = Sys_GetFactoryPtr("filesystem_stdio.dll", "VFileSystem017").RCast<IFileSystem*>();
-
-	AddSearchPathHook.Dispatch((LPVOID)g_pFilesystem->m_vtable->AddSearchPath);
-	ReadFromCacheHook.Dispatch((LPVOID)g_pFilesystem->m_vtable->ReadFromCache);
-	MountVPKHook.Dispatch((LPVOID)g_pFilesystem->m_vtable->MountVPK);
 }
