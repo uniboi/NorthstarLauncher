@@ -62,6 +62,7 @@ add_library(NorthstarDLL SHARED
             "engine/r2engine.cpp"
             "engine/r2engine.h"
             "engine/runframe.cpp"
+            "launcher/launcher.cpp"
             "logging/logging.h"
             "logging/loghooks.cpp"
             "logging/loghooks.h"
