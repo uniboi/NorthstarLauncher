@@ -188,6 +188,7 @@ void CNorthstarLauncher::InitNorthstarSubsystems()
 	// Check if install dir is writable
 	SpdLog_PreInit();
 
+	// Init crash handler as soon as possible
 	g_pCrashHandler = new CCrashHandler();
 
 	// Create console

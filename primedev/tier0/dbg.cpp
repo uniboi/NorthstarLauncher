@@ -193,7 +193,8 @@ void LogMsg(eLogLevel eLevel, const char* pszMessage, int nCode)
 	}
 
 	// Log to win console
-	g_WinLogger->debug("{}", svMessage);
+	if (g_WinLogger.get()) // Allows using before spdlog is initilazed (Only Error benefits from this)
+		g_WinLogger->debug("{}", svMessage);
 
 	// Remove ANSI sequences
 	svMessage = std::regex_replace(svMessage, AnsiRegex, "");
