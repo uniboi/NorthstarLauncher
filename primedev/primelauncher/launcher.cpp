@@ -141,7 +141,6 @@ void CNorthstarLauncher::InitCoreSubsystems()
 	// Verify we were installed correctly
 	if (!FileExists("Titanfall2.exe"))
 	{
-		// TODO [Fifty]: Use Error
 		MessageBoxA(NULL, "Titanfall2.exe not found, make sure you installed northstar correctly.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
@@ -151,7 +150,6 @@ void CNorthstarLauncher::InitCoreSubsystems()
 	// Verify profile
 	if (m_svProfile.empty() || !CreateDirectories(m_svProfile))
 	{
-		// TODO [Fifty]: Use Error
 		std::string svErrorMsg = FormatA("Profile: '%s' is invalid. Make sure you used valid characters!", m_svProfile.c_str());
 		MessageBoxA(NULL, svErrorMsg.c_str(), "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
@@ -223,7 +221,6 @@ void CNorthstarLauncher::InjectNorthstar()
 
 	if (!hNorthstar)
 	{
-		// TODO [Fifty]: Use Error
 		MessageBoxA(NULL, "Failed to load Northstar.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
@@ -233,7 +230,6 @@ void CNorthstarLauncher::InjectNorthstar()
 
 	if (!NorthstarPrime_Initilase)
 	{
-		// TODO [Fifty]: Use Error
 		MessageBoxA(
 			NULL, "Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
@@ -248,7 +244,6 @@ void CNorthstarLauncher::InjectNorthstar()
 
 	if (!hLauncher)
 	{
-		// TODO [Fifty]: Use Error
 		MessageBoxA(NULL, "Failed to load launcher.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
