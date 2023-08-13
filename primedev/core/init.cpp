@@ -1,7 +1,6 @@
 #include "logging/logging.h"
 #include "core/memalloc.h"
 #include "config/profile.h"
-#include "util/version.h"
 #include "squirrel/squirrel.h"
 #include "shared/gamepresence.h"
 #include "server/serverpresence.h"
@@ -35,8 +34,6 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	g_svProfileDir = pszProfile;
 	g_pLogMsg = pLogMsg;
 
-	InitialiseVersion();
-
 	InstallInitialHooks();
 
 	g_pServerPresence = new ServerPresenceManager();
@@ -54,4 +51,12 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	CallAllPendingDLLLoadCallbacks();
 
 	return true;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Returns the version of this dll
+//-----------------------------------------------------------------------------
+const char* NorthstarPrime_GetVersion()
+{
+	return NORTHSTAR_VERSION;
 }

@@ -11,7 +11,6 @@
 #include "tier0/dbg.h"
 #include "windows/wconsole.h"
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Returns the profile to use
 //-----------------------------------------------------------------------------
@@ -83,16 +82,6 @@ void Launcher_PrintEmblem()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Print northstar information
-//-----------------------------------------------------------------------------
-void Launcher_PrintNSPInfo()
-{
-	DevMsg(eLog::NONE, "Northstar Prime version: %s\n", "0.0-dev");
-	DevMsg(eLog::NONE, "CommandLine: %s\n", GetCommandLineA());
-	DevMsg(eLog::NONE, "+---------------------------------------------------------------+\n");
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CNorthstarLauncher::CNorthstarLauncher()
@@ -131,8 +120,6 @@ bool CNorthstarLauncher::ShouldInject()
 #endif
 }
 
-
-
 //-----------------------------------------------------------------------------
 // Purpose: Initilazes all subsystems we use before LauncherMain is called
 //-----------------------------------------------------------------------------
@@ -161,7 +148,12 @@ void CNorthstarLauncher::InitCoreSubsystems()
 
 	if (!hTier0 && FileExists(wsvTier0Path))
 	{
-		MessageBoxA(NULL, "Failed to load tier0.dll. The file exists. This means you're missing x64 msvc 2012 redistributables.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+		MessageBoxA(
+			NULL,
+			"Failed to load tier0.dll. The file exists. This means you're missing x64 msvc 2012 redistributables.\n\nPlease verify your "
+			"files and try again.",
+			"Northstar Prime error",
+			MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
@@ -198,7 +190,6 @@ void CNorthstarLauncher::InitNorthstarSubsystems()
 
 	// Print emblem and sys info
 	Launcher_PrintEmblem();
-	Launcher_PrintNSPInfo();
 }
 
 #ifdef LAUNCHER
@@ -216,29 +207,100 @@ void CNorthstarLauncher::InitOrigin()
 //-----------------------------------------------------------------------------
 void CNorthstarLauncher::InjectNorthstar()
 {
+	//------------------------------------------------------
+	// Load northstar
+	//------------------------------------------------------
 	std::wstring wsvNorthstar = FormatW(L"%s\\%s", m_wsvExePath.c_str(), L"Northstar.dll");
 	HMODULE hNorthstar = LoadLibraryExW(wsvNorthstar.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 
 	if (!hNorthstar)
 	{
-		MessageBoxA(NULL, "Failed to load Northstar.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+		MessageBoxA(
+			NULL, "Failed to load Northstar.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
+	// Get 'NorthstarPrime_Initilase'
 	bool (*NorthstarPrime_Initilase)(LogMsgFn pLogMsg, const char* pszProfile);
 	NorthstarPrime_Initilase = reinterpret_cast<bool (*)(LogMsgFn, const char*)>(GetProcAddress(hNorthstar, "NorthstarPrime_Initilase"));
 
 	if (!NorthstarPrime_Initilase)
 	{
 		MessageBoxA(
-			NULL, "Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+			NULL,
+			"Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.",
+			"Northstar Prime error",
+			MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
+	//------------------------------------------------------
+	// Print some debug information
+	//------------------------------------------------------
+	DevMsg(eLog::NONE, "CommandLine      : %s\n", GetCommandLineA());
+
+	// Get 'NorthstarPrime_GetVersion'
+	const char* (*NorthstarPrime_GetVersion)();
+	NorthstarPrime_GetVersion = reinterpret_cast<const char* (*)()>(GetProcAddress(hNorthstar, "NorthstarPrime_GetVersion"));
+
+	const char* pszVersion = "Failed to get 'NorthstarPrime_GetVersion'";
+
+	if (NorthstarPrime_GetVersion)
+	{
+		pszVersion = NorthstarPrime_GetVersion();
+	}
+
+	DevMsg(eLog::NONE, "Northstar version: %s\n", pszVersion);
+
+	// Get 'RtlGetVersion' ( e.g. 10.0-19045 )
+	HMODULE hNTdll = GetModuleHandleA("ntdll.dll");
+
+	if (!hNTdll)
+	{
+		MessageBoxA(NULL, "Challenge Complete!\nHow Did We Get Here?", "Northstar Prime error", MB_ICONERROR);
+		TerminateProcess(GetCurrentProcess(), -1);
+	}
+
+	DWORD(WINAPI * RtlGetVersion)(LPOSVERSIONINFOEXW);
+	RtlGetVersion = reinterpret_cast<DWORD(WINAPI*)(LPOSVERSIONINFOEXW)>(GetProcAddress(hNTdll, "RtlGetVersion"));
+
+	if (RtlGetVersion)
+	{
+		OSVERSIONINFOEXW osvi = {};
+		RtlGetVersion(&osvi);
+
+		DevMsg(eLog::NONE, "Windows version  : %d.%d-%d\n", osvi.dwMajorVersion, osvi.dwMinorVersion, osvi.dwBuildNumber);
+	}
+
+	// Get 'wine_get_version' (7.0-rc1, 7.0, 7.11, etc)
+	const char*(CDECL * wine_get_version)(void);
+	wine_get_version = reinterpret_cast<const char*(CDECL*)(void)>(GetProcAddress(hNTdll, "wine_get_version"));
+
+	if (wine_get_version)
+	{
+		DevMsg(eLog::NONE, "Wine version     : %s\n", wine_get_version());
+	}
+
+	// Get 'wine_get_build_id' (e.g., "wine-7.22 (Staging)")
+	const char*(CDECL * wine_get_build_id)(void);
+	wine_get_build_id = reinterpret_cast<const char*(CDECL*)(void)>(GetProcAddress(hNTdll, "wine_get_build_id"));
+
+	if (wine_get_build_id)
+	{
+		DevMsg(eLog::NONE, "Wine build id    : %s\n", wine_get_build_id());
+	}
+
+	DevMsg(eLog::NONE, "+---------------------------------------------------------------+\n");
+
+	//------------------------------------------------------
+	// Initilase northstar
+	//------------------------------------------------------
 	NorthstarPrime_Initilase(reinterpret_cast<LogMsgFn>(LogMsg), m_svProfile.c_str());
 
 #ifdef LAUNCHER
+	//------------------------------------------------------
 	// Launch the game
+	//------------------------------------------------------
 	std::wstring wsvLauncher = FormatW(L"%s\\bin\\x64_retail\\%s", m_wsvExePath.c_str(), L"launcher.dll");
 	HMODULE hLauncher = LoadLibraryExW(wsvLauncher.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 

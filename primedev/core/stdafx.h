@@ -21,6 +21,9 @@
 #define EXPORT extern "C" __declspec(dllexport)
 #define ARRAY_SIZE(arr) ((sizeof(arr) / sizeof(*arr)))
 
+// Get around version gate
+#define NORTHSTAR_USERAGENT "R2Northstar/0.0.0+dev"
+
 #ifdef NORTHSTAR
 typedef void (*callable)();
 typedef void (*callable_v)(void* v);

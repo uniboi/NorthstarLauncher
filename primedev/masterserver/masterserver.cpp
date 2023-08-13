@@ -6,7 +6,6 @@
 #include "engine/r2engine.h"
 #include "mods/modmanager.h"
 #include "shared/misccommands.h"
-#include "util/version.h"
 #include "server/auth/bansystem.h"
 
 #include "rapidjson/document.h"
@@ -57,7 +56,9 @@ void SetCommonHttpClientOptions(CURL* curl)
 {
 	curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, Cvar_ns_curl_log_enable->GetBool());
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, &NSUserAgent);
+
+	curl_easy_setopt(curl, CURLOPT_USERAGENT, NORTHSTAR_USERAGENT);
+	
 	// Timeout since the MS has fucky async functions without await, making curl hang due to a successful connection but no response for ~90
 	// seconds.
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);

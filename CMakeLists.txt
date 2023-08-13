@@ -7,6 +7,9 @@ if(NOT CMAKE_BUILD_TYPE)
         "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
+set(NORTHSTAR_MAJOR 0)
+set(NORTHSTAR_MINOR 0)
+
 # Language specs
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 17)
@@ -29,6 +32,11 @@ include(utils)
 
 include_directories(primedev)
 include_directories(primedev/thirdparty)
+
+# Version
+add_compile_definitions(NORTHSTAR_MAJOR=0)
+add_compile_definitions(NORTHSTAR_MINOR=0)
+add_compile_definitions(NORTHSTAR_VERSION="${NORTHSTAR_MAJOR}.${NORTHSTAR_MINOR}-dev")
 
 # Targets
 add_subdirectory(primedev)

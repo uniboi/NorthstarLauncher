@@ -140,15 +140,12 @@ add_library(NorthstarDLL SHARED
             "util/printmaps.h"
             "util/utils.cpp"
             "util/utils.h"
-            "util/version.cpp"
-            "util/version.h"
             "vgui/vgui_baseui_interface.cpp"
 			"vgui/vgui_baseui_interface.h"
 			"windows/wconsole.cpp"
 			"windows/wconsole.h"
 			"windows/window.cpp"
             "audio_asm.asm"
-            "ns_version.h"
 			"Northstar.def"
 )
 

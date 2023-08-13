@@ -1,5 +1,4 @@
 #include "scripthttprequesthandler.h"
-#include "util/version.h"
 #include "squirrel/squirrel.h"
 #include "core/tier0.h"
 
@@ -404,7 +403,7 @@ template <ScriptContext context> int HttpRequestHandler::MakeHttpRequest(const H
 			// Enforce the Northstar user agent, unless an override was specified.
 			if (requestParameters.userAgent.empty())
 			{
-				curl_easy_setopt(curl, CURLOPT_USERAGENT, &NSUserAgent);
+				curl_easy_setopt(curl, CURLOPT_USERAGENT, NORTHSTAR_USERAGENT);
 			}
 			else
 			{

@@ -2,3 +2,4 @@ LIBRARY dedicated
 
 EXPORTS
     NorthstarPrime_Initilase @1
+	NorthstarPrime_GetVersion @2
