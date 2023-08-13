@@ -21,7 +21,7 @@ void, __fastcall, (bool bDedicated))
 	InitialiseMapsPrint();
 
 	// Hardcoded mod functionality, add something to mod.json or just teach users on how to +exec as a replacement ot this
-	Warning(eLog::ENGINE, "'autoexec_ns_*' files are deprecated!");
+	Warning(eLog::ENGINE, "'autoexec_ns_*' files are deprecated!\n");
 	// client/server autoexecs on necessary platforms
 	// dedi needs autoexec_ns_server on boot, while non-dedi will run it on on listen server start
 	if (bDedicated)
