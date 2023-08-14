@@ -1,6 +1,6 @@
 #include "mods/modmanager.h"
 
-#include "logging/sourceconsole.h"
+#include "gameui/GameConsole.h"
 #include "vgui/vgui_baseui_interface.h"
 
 AUTOHOOK_INIT()
