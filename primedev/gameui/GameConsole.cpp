@@ -1,5 +1,5 @@
 #include "core/convar/convar.h"
-#include "sourceconsole.h"
+#include "GameConsole.h"
 #include "core/convar/concommand.h"
 #include "util/printcommands.h"
 #include "tier1/interface.h"
@@ -31,7 +31,7 @@ void ConCommand_hideconsole(const CCommand& arg)
 //-----------------------------------------------------------------------------
 // clang-format off
 AUTOHOOK(CGameConsole_OnCommandSubmitted, client.dll + 0x4A2550, void, __fastcall,
-	(CConsoleDialog* pConsoleDialog, const char* pszCommand))
+	(void /*CConsoleDialog*/* pConsoleDialog, const char* pszCommand))
 // clang-format on
 {
 	DevMsg(eLog::NONE, "] %s\n", pszCommand);
