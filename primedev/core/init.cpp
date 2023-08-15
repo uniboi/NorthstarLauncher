@@ -96,16 +96,16 @@ void Tier0_Init()
 	CModule mTier0(hTier0);
 
 	// commandline
-	CommandLine = mTier0.GetExport("CommandLine").RCast<CCommandLine* (*)()>();
+	CommandLine = mTier0.GetExportedFunction("CommandLine").RCast<CCommandLine* (*)()>();
 
 	// platform
-	Plat_FloatTime = mTier0.GetExport("Plat_FloatTime").RCast<double (*)()>();
+	Plat_FloatTime = mTier0.GetExportedFunction("Plat_FloatTime").RCast<double (*)()>();
 
 	// threadtools
-	ThreadCouldDoServerWork = mTier0.GetExport("ThreadCouldDoServerWork").RCast<bool (*)()>();
-	ThreadInMainOrServerFrameThread = mTier0.GetExport("ThreadInMainOrServerFrameThread").RCast<bool (*)()>();
-	ThreadInMainThread = mTier0.GetExport("ThreadInMainThread").RCast<bool (*)()>();
-	ThreadInServerFrameThread = mTier0.GetExport("ThreadInServerFrameThread").RCast<bool (*)()>();
+	ThreadCouldDoServerWork = mTier0.GetExportedFunction("ThreadCouldDoServerWork").RCast<bool (*)()>();
+	ThreadInMainOrServerFrameThread = mTier0.GetExportedFunction("ThreadInMainOrServerFrameThread").RCast<bool (*)()>();
+	ThreadInMainThread = mTier0.GetExportedFunction("ThreadInMainThread").RCast<bool (*)()>();
+	ThreadInServerFrameThread = mTier0.GetExportedFunction("ThreadInServerFrameThread").RCast<bool (*)()>();
 
 	// memstd
 	// initilased in memstd.h

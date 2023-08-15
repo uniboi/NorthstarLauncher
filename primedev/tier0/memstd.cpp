@@ -14,8 +14,8 @@ static void MemStd_Init()
 		//g_pMemAllocSingleton = reinterpret_cast<IMemAlloc*>(GetProcAddress(hTier0, "g_pMemAllocSingleton"));
 		CreateGlobalMemAlloc = reinterpret_cast<IMemAlloc* (*)()>(GetProcAddress(hTier0, "CreateGlobalMemAlloc"));
 
-		//g_pMemAllocSingleton = mTier0.GetExport("g_pMemAllocSingleton").Deref().RCast<IMemAlloc*>();
-		//CreateGlobalMemAlloc = mTier0.GetExport("CreateGlobalMemAlloc").RCast<IMemAlloc* (*)()>();
+		//g_pMemAllocSingleton = mTier0.GetExportedFunction("g_pMemAllocSingleton").Deref().RCast<IMemAlloc*>();
+		//CreateGlobalMemAlloc = mTier0.GetExportedFunction("CreateGlobalMemAlloc").RCast<IMemAlloc* (*)()>();
 
 		s_bMemStdInitilased = true;
 	}

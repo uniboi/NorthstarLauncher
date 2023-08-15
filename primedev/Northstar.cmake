@@ -2,6 +2,7 @@
 
 find_package(minhook REQUIRED)
 find_package(libcurl REQUIRED)
+find_package(silver-bun REQUIRED)
 
 add_library(NorthstarDLL SHARED
             "appframework/IAppSystem.h"
@@ -41,8 +42,6 @@ add_library(NorthstarDLL SHARED
             "core/macros.h"
             "core/memalloc.cpp"
             "core/memalloc.h"
-            "core/memory.cpp"
-            "core/memory.h"
             "core/structs.h"
             "dedicated/dedicated.cpp"
             "dedicated/dedicated.h"
@@ -160,6 +159,7 @@ add_library(NorthstarDLL SHARED
 target_link_libraries(NorthstarDLL PRIVATE
                       minhook
                       libcurl
+                      silver-bun
                       WS2_32.lib
                       Crypt32.lib
                       Cryptui.lib

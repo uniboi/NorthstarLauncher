@@ -1,6 +1,6 @@
 #include "tier1/interface.h"
 
-CMemoryAddress Sys_GetFactoryPtr(const std::string& svModuleName, const std::string& svFactoryName)
+CMemory Sys_GetFactoryPtr(const std::string& svModuleName, const std::string& svFactoryName)
 {
 	HMODULE hModule = GetModuleHandleA(svModuleName.c_str());
 
