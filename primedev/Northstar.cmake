@@ -148,6 +148,8 @@ add_library(NorthstarDLL SHARED
             "util/utils.h"
             "vgui/vgui_baseui_interface.cpp"
 			"vgui/vgui_baseui_interface.h"
+            "windows/libsys.cpp"
+            "windows/libsys.h"
 			"windows/wconsole.cpp"
 			"windows/wconsole.h"
 			"windows/window.cpp"

@@ -9,8 +9,6 @@
 #include <filesystem>
 #include <Psapi.h>
 
-AUTOHOOK_INIT()
-
 // called from the ON_DLL_LOAD macros
 __dllLoadCallback::__dllLoadCallback(
 	eDllLoadCallbackSide side, const std::string dllName, DllLoadCallbackFuncType callback, std::string uniqueStr, std::string reliesOn)
@@ -322,79 +320,4 @@ void CallAllPendingDLLLoadCallbacks()
 			}
 		}
 	}
-}
-
-// clang-format off
-AUTOHOOK_ABSOLUTEADDR(_LoadLibraryExA, (LPVOID)LoadLibraryExA,
-HMODULE, WINAPI, (LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags))
-// clang-format on
-{
-	HMODULE moduleAddress;
-
-	// replace xinput dll with one that has ASLR
-	if (!strncmp(lpLibFileName, "XInput1_3.dll", 14))
-	{
-		moduleAddress = _LoadLibraryExA("XInput9_1_0.dll", hFile, dwFlags);
-
-		if (!moduleAddress)
-		{
-			Error(eLog::NS, EXIT_FAILURE, "Could not find XInput9_1_0.dll\n");
-
-			return nullptr;
-		}
-	}
-	else
-		moduleAddress = _LoadLibraryExA(lpLibFileName, hFile, dwFlags);
-
-	if (moduleAddress)
-		CallLoadLibraryACallbacks(lpLibFileName, moduleAddress);
-
-	return moduleAddress;
-}
-
-// clang-format off
-AUTOHOOK_ABSOLUTEADDR(_LoadLibraryA, (LPVOID)LoadLibraryA,
-HMODULE, WINAPI, (LPCSTR lpLibFileName))
-// clang-format on
-{
-	HMODULE moduleAddress = _LoadLibraryA(lpLibFileName);
-
-	if (moduleAddress)
-		CallLoadLibraryACallbacks(lpLibFileName, moduleAddress);
-
-	return moduleAddress;
-}
-
-// clang-format off
-AUTOHOOK_ABSOLUTEADDR(_LoadLibraryExW, (LPVOID)LoadLibraryExW,
-HMODULE, WINAPI, (LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags))
-// clang-format on
-{
-	HMODULE moduleAddress = _LoadLibraryExW(lpLibFileName, hFile, dwFlags);
-
-	if (moduleAddress)
-		CallLoadLibraryWCallbacks(lpLibFileName, moduleAddress);
-
-	return moduleAddress;
-}
-
-// clang-format off
-AUTOHOOK_ABSOLUTEADDR(_LoadLibraryW, (LPVOID)LoadLibraryW,
-HMODULE, WINAPI, (LPCWSTR lpLibFileName))
-// clang-format on
-{
-	HMODULE moduleAddress = _LoadLibraryW(lpLibFileName);
-
-	if (moduleAddress)
-		CallLoadLibraryWCallbacks(lpLibFileName, moduleAddress);
-
-	return moduleAddress;
-}
-
-void InstallInitialHooks()
-{
-	if (MH_Initialize() != MH_OK)
-		Error(eLog::NS, NO_ERROR, "MH_Initialize (minhook initialization) failed\n");
-
-	AUTOHOOK_DISPATCH()
 }

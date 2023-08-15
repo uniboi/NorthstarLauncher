@@ -8,6 +8,8 @@
 #include "server/serverpresence.h"
 #include "networksystem/bcrypt.h"
 
+#include "windows/libsys.h"
+
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -39,11 +41,17 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	g_svProfileDir = pszProfile;
 	g_pLogMsg = pLogMsg;
 
+	// Get tier0 exports
 	Tier0_Init();
 
+	// Verify bcrypt
 	Bcrypt_Init();
 
-	InstallInitialHooks();
+	// Init minhook
+	HookSys_Init();
+
+	// Init loadlibrary callbacks
+	LibSys_Init();
 
 	g_pServerPresence = new ServerPresenceManager();
 
@@ -114,4 +122,15 @@ void Bcrypt_Init()
 			"\xf7",
 			"test"))
 		Error(eLog::NS, EXIT_FAILURE, "bcrypt HMAC-SHA256 is broken\n");
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Init minhook
+//-----------------------------------------------------------------------------
+void HookSys_Init()
+{
+	if (MH_Initialize() != MH_OK)
+	{
+		Error(eLog::NS, NO_ERROR, "MH_Initialize (minhook initialization) failed\n");
+	}
 }
