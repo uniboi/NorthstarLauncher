@@ -77,6 +77,8 @@ add_library(NorthstarDLL SHARED
             "mods/modmanager.h"
             "mods/modsavefiles.cpp"
             "mods/modsavefiles.h"
+            "networksystem/bcrypt.cpp"
+            "networksystem/bcrypt.h"
             "scripts/client/clientchathooks.cpp"
             "scripts/client/cursorposition.cpp"
             "scripts/client/scriptbrowserhooks.cpp"

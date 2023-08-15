@@ -6,6 +6,7 @@
 #include "squirrel/squirrel.h"
 #include "shared/gamepresence.h"
 #include "server/serverpresence.h"
+#include "networksystem/bcrypt.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -39,6 +40,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	g_pLogMsg = pLogMsg;
 
 	Tier0_Init();
+
+	Bcrypt_Init();
 
 	InstallInitialHooks();
 
@@ -95,4 +98,20 @@ void Tier0_Init()
 
 	// memstd
 	// initilased in memstd.h
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Init and test bcrypt
+//-----------------------------------------------------------------------------
+void Bcrypt_Init()
+{
+	if (!InitHMACSHA256())
+		Error(eLog::NS, EXIT_FAILURE, "Failed to initialize bcrypt\n");
+
+	if (!VerifyHMACSHA256(
+			"test",
+			"\x88\xcd\x21\x08\xb5\x34\x7d\x97\x3c\xf3\x9c\xdf\x90\x53\xd7\xdd\x42\x70\x48\x76\xd8\xc9\xa9\xbd\x8e\x2d\x16\x82\x59\xd3\xdd"
+			"\xf7",
+			"test"))
+		Error(eLog::NS, EXIT_FAILURE, "bcrypt HMAC-SHA256 is broken\n");
 }

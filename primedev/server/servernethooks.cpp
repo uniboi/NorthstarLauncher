@@ -2,90 +2,15 @@
 #include "engine/r2engine.h"
 #include "shared/exploit_fixes/ns_limits.h"
 #include "masterserver/masterserver.h"
+#include "networksystem/bcrypt.h"
 
 #include <string>
 #include <thread>
-#include <bcrypt.h>
 
 AUTOHOOK_INIT()
 
 static ConVar* Cvar_net_debug_atlas_packet;
 static ConVar* Cvar_net_debug_atlas_packet_insecure;
-
-static BCRYPT_ALG_HANDLE HMACSHA256;
-constexpr size_t HMACSHA256_LEN = 256 / 8;
-
-static bool InitHMACSHA256()
-{
-	NTSTATUS status;
-	DWORD hashLength = 0;
-	ULONG hashLengthSz = 0;
-
-	if ((status = BCryptOpenAlgorithmProvider(&HMACSHA256, BCRYPT_SHA256_ALGORITHM, NULL, BCRYPT_ALG_HANDLE_HMAC_FLAG)))
-	{
-		Error(eLog::NS, NO_ERROR, "failed to initialize HMAC-SHA256: BCryptOpenAlgorithmProvider: error 0x%x\n", (ULONG)status);
-		return false;
-	}
-
-	if ((status = BCryptGetProperty(HMACSHA256, BCRYPT_HASH_LENGTH, (PUCHAR)&hashLength, sizeof(hashLength), &hashLengthSz, 0)))
-	{
-		Error(eLog::NS, NO_ERROR, "failed to initialize HMAC-SHA256: BCryptGetProperty(BCRYPT_HASH_LENGTH): error 0x%x\n", (ULONG)status);
-		return false;
-	}
-
-	if (hashLength != HMACSHA256_LEN)
-	{
-		Error(
-			eLog::NS,
-			NO_ERROR,
-			"failed to initialize HMAC-SHA256: BCryptGetProperty(BCRYPT_HASH_LENGTH): unexpected value %i\n",
-			hashLength);
-		return false;
-	}
-
-	return true;
-}
-
-// compare the HMAC-SHA256(data, key) against sig (note: all strings are treated as raw binary data)
-static bool VerifyHMACSHA256(std::string key, std::string sig, std::string data)
-{
-	uint8_t invalid = 1;
-	char hash[HMACSHA256_LEN];
-
-	NTSTATUS status;
-	BCRYPT_HASH_HANDLE h = NULL;
-
-	if ((status = BCryptCreateHash(HMACSHA256, &h, NULL, 0, (PUCHAR)key.c_str(), (ULONG)key.length(), 0)))
-	{
-		Error(eLog::NS, NO_ERROR, "failed to verify HMAC-SHA256: BCryptCreateHash: error 0x%x\n", (ULONG)status);
-		goto cleanup;
-	}
-
-	if ((status = BCryptHashData(h, (PUCHAR)data.c_str(), (ULONG)data.length(), 0)))
-	{
-		Error(eLog::NS, NO_ERROR, "failed to verify HMAC-SHA256: BCryptHashData: error 0x%x\n", (ULONG)status);
-		goto cleanup;
-	}
-
-	if ((status = BCryptFinishHash(h, (PUCHAR)&hash, (ULONG)sizeof(hash), 0)))
-	{
-		Error(eLog::NS, NO_ERROR, "failed to verify HMAC-SHA256: BCryptFinishHash: error 0x%x\n", (ULONG)status);
-		goto cleanup;
-	}
-
-	// constant-time compare
-	if (sig.length() == sizeof(hash))
-	{
-		invalid = 0;
-		for (size_t i = 0; i < sizeof(hash); i++)
-			invalid |= (uint8_t)(sig[i]) ^ (uint8_t)(hash[i]);
-	}
-
-cleanup:
-	if (h)
-		BCryptDestroyHash(h);
-	return !invalid;
-}
 
 // v1 HMACSHA256-signed masterserver request (HMAC-SHA256(JSONData, MasterServerToken) + JSONData)
 static void ProcessAtlasConnectionlessPacketSigreq1(netpacket_t* packet, bool dbg, std::string pType, std::string pData)
@@ -203,16 +128,6 @@ AUTOHOOK(ProcessConnectionlessPacket, engine.dll + 0x117800, bool, , (void* a1, 
 ON_DLL_LOAD_RELIESON("engine.dll", ServerNetHooks, ConVar, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(engine.dll)
-
-	if (!InitHMACSHA256())
-		Error(eLog::NS, EXIT_FAILURE, "Failed to initialize bcrypt\n");
-
-	if (!VerifyHMACSHA256(
-			"test",
-			"\x88\xcd\x21\x08\xb5\x34\x7d\x97\x3c\xf3\x9c\xdf\x90\x53\xd7\xdd\x42\x70\x48\x76\xd8\xc9\xa9\xbd\x8e\x2d\x16\x82\x59\xd3\xdd"
-			"\xf7",
-			"test"))
-		Error(eLog::NS, EXIT_FAILURE, "bcrypt HMAC-SHA256 is broken\n");
 
 	Cvar_net_debug_atlas_packet = new ConVar(
 		"net_debug_atlas_packet",
