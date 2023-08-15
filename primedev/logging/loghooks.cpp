@@ -2,7 +2,7 @@
 #include "loghooks.h"
 #include "core/convar/convar.h"
 #include "core/convar/concommand.h"
-#include "core/math/bitbuf.h"
+#include "mathlib/bitbuf.h"
 #include "config/profile.h"
 #include "core/tier0.h"
 #include "squirrel/squirrel.h"

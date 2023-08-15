@@ -2,7 +2,7 @@
 
 #include "squirrelclasstypes.h"
 #include "squirrelautobind.h"
-#include "core/math/vector.h"
+#include "mathlib/vector.h"
 #include "mods/modmanager.h"
 #include "logging/logging.h"
 

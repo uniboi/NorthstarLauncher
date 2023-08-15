@@ -4,7 +4,7 @@
 #include "spdlog/logger.h"
 
 #ifdef NORTHSTAR
-#include "core/math/color.h"
+#include "mathlib/color.h"
 #endif
 
 //-----------------------------------------------------------------------------

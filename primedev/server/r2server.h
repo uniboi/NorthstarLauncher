@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/math/vector.h"
+#include "mathlib/vector.h"
 
 // server entity stuff
 class CBaseEntity;

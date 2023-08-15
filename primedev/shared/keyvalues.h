@@ -1,5 +1,5 @@
 #pragma once
-#include "core/math/color.h"
+#include "mathlib/color.h"
 
 enum KeyValuesTypes_t : char
 {

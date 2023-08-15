@@ -10,7 +10,7 @@
 #endif
 
 #include "tier0/commandline.h"
-#include "core/math/color.h"
+#include "mathlib/color.h"
 #include "util/utils.h"
 #include "logging/logging.h"
 

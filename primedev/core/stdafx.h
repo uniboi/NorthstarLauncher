@@ -40,7 +40,7 @@ typedef void (*callable_v)(void* v);
 #include "core/structs.h"
 #endif
 
-#include "core/math/color.h"
+#include "mathlib/color.h"
 
 #include "logging/logging.h"
 
