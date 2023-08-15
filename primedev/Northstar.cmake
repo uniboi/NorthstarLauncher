@@ -130,7 +130,6 @@ add_library(NorthstarDLL SHARED
             "tier0/commandline.h"
             "tier0/dbg.cpp"
             "tier0/dbg.h"
-            "tier0/icommandline.h"
             "tier0/memstd.cpp"
             "tier0/memstd.h"
             "tier0/platform.h"
