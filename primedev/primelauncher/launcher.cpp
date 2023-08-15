@@ -239,6 +239,8 @@ void CNorthstarLauncher::InjectNorthstar()
 	//------------------------------------------------------
 	DevMsg(eLog::NONE, "CommandLine      : %s\n", GetCommandLineA());
 
+	DevMsg(eLog::NONE, "Profile          : %s\n", m_svProfile.c_str());
+
 	// Get 'NorthstarPrime_GetVersion'
 	const char* (*NorthstarPrime_GetVersion)();
 	NorthstarPrime_GetVersion = reinterpret_cast<const char* (*)()>(GetProcAddress(hNorthstar, "NorthstarPrime_GetVersion"));
