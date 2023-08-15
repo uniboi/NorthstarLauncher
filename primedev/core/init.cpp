@@ -53,11 +53,14 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	// Init loadlibrary callbacks
 	LibSys_Init();
 
+	// presence
 	g_pServerPresence = new ServerPresenceManager();
-
 	g_pGameStatePresence = new GameStatePresence();
 
-	InitialiseSquirrelManagers();
+	// sq
+	g_pSquirrel<ScriptContext::CLIENT> = new SquirrelManager<ScriptContext::CLIENT>;
+	g_pSquirrel<ScriptContext::UI> = new SquirrelManager<ScriptContext::UI>;
+	g_pSquirrel<ScriptContext::SERVER> = new SquirrelManager<ScriptContext::SERVER>;
 
 	// Fix some users' failure to connect to respawn datacenters
 	SetEnvironmentVariableA("OPENSSL_ia32cap", "~0x200000200000000");
