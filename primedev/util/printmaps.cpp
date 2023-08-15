@@ -2,7 +2,6 @@
 #include "core/convar/convar.h"
 #include "core/convar/concommand.h"
 #include "mods/modmanager.h"
-#include "core/tier0.h"
 #include "engine/r2engine.h"
 #include "squirrel/squirrel.h"
 

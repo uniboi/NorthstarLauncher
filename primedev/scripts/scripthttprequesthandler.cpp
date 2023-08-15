@@ -1,6 +1,5 @@
 #include "scripthttprequesthandler.h"
 #include "squirrel/squirrel.h"
-#include "core/tier0.h"
 
 HttpRequestHandler* g_httpRequestHandler;
 

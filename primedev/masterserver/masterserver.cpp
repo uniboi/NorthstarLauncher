@@ -2,7 +2,6 @@
 #include "core/convar/concommand.h"
 #include "shared/playlist.h"
 #include "server/auth/serverauthentication.h"
-#include "core/tier0.h"
 #include "engine/r2engine.h"
 #include "mods/modmanager.h"
 #include "shared/misccommands.h"

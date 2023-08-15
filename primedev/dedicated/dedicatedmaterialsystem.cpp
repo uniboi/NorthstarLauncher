@@ -1,5 +1,4 @@
 #include "dedicated.h"
-#include "core/tier0.h"
 
 AUTOHOOK_INIT()
 

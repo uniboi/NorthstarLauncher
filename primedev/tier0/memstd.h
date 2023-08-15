@@ -2,7 +2,7 @@
 
 class IMemAlloc
 {
-	public:
+  public:
 	struct VTable
 	{
 		void* unknown[1]; // alloc debug
@@ -23,12 +23,9 @@ class IMemAlloc
 	VTable* m_vtable;
 };
 
-extern IMemAlloc* g_pMemAllocSingleton;
+inline IMemAlloc* g_pMemAllocSingleton = nullptr;
+inline IMemAlloc* (*CreateGlobalMemAlloc)() = nullptr;
 
-typedef double (*Plat_FloatTimeType)();
-extern Plat_FloatTimeType Plat_FloatTime;
-
-typedef bool (*ThreadInServerFrameThreadType)();
-extern ThreadInServerFrameThreadType ThreadInServerFrameThread;
-
-void TryCreateGlobalMemAlloc();
+//-----------------------------------------------------------------------------
+//
+IMemAlloc* GlobalMemAllocSingleton();

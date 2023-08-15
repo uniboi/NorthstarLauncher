@@ -3,7 +3,6 @@
 #include "shared/playlist.h"
 #include "engine/r2engine.h"
 #include "client/r2client.h"
-#include "core/tier0.h"
 #include "engine/hoststate.h"
 #include "masterserver/masterserver.h"
 #include "mods/modmanager.h"

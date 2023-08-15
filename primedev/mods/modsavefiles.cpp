@@ -9,7 +9,6 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "config/profile.h"
-#include "core/tier0.h"
 #include "rapidjson/error/en.h"
 #include "scripts/scriptjson.h"
 

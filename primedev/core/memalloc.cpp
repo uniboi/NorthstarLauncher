@@ -1,15 +1,11 @@
 #include "core/memalloc.h"
-#include "core/tier0.h"
+#include "tier0/memstd.h"
 
 // TODO: rename to malloc and free after removing statically compiled .libs
 
 extern "C" void* _malloc_base(size_t n)
 {
-	// allocate into static buffer if g_pMemAllocSingleton isn't initialised
-	if (!g_pMemAllocSingleton)
-		TryCreateGlobalMemAlloc();
-
-	return g_pMemAllocSingleton->m_vtable->Alloc(g_pMemAllocSingleton, n);
+	return GlobalMemAllocSingleton()->m_vtable->Alloc(g_pMemAllocSingleton, n);
 }
 
 /*extern "C" void* malloc(size_t n)
@@ -19,18 +15,12 @@ extern "C" void* _malloc_base(size_t n)
 
 extern "C" void _free_base(void* p)
 {
-	if (!g_pMemAllocSingleton)
-		TryCreateGlobalMemAlloc();
-
-	g_pMemAllocSingleton->m_vtable->Free(g_pMemAllocSingleton, p);
+	GlobalMemAllocSingleton()->m_vtable->Free(g_pMemAllocSingleton, p);
 }
 
 extern "C" void* _realloc_base(void* oldPtr, size_t size)
 {
-	if (!g_pMemAllocSingleton)
-		TryCreateGlobalMemAlloc();
-
-	return g_pMemAllocSingleton->m_vtable->Realloc(g_pMemAllocSingleton, oldPtr, size);
+	return GlobalMemAllocSingleton()->m_vtable->Realloc(g_pMemAllocSingleton, oldPtr, size);
 }
 
 extern "C" void* _calloc_base(size_t n, size_t size)

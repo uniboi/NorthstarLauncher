@@ -1,7 +1,6 @@
 #include "rpakfilesystem.h"
 #include "mods/modmanager.h"
 #include "dedicated/dedicated.h"
-#include "core/tier0.h"
 
 AUTOHOOK_INIT()
 

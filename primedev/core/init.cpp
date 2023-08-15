@@ -1,3 +1,5 @@
+#include "init.h"
+
 #include "logging/logging.h"
 #include "core/memalloc.h"
 #include "config/profile.h"
@@ -13,6 +15,8 @@
 #include <string.h>
 #include <filesystem>
 #include <util/utils.h>
+
+#include "tier0/memstd.h"
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
@@ -33,6 +37,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 
 	g_svProfileDir = pszProfile;
 	g_pLogMsg = pLogMsg;
+
+	Tier0_Init();
 
 	InstallInitialHooks();
 
@@ -59,4 +65,34 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 const char* NorthstarPrime_GetVersion()
 {
 	return NORTHSTAR_VERSION;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Init tier0 exports we use before we can index the whole dll
+//-----------------------------------------------------------------------------
+void Tier0_Init()
+{
+	HMODULE hTier0 = GetModuleHandleA("tier0.dll");
+
+	if (!hTier0)
+	{
+		Error(eLog::NS, EXIT_FAILURE, "tier0.dll not loaded while 'Tier0_Init' is called!\n");
+	}
+
+	CModule mTier0(hTier0);
+
+	// commandline
+	CommandLine = mTier0.GetExport("CommandLine").RCast<CCommandLine* (*)()>();
+
+	// platform
+	Plat_FloatTime = mTier0.GetExport("Plat_FloatTime").RCast<float (*)()>();
+
+	// threadhtools
+	ThreadCouldDoServerWork = mTier0.GetExport("ThreadCouldDoServerWork").RCast<bool (*)()>();
+	ThreadInMainOrServerFrameThread = mTier0.GetExport("ThreadInMainOrServerFrameThread").RCast<bool (*)()>();
+	ThreadInMainThread = mTier0.GetExport("ThreadInMainThread").RCast<bool (*)()>();
+	ThreadInServerFrameThread = mTier0.GetExport("ThreadInServerFrameThread").RCast<bool (*)()>();
+
+	// memstd
+	// initilased in memstd.h
 }

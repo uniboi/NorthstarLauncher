@@ -38,6 +38,9 @@ typedef void (*callable_v)(void* v);
 #ifdef NORTHSTAR
 #include "core/macros.h"
 #include "core/structs.h"
+
+#include "tier0/platform.h"
+#include "tier0/threadtools.h"
 #endif
 
 #include "mathlib/color.h"

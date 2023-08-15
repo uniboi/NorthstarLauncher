@@ -4,7 +4,6 @@
 #include "dedicated/dedicated.h"
 #include "core/filesystem/filesystem.h"
 #include "mathlib/vector.h"
-#include "core/tier0.h"
 #include "engine/r2engine.h"
 #include <iostream>
 #include <sstream>
