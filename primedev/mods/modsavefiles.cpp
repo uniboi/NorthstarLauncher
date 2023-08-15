@@ -84,7 +84,8 @@ template <ScriptContext context> void SaveFileManager::SaveFileAsync(fs::path fi
 				if (GetSizeOfFolderContentsMinusFile(dir, file.filename().string()) + contents.length() > MAX_FOLDER_SIZE)
 				{
 					// tbh, you're either trying to fill the hard drive or use so much data, you SHOULD be congratulated.
-					spdlog::error(fmt::format("Mod spamming save requests? Folder limit bypassed despite previous checks. Not saving."));
+					Error(
+						eLog::MODSYS, NO_ERROR, "Mod spamming save requests? Folder limit bypassed despite previous checks. Not saving.\n");
 					mutex.get().unlock();
 					return;
 				}
@@ -107,9 +108,9 @@ template <ScriptContext context> void SaveFileManager::SaveFileAsync(fs::path fi
 			}
 			catch (std::exception ex)
 			{
-				spdlog::error("SAVE FAILED!");
+				Error(eLog::MODSYS, NO_ERROR,"SAVE FAILED!\n");
 				mutex.get().unlock();
-				spdlog::error(ex.what());
+				Error(eLog::MODSYS, NO_ERROR,"%s\n",ex.what());
 			}
 		});
 
@@ -131,7 +132,7 @@ template <ScriptContext context> int SaveFileManager::LoadFileAsync(fs::path fil
 				std::ifstream fileStr(file);
 				if (fileStr.fail())
 				{
-					spdlog::error("A file was supposed to be loaded but we can't access it?!");
+					Error(eLog::MODSYS, NO_ERROR, "A file was supposed to be loaded but we can't access it?!\n");
 
 					g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, false, "");
 					mutex.get().unlock();
@@ -152,10 +153,10 @@ template <ScriptContext context> int SaveFileManager::LoadFileAsync(fs::path fil
 			}
 			catch (std::exception ex)
 			{
-				spdlog::error("LOAD FAILED!");
+				Error(eLog::MODSYS, NO_ERROR, "LOAD FAILED!\n");
 				g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, false, "");
 				mutex.get().unlock();
-				spdlog::error(ex.what());
+				Error(eLog::MODSYS, NO_ERROR, "%s\n", ex.what());
 			}
 		});
 
@@ -185,9 +186,9 @@ template <ScriptContext context> void SaveFileManager::DeleteFileAsync(fs::path 
 			}
 			catch (std::exception ex)
 			{
-				spdlog::error("DELETE FAILED!");
+				Error(eLog::MODSYS, NO_ERROR, "DELETE FAILED!\n");
 				m.get().unlock();
-				spdlog::error(ex.what());
+				Error(eLog::MODSYS, NO_ERROR, "%s\n", ex.what());
 			}
 		});
 
@@ -419,7 +420,7 @@ ADD_SQFUNC("int", NSGetFileSize, "string file", "", ScriptContext::SERVER | Scri
 	}
 	catch (fs::filesystem_error const& ex)
 	{
-		spdlog::error("GET FILE SIZE FAILED! Is the path valid?");
+		Error(eLog::MODSYS, NO_ERROR, "GET FILE SIZE FAILED! Is the path valid?\n");
 		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
 		return SQRESULT_ERROR;
 	}
@@ -484,7 +485,7 @@ ADD_SQFUNC("array<string>", NS_InternalGetAllFiles, "string path", "", ScriptCon
 	}
 	catch (std::exception ex)
 	{
-		spdlog::error("DIR ITERATE FAILED! Is the path valid?");
+		Error(eLog::MODSYS, NO_ERROR, "DIR ITERATE FAILED! Is the path valid?\n");
 		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
 		return SQRESULT_ERROR;
 	}
@@ -517,8 +518,8 @@ ADD_SQFUNC("bool", NSIsFolder, "string path", "", ScriptContext::CLIENT | Script
 	}
 	catch (std::exception ex)
 	{
-		spdlog::error("DIR READ FAILED! Is the path valid?");
-		spdlog::info(path.string());
+		Error(eLog::MODSYS, NO_ERROR, "DIR READ FAILED! Is the path valid?\n");
+		DevMsg(eLog::MODSYS, "%s\n", path.string().c_str());
 		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
 		return SQRESULT_ERROR;
 	}
