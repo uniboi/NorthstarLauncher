@@ -31,7 +31,18 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 //-----------------------------------------------------------------------------
 bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 {
-	// TODO[Fifty]: Check arguments
+	// Check args
+	if (!pLogMsg)
+	{
+		Error(eLog::NS, EXIT_FAILURE, "%s: pLogMsg is null!\n", __FUNCTION__);
+	}
+
+	if (!pszProfile)
+	{
+		Error(eLog::NS, EXIT_FAILURE, "%s: pszProfile is null!\n", __FUNCTION__);
+	}
+
+	// Init
 	static bool bInitialised = false;
 	if (bInitialised)
 		return false;
