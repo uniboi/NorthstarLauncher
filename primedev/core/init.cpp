@@ -96,9 +96,9 @@ void Tier0_Init()
 	CommandLine = mTier0.GetExport("CommandLine").RCast<CCommandLine* (*)()>();
 
 	// platform
-	Plat_FloatTime = mTier0.GetExport("Plat_FloatTime").RCast<float (*)()>();
+	Plat_FloatTime = mTier0.GetExport("Plat_FloatTime").RCast<double (*)()>();
 
-	// threadhtools
+	// threadtools
 	ThreadCouldDoServerWork = mTier0.GetExport("ThreadCouldDoServerWork").RCast<bool (*)()>();
 	ThreadInMainOrServerFrameThread = mTier0.GetExport("ThreadInMainOrServerFrameThread").RCast<bool (*)()>();
 	ThreadInMainThread = mTier0.GetExport("ThreadInMainThread").RCast<bool (*)()>();

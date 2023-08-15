@@ -1,3 +1,3 @@
 #pragma once
 
-inline float (*Plat_FloatTime)();
+inline double (*Plat_FloatTime)();
