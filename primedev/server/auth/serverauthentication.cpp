@@ -8,7 +8,6 @@
 #include "bansystem.h"
 #include "core/convar/concommand.h"
 #include "dedicated/dedicated.h"
-#include "config/profile.h"
 #include "engine/r2engine.h"
 #include "client/r2client.h"
 #include "server/r2server.h"

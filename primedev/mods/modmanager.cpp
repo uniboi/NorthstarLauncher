@@ -5,7 +5,6 @@
 #include "masterserver/masterserver.h"
 #include "core/filesystem/filesystem.h"
 #include "core/filesystem/rpakfilesystem.h"
-#include "config/profile.h"
 #include "squirrel/squirrel.h"
 
 #include "rapidjson/error/en.h"
@@ -638,7 +637,7 @@ void ModManager::LoadMods()
 	m_DependencyConstants.clear();
 
 	// read enabled mods cfg
-	std::ifstream enabledModsStream(GetNorthstarPrefix() + "/enabledmods.json");
+	std::ifstream enabledModsStream(g_svProfileDir + "/enabledmods.json");
 	std::stringstream enabledModsStringStream;
 
 	if (!enabledModsStream.fail())
@@ -1071,7 +1070,7 @@ void ModManager::UnloadMods()
 		m_EnabledModsCfg[mod.Name.c_str()].SetBool(mod.m_bEnabled);
 	}
 
-	std::ofstream writeStream(GetNorthstarPrefix() + "/enabledmods.json");
+	std::ofstream writeStream(g_svProfileDir + "/enabledmods.json");
 	rapidjson::OStreamWrapper writeStreamWrapper(writeStream);
 	rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(writeStreamWrapper);
 	m_EnabledModsCfg.Accept(writer);
@@ -1126,19 +1125,19 @@ void ConCommand_reload_mods(const CCommand& args)
 
 fs::path GetModFolderPath()
 {
-	return fs::path(GetNorthstarPrefix() + MOD_FOLDER_SUFFIX);
+	return fs::path(g_svProfileDir + MOD_FOLDER_SUFFIX);
 }
 fs::path GetThunderstoreModFolderPath()
 {
-	return fs::path(GetNorthstarPrefix() + THUNDERSTORE_MOD_FOLDER_SUFFIX);
+	return fs::path(g_svProfileDir + THUNDERSTORE_MOD_FOLDER_SUFFIX);
 }
 fs::path GetRemoteModFolderPath()
 {
-	return fs::path(GetNorthstarPrefix() + REMOTE_MOD_FOLDER_SUFFIX);
+	return fs::path(g_svProfileDir + REMOTE_MOD_FOLDER_SUFFIX);
 }
 fs::path GetCompiledAssetsPath()
 {
-	return fs::path(GetNorthstarPrefix() + COMPILED_ASSETS_SUFFIX);
+	return fs::path(g_svProfileDir + COMPILED_ASSETS_SUFFIX);
 }
 
 ON_DLL_LOAD_RELIESON("engine.dll", ModManager, (ConCommand, MasterServer), (CModule module))

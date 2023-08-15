@@ -24,8 +24,6 @@ add_library(NorthstarDLL SHARED
             "client/rejectconnectionfixes.cpp"
 			"codecs/bink/bink.cpp"
 			"codecs/bink/binkread.cpp"
-            "config/profile.cpp"
-            "config/profile.h"
             "core/convar/concommand.cpp"
             "core/convar/concommand.h"
             "core/convar/convar.cpp"

@@ -3,7 +3,6 @@
 #include "core/convar/convar.h"
 #include "core/convar/concommand.h"
 #include "mathlib/bitbuf.h"
-#include "config/profile.h"
 #include "squirrel/squirrel.h"
 #include <iomanip>
 #include <sstream>

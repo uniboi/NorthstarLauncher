@@ -2,7 +2,6 @@
 
 #include "logging/logging.h"
 #include "core/memalloc.h"
-#include "config/profile.h"
 #include "squirrel/squirrel.h"
 #include "shared/gamepresence.h"
 #include "server/serverpresence.h"

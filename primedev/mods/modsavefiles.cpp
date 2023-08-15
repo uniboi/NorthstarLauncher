@@ -8,7 +8,6 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
-#include "config/profile.h"
 #include "rapidjson/error/en.h"
 #include "scripts/scriptjson.h"
 
@@ -559,7 +558,7 @@ template <ScriptContext context> std::string EncodeJSON(HSquirrelVM* sqvm)
 
 ON_DLL_LOAD("engine.dll", ModSaveFFiles_Init, (CModule module))
 {
-	savePath = fs::path(GetNorthstarPrefix()) / "save_data";
+	savePath = fs::path(g_svProfileDir) / "save_data";
 	g_pSaveFileManager = new SaveFileManager;
 	int parm = CommandLine()->FindParm("-maxfoldersize");
 	if (parm)

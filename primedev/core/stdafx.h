@@ -25,6 +25,8 @@
 #define NORTHSTAR_USERAGENT "R2Northstar/0.0.0+dev"
 
 #ifdef NORTHSTAR
+inline std::string g_svProfileDir;
+
 typedef void (*callable)();
 typedef void (*callable_v)(void* v);
 
