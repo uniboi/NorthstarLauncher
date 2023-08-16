@@ -1,6 +1,6 @@
 #include "printcommands.h"
-#include "core/convar/convar.h"
-#include "core/convar/concommand.h"
+#include "tier1/convar.h"
+#include "tier1/cmd.h"
 
 void PrintCommandHelpDialogue(const ConCommandBase* command, const char* name)
 {

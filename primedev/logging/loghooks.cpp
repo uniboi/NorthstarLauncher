@@ -1,7 +1,7 @@
 #include "logging.h"
 #include "loghooks.h"
-#include "core/convar/convar.h"
-#include "core/convar/concommand.h"
+#include "tier1/convar.h"
+#include "tier1/cmd.h"
 #include "mathlib/bitbuf.h"
 #include "squirrel/squirrel.h"
 #include <iomanip>

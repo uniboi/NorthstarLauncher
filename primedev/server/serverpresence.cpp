@@ -1,6 +1,6 @@
 #include "serverpresence.h"
 #include "shared/playlist.h"
-#include "core/convar/convar.h"
+#include "tier1/convar.h"
 
 #include <regex>
 

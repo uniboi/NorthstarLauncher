@@ -1,6 +1,6 @@
 #include "printmaps.h"
-#include "core/convar/convar.h"
-#include "core/convar/concommand.h"
+#include "tier1/convar.h"
+#include "tier1/cmd.h"
 #include "mods/modmanager.h"
 #include "engine/r2engine.h"
 #include "squirrel/squirrel.h"

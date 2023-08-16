@@ -1,5 +1,5 @@
 #include "dedicated/dedicated.h"
-#include "core/convar/cvar.h"
+#include "tier1/cvar.h"
 #include "mathlib/vector.h"
 
 AUTOHOOK_INIT()

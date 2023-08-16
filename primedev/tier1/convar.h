@@ -1,7 +1,7 @@
 #pragma once
 #include "mathlib/color.h"
 #include "cvar.h"
-#include "concommand.h"
+#include "tier1/cmd.h"
 
 // taken directly from iconvar.h
 

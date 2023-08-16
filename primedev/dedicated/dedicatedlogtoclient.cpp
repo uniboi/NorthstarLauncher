@@ -1,6 +1,6 @@
 #include "dedicatedlogtoclient.h"
 
-#include "core/convar/convar.h"
+#include "tier1/convar.h"
 #include "engine/r2engine.h"
 #include "logging/logging.h"
 

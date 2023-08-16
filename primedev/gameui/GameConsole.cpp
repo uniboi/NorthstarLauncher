@@ -1,6 +1,6 @@
-#include "core/convar/convar.h"
+#include "tier1/convar.h"
 #include "GameConsole.h"
-#include "core/convar/concommand.h"
+#include "tier1/cmd.h"
 #include "util/printcommands.h"
 #include "tier1/interface.h"
 
