@@ -31,7 +31,7 @@ void*, __fastcall, (const char* path, uint32_t flags))
 		return BinkOpen(path, flags);
 }
 
-ON_DLL_LOAD_CLIENT("bink2w64.dll", BinkRead, (CModule module))
+ON_DLL_LOAD_CLIENT("engine.dll", BinkRead, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 }
