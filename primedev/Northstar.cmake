@@ -45,6 +45,8 @@ add_library(NorthstarDLL SHARED
             "dedicated/dedicatedlogtoclient.h"
             "dedicated/dedicatedmaterialsystem.cpp"
             "engine/common.cpp"
+            "engine/datamap.cpp"
+            "engine/datamap.h"
             "engine/host.cpp"
             "engine/hoststate.cpp"
             "engine/hoststate.h"
