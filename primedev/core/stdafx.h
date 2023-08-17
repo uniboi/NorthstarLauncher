@@ -75,7 +75,9 @@ typedef void (*callable_v)(void* v);
 #endif
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose: Logs the relative address of pVar in the format: `module.dll + 0x0`
+// Input  : *szName - Name of the variable
+//          *pVar - The pointer to log
 //-----------------------------------------------------------------------------
 inline void LogPtrAdr(const char* szName, void* pVar)
 {

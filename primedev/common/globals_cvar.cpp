@@ -90,70 +90,84 @@ void CVar_InitModule(std::string svModule)
 //-----------------------------------------------------------------------------
 // Purpose: Initilases retail cvars
 //          Needs to be called after ConVar_Register is called in the module!!!
-// Input  : svModule - The module we initilase cvars for
 //-----------------------------------------------------------------------------
 void CVar_InitShipped(std::string svModule)
 {
-	// client.dll
-	static bool bClient = false;
-	if (svModule == "client.dll" && !bClient)
-	{
-		Cvar_demo_enableDemos = g_pCVar->FindVar("demo_enabledemos");
-		Cvar_demo_writeLocalFile = g_pCVar->FindVar("demo_writeLocalFile");
-		Cvar_demo_autoRecord = g_pCVar->FindVar("demo_autoRecord");
-		Cvar_mp_gamemode = g_pCVar->FindVar("mp_gamemode");
+	// Some convars may be initilased in different modules based on whether we're dedi or not
+	// due to this we init them the first time they're registered regardless of module
 
-		// demo_enableDemos
+	// demo_enableDemos
+	if (!Cvar_demo_enableDemos && (Cvar_demo_enableDemos = g_pCVar->FindVar("demo_enabledemos")))
+	{
 		Cvar_demo_enableDemos->m_pszDefaultValue = "1";
 		Cvar_demo_enableDemos->SetValue(true);
+	}
 
-		// demo_writeLocalFile
+	// demo_writeLocalFile
+	if (!Cvar_demo_writeLocalFile && (Cvar_demo_writeLocalFile = g_pCVar->FindVar("demo_writeLocalFile")))
+	{
 		Cvar_demo_writeLocalFile->m_pszDefaultValue = "1";
 		Cvar_demo_writeLocalFile->SetValue(true);
+	}
 
-		// demo_autoRecord
+	// demo_autoRecord
+	if (!Cvar_demo_autoRecord && (Cvar_demo_autoRecord = g_pCVar->FindVar("demo_autoRecord")))
+	{
 		Cvar_demo_autoRecord->m_pszDefaultValue = "0";
 		Cvar_demo_autoRecord->SetValue(false);
-
-		DevMsg(eLog::NS, "Finished initilasing shipped cvars for '%s'\n", "client.dll");
-		return;
 	}
 
-	// server.dll
-	static bool bServer = false;
-	if (svModule == "server.dll" && !bServer)
+	// mp_gamemode
+	if (!Cvar_mp_gamemode && (Cvar_mp_gamemode = g_pCVar->FindVar("mp_gamemode")))
 	{
-		bServer = true;
-
-		Cvar_sv_cheats = g_pCVar->FindVar("sv_cheats");
-		Cvar_fatal_script_errors = g_pCVar->FindVar("fatal_script_errors");
-		Cvar_sv_alltalk = g_pCVar->FindVar("sv_alltalk");
-
-		DevMsg(eLog::NS, "Finished initilasing shipped cvars for '%s'\n", "server.dll");
-		return;
+		// 
 	}
 
-	// engine.dll
-	static bool bEngine = false;
-	if (svModule == "engine.dll" && !bEngine)
+	// sv_cheats
+	if (!Cvar_sv_cheats && (Cvar_sv_cheats = g_pCVar->FindVar("sv_cheats")))
 	{
-		bEngine = true;
+		//
+	}
 
-		Cvar_hostname = g_pCVar->FindVar("hostname");
-		Cvar_enable_debug_overlays = g_pCVar->FindVar("enable_debug_overlays");
-		Cvar_dedi_sendPrintsToClient = g_pCVar->FindVar("dedi_sendPrintsToClient");
-		Cvar_hostport = g_pCVar->FindVar("hostport");
+	// fatal_script_errors
+	if (!Cvar_fatal_script_errors && (Cvar_fatal_script_errors = g_pCVar->FindVar("fatal_script_errors")))
+	{
+		//
+	}
 
-		// enable_debug_overlays
+	// sv_alltalk
+	if (!Cvar_sv_alltalk && (Cvar_sv_alltalk = g_pCVar->FindVar("sv_alltalk")))
+	{
+		//
+	}
+
+	// hostname
+	if (!Cvar_hostname && (Cvar_hostname = g_pCVar->FindVar("hostname")))
+	{
+		//
+	}
+
+	// enable_debug_overlays
+	if (!Cvar_enable_debug_overlays && (Cvar_enable_debug_overlays = g_pCVar->FindVar("enable_debug_overlays")))
+	{
 		Cvar_enable_debug_overlays->SetValue(false);
 		Cvar_enable_debug_overlays->m_pszDefaultValue = (char*)"0";
 		Cvar_enable_debug_overlays->AddFlags(FCVAR_CHEAT);
-
-		DevMsg(eLog::NS, "Finished initilasing shipped cvars for '%s'\n", "engine.dll");
-		return;
 	}
 
-	// Warning(eLog::NS, "Tried to initilase shipped cvars for '%s'\n", svModule.c_str());
+	// dedi_sendPrintsToClient
+	if (!Cvar_dedi_sendPrintsToClient && (Cvar_dedi_sendPrintsToClient = g_pCVar->FindVar("dedi_sendPrintsToClient")))
+	{
+		//
+	}
+
+	// hostport
+	if (!Cvar_hostport && (Cvar_hostport = g_pCVar->FindVar("hostport")))
+	{
+		//
+	}
+
+	DevMsg(eLog::NS, "Finished initilasing shipped cvars for '%s'\n", svModule.c_str());
 }
 
 //-----------------------------------------------------------------------------
