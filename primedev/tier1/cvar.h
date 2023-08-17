@@ -74,11 +74,6 @@ class ICvar : public IAppSystem
 	virtual void sub_18000B8A0() = 0;
 	virtual void sub_18000D3C0() = 0;
 	virtual CCVarIteratorInternal* FactoryInternalIterator() = 0;
-
-	// M_VMETHOD(ConCommandBase*, FindCommandBase, 14, (const char* pszCommandName), (this, pszCommandName));
-	// M_VMETHOD(ConVar*, FindVar, 16, (const char* pszVarName), (this, pszVarName));
-	// M_VMETHOD(ConCommand*, FindCommand, 18, (const char* pszCommandName), (this, pszCommandName));
-	// M_VMETHOD(CCVarIteratorInternal*, FactoryInternalIterator, 41, (), (this));
 };
 
 class CCvar : public ICvar

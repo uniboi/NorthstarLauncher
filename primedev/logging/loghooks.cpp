@@ -9,9 +9,6 @@
 
 AUTOHOOK_INIT()
 
-ConVar* Cvar_spewlog_enable;
-ConVar* Cvar_cl_showtextmsg;
-
 enum class TextMsgPrintType_t
 {
 	HUD_PRINTNOTIFY = 1,
@@ -251,14 +248,11 @@ bool,, (void* thisptr, uintptr_t msg))
 ON_DLL_LOAD_RELIESON("engine.dll", EngineSpewFuncHooks, ConVar, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(engine.dll)
-
-	Cvar_spewlog_enable = new ConVar("spewlog_enable", "1", FCVAR_NONE, "Enables/disables whether the engine spewfunc should be logged");
 }
 
 ON_DLL_LOAD_CLIENT_RELIESON("client.dll", ClientPrintHooks, ConVar, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(client.dll)
 
-	Cvar_cl_showtextmsg = new ConVar("cl_showtextmsg", "1", FCVAR_NONE, "Enable/disable text messages printing on the screen.");
 	pInternalCenterPrint = module.Offset(0x216E940).RCast<ICenterPrint*>();
 }

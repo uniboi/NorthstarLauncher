@@ -27,10 +27,6 @@ extern CBaseServer__RejectConnectionType CBaseServer__RejectConnection;
 class ServerAuthenticationManager
 {
   public:
-	ConVar* Cvar_ns_erase_auth_info;
-	ConVar* Cvar_ns_auth_allow_insecure;
-	ConVar* Cvar_ns_auth_allow_insecure_write;
-
 	std::mutex m_AuthDataMutex;
 	std::unordered_map<std::string, RemoteAuthData> m_RemoteAuthenticationData;
 	std::unordered_map<CBaseClient*, PlayerAuthenticationData> m_PlayerAuthenticationData;

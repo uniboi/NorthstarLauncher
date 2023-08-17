@@ -2,8 +2,6 @@
 
 AUTOHOOK_INIT()
 
-ConVar* Cvar_r_latencyflex;
-
 void (*m_winelfx_WaitAndBeginFrame)();
 
 // clang-format off
@@ -39,5 +37,4 @@ ON_DLL_LOAD_CLIENT_RELIESON("client.dll", LatencyFlex, ConVar, (CModule module))
 	AUTOHOOK_DISPATCH()
 
 	DevMsg(eLog::NS, "LatencyFleX initialized.\n");
-	Cvar_r_latencyflex = new ConVar("r_latencyflex", "1", FCVAR_ARCHIVE, "Whether or not to use LatencyFleX input latency reduction.");
 }

@@ -8,9 +8,6 @@
 #include <future>
 #include <unordered_set>
 
-extern ConVar* Cvar_ns_masterserver_hostname;
-extern ConVar* Cvar_ns_curl_log_enable;
-
 struct RemoteModInfo
 {
   public:
@@ -133,7 +130,6 @@ class MasterServerManager
 };
 
 extern MasterServerManager* g_pMasterServerManager;
-extern ConVar* Cvar_ns_masterserver_hostname;
 
 /** Result returned in the std::future of a MasterServerPresenceReporter::ReportPresence() call. */
 enum class MasterServerReportPresenceResult

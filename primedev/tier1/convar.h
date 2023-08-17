@@ -17,7 +17,7 @@
 #define FCVAR_HIDDEN (1 << 4) // Hidden. Doesn't appear in find or auto complete. Like DEVELOPMENTONLY, but can't be compiled out.
 
 // ConVar only
-#define FCVAR_PROTECTED                                                                                                                    \
+#define FCVAR_PROTECTED \
 	(1 << 5) // It's a server cvar, but we don't send the data since it's a password, etc.  Sends 1 if it's not bland/zero, 0 otherwise as
 			 // value.
 #define FCVAR_SPONLY (1 << 6) // This cvar cannot be changed by clients connected to a multiplayer server.
@@ -26,7 +26,7 @@
 #define FCVAR_USERINFO (1 << 9) // changes the client's info string
 
 #define FCVAR_PRINTABLEONLY (1 << 10) // This cvar's string cannot contain unprintable characters ( e.g., used for player name etc ).
-#define FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS                                                                                                   \
+#define FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS \
 	(1 << 10) // When on concommands this allows remote clients to execute this cmd on the server.
 			  // We are changing the default behavior of concommands to disallow execution by remote clients without
 			  // this flag due to the number existing concommands that can lag or crash the server when clients abuse them.
@@ -52,16 +52,16 @@
 #define FCVAR_MATERIAL_SYSTEM_THREAD (1 << 23) // Indicates this cvar is read from the material system thread
 #define FCVAR_ARCHIVE_PLAYERPROFILE (1 << 24) // respawn-defined flag, same as FCVAR_ARCHIVE but writes to profile.cfg
 
-#define FCVAR_SERVER_CAN_EXECUTE                                                                                                           \
+#define FCVAR_SERVER_CAN_EXECUTE \
 	(1 << 28) // the server is allowed to execute this command on clients via
 			  // ClientCommand/NET_StringCmd/CBaseClientState::ProcessStringCmd.
-#define FCVAR_SERVER_CANNOT_QUERY                                                                                                          \
+#define FCVAR_SERVER_CANNOT_QUERY \
 	(1 << 29) // If this is set, then the server is not allowed to query this cvar's value (via IServerPluginHelpers::StartQueryCvarValue).
 
 // !!!NOTE!!! : this is likely incorrect, there are multiple concommands that the vanilla game registers with this flag that 100% should not
 // be remotely executable i.e. multiple commands that only exist on client (screenshot, joystick_initialize) we now use
 // FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS in all places this flag was previously used
-#define FCVAR_CLIENTCMD_CAN_EXECUTE                                                                                                        \
+#define FCVAR_CLIENTCMD_CAN_EXECUTE \
 	(1 << 30) // IVEngineClient::ClientCmd is allowed to execute this command.
 			  // Note: IVEngineClient::ClientCmd_Unrestricted can run any client command.
 
@@ -124,18 +124,16 @@ typedef void (*FnChangeCallback_t)(ConVar* var, const char* pOldValue, float flO
 class ConVar
 {
   public:
-	ConVar(void) {};
-	ConVar(const char* pszName, const char* pszDefaultValue, int nFlags, const char* pszHelpString);
-	ConVar(
-		const char* pszName,
-		const char* pszDefaultValue,
-		int nFlags,
-		const char* pszHelpString,
-		bool bMin,
-		float fMin,
-		bool bMax,
-		float fMax,
-		FnChangeCallback_t pCallback);
+	static ConVar* StaticCreate(const char* pszName,
+								const char* pszDefaultValue,
+								int nFlags,
+								const char* pszHelpString,
+								bool bMin = false,
+								float fMin = 0.0,
+								bool bMax = false,
+								float fMax = 0.0,
+								FnChangeCallback_t pCallback = nullptr);
+
 	~ConVar(void);
 
 	const char* GetBaseName(void) const;

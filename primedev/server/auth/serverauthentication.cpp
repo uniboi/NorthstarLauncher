@@ -1,7 +1,5 @@
 #include "serverauthentication.h"
 #include "shared/exploit_fixes/ns_limits.h"
-#include "tier1/cvar.h"
-#include "tier1/convar.h"
 #include "masterserver/masterserver.h"
 #include "server/serverpresence.h"
 #include "engine/hoststate.h"
@@ -234,8 +232,6 @@ void*,, (
 	return CBaseServer__ConnectClient(self, addr, a3, a4, a5, a6, a7, playerName, serverFilter, a10, a11, a12, a13, a14, uid, a16, a17);
 }
 
-ConVar* Cvar_ns_allowuserclantags;
-
 // clang-format off
 AUTOHOOK(CBaseClient__Connect, engine.dll + 0x101740,
 bool,, (CBaseClient* self, char* pName, void* pNetChannel, char bFakePlayer, void* a5, char pDisconnectReason[256], void* a7))
@@ -346,16 +342,6 @@ ON_DLL_LOAD_RELIESON("engine.dll", ServerAuthentication, (ConCommand, ConVar), (
 	AUTOHOOK_DISPATCH()
 
 	g_pServerAuthentication = new ServerAuthenticationManager;
-
-	g_pServerAuthentication->Cvar_ns_erase_auth_info =
-		new ConVar("ns_erase_auth_info", "1", FCVAR_GAMEDLL, "Whether auth info should be erased from this server on disconnect or crash");
-	g_pServerAuthentication->Cvar_ns_auth_allow_insecure =
-		new ConVar("ns_auth_allow_insecure", "0", FCVAR_GAMEDLL, "Whether this server will allow unauthenicated players to connect");
-	g_pServerAuthentication->Cvar_ns_auth_allow_insecure_write = new ConVar(
-		"ns_auth_allow_insecure_write",
-		"0",
-		FCVAR_GAMEDLL,
-		"Whether the pdata of unauthenticated clients will be written to disk when changed");
 
 	RegisterConCommand(
 		"ns_resetpersistence", ConCommand_ns_resetpersistence, "resets your pdata when you next enter the lobby", FCVAR_NONE);

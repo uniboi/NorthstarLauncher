@@ -21,7 +21,6 @@ void DediClientMsg(const char* pszMessage)
 		ALL
 	};
 
-	static const ConVar* Cvar_dedi_sendPrintsToClient = g_pCVar->FindVar("dedi_sendPrintsToClient");
 	eSendPrintsToClient eSendPrints = static_cast<eSendPrintsToClient>(Cvar_dedi_sendPrintsToClient->GetInt());
 	if (eSendPrints == eSendPrintsToClient::NONE)
 		return;

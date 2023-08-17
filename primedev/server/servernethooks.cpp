@@ -9,9 +9,6 @@
 
 AUTOHOOK_INIT()
 
-static ConVar* Cvar_net_debug_atlas_packet;
-static ConVar* Cvar_net_debug_atlas_packet_insecure;
-
 // v1 HMACSHA256-signed masterserver request (HMAC-SHA256(JSONData, MasterServerToken) + JSONData)
 static void ProcessAtlasConnectionlessPacketSigreq1(netpacket_t* packet, bool dbg, std::string pType, std::string pData)
 {
@@ -128,17 +125,4 @@ AUTOHOOK(ProcessConnectionlessPacket, engine.dll + 0x117800, bool, , (void* a1, 
 ON_DLL_LOAD_RELIESON("engine.dll", ServerNetHooks, ConVar, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(engine.dll)
-
-	Cvar_net_debug_atlas_packet = new ConVar(
-		"net_debug_atlas_packet",
-		"0",
-		FCVAR_NONE,
-		"Whether to log detailed debugging information for Atlas connectionless packets (warning: this allows unlimited amounts of "
-		"arbitrary data to be logged)");
-
-	Cvar_net_debug_atlas_packet_insecure = new ConVar(
-		"net_debug_atlas_packet_insecure",
-		"0",
-		FCVAR_NONE,
-		"Whether to disable signature verification for Atlas connectionless packets (DANGEROUS: this allows anyone to impersonate Atlas)");
 }

@@ -1,5 +1,7 @@
 #include "libsys.h"
 
+#include "common/globals_cvar.h"
+
 typedef HMODULE (*WINAPI ILoadLibraryA)(LPCSTR lpLibFileName);
 typedef HMODULE (*WINAPI ILoadLibraryExA)(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
 typedef HMODULE (*WINAPI ILoadLibraryW)(LPCWSTR lpLibFileName);
@@ -28,6 +30,7 @@ void LibSys_RunModuleCallbacks(HMODULE hModule)
 
 	// Call callbacks
 	CallLoadLibraryACallbacks(szModuleName, hModule);
+	CVar_InitModule(szModuleName);
 }
 
 

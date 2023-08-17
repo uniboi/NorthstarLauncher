@@ -1,7 +1,5 @@
 #pragma once
 
-#include "tier1/interface.h"
-
 // TODO [Fifty]: Confirm everything in this file!!
 
 //-----------------------------------------------------------------------------
@@ -59,9 +57,6 @@ class IAppSystem
 
 	// Returns all dependent libraries
 	virtual const AppSystemInfo_t* GetDependencies() = 0;
-
-	// Returns the tier
-	// virtual AppSystemTier_t GetTier() = 0;
 
 	// Reconnect to a particular interface
 	virtual void Reconnect(CreateInterfaceFn factory, const char* pInterfaceName) = 0;

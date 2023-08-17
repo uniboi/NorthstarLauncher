@@ -7,14 +7,13 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // temp because i'm very lazy and want to use inet_addr, remove later
 #define RAPIDJSON_HAS_STDSTRING 1
 
-#ifdef NORTHSTAR
-#include "core/memalloc.h"
-#endif
-
 #include <windows.h>
 #include <psapi.h>
+
+#include <string>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <filesystem>
 #include <sstream>
 
@@ -38,11 +37,26 @@ typedef void (*callable_v)(void* v);
 #include "util/filesystem.h"
 
 #ifdef NORTHSTAR
+#include "thirdparty/minhook/include/MinHook.h"
+#include "thirdparty/libcurl/include/curl/curl.h"
+
+#include "thirdparty/silver-bun/module.h"
+#include "thirdparty/silver-bun/memaddr.h"
+
+#include "tier0/memstd.h"
+#include "core/memalloc.h"
+#include "tier0/platform.h"
+#include "tier0/threadtools.h"
+
 #include "core/macros.h"
 #include "core/structs.h"
 
-#include "tier0/platform.h"
-#include "tier0/threadtools.h"
+#include "tier1/interface.h"
+#include "tier1/cvar.h"
+#include "tier1/convar.h"
+
+#include "common/globals_cvar.h"
+#include "common/callbacks.h"
 #endif
 
 #include "mathlib/color.h"
@@ -52,20 +66,12 @@ typedef void (*callable_v)(void* v);
 #include "tier0/commandline.h"
 #include "tier0/dbg.h"
 
-//#include "rapidjson/rapidjson.h"
-
-#if defined(LAUNCHER) || defined(WSOCKPROXY)
-#include "spdlog/spdlog.h"
+#ifdef NORTHSTAR
+#include "core/hooks.h"
 #endif
 
-#ifdef NORTHSTAR
-#include "MinHook.h"
-#include "curl/curl.h"
-
-#include "silver-bun/module.h"
-#include "silver-bun/memaddr.h"
-
-#include "core/hooks.h"
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
+#include "thirdparty/spdlog/spdlog.h"
 #endif
 
 //-----------------------------------------------------------------------------
@@ -92,6 +98,17 @@ inline void LogPtrAdr(const char* szName, void* pVar)
 
     DevMsg(eLog::NONE, "Ptr '%s' is at: %s + %#x\n", szName, pszModuleFileName, (void*)pRelativeAddress);
 }
+
+#ifdef NORTHSTAR
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+inline bool IsDedicatedServer()
+{
+	static bool result = strstr(GetCommandLineA(), "-dedicated");
+	return result;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // 

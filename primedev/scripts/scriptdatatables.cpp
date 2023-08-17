@@ -41,8 +41,6 @@ struct Datatable
 	int rowInfo;
 };
 
-ConVar* Cvar_ns_prefer_datatable_from_disk;
-
 template <ScriptContext context> Datatable* (*SQ_GetDatatableInternal)(HSquirrelVM* sqvm);
 
 struct CSVData
@@ -897,12 +895,6 @@ ON_DLL_LOAD_RELIESON("client.dll", ClientScriptDatatables, ClientSquirrel, (CMod
 
 ON_DLL_LOAD_RELIESON("engine.dll", SharedScriptDataTables, ConVar, (CModule module))
 {
-	Cvar_ns_prefer_datatable_from_disk = new ConVar(
-		"ns_prefer_datatable_from_disk",
-		IsDedicatedServer() && CommandLine()->CheckParm("-nopakdedi") ? "1" : "0",
-		FCVAR_NONE,
-		"whether to prefer loading datatables from disk, rather than rpak");
-
 	RegisterConCommand("dump_datatables", ConCommand_dump_datatables, "dumps all datatables from a hardcoded list", FCVAR_NONE);
 	RegisterConCommand("dump_datatable", ConCommand_dump_datatable, "dump a datatable", FCVAR_NONE);
 }

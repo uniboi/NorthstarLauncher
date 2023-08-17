@@ -173,8 +173,6 @@ struct CAI_Network
 };
 #pragma pack(pop)
 
-ConVar* Cvar_ns_ai_dumpAINfileFromLoad;
-
 void DumpAINInfo(CAI_Network* aiNetwork)
 {
 	fs::path writePath(fmt::format("{}/maps/graphs", g_pModName));
@@ -379,9 +377,6 @@ void, __fastcall, (void* aimanager, void* buf, const char* filename))
 ON_DLL_LOAD("server.dll", BuildAINFile, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
-
-	Cvar_ns_ai_dumpAINfileFromLoad = new ConVar(
-		"ns_ai_dumpAINfileFromLoad", "0", FCVAR_NONE, "For debugging: whether we should dump ain data for ains loaded from disk");
 
 	pUnkStruct0Count = module.Offset(0x1063BF8).RCast<int*>();
 	pppUnkNodeStruct0s = module.Offset(0x1063BE0).RCast<UnkNodeStruct0***>();

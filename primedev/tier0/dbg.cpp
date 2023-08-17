@@ -3,7 +3,6 @@
 #include <regex>
 
 #ifdef NORTHSTAR
-#include "tier1/cvar.h"
 #include "dedicated/dedicatedlogtoclient.h"
 #include "dedicated/dedicated.h"
 #include <vgui/vgui_baseui_interface.h>

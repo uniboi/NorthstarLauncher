@@ -765,7 +765,7 @@ void ModManager::LoadMods()
 			// behaviour is for defining same convar multiple times
 			if (!g_pCVar->FindVar(convar->Name.c_str()))
 			{
-				new ConVar(convar->Name.c_str(), convar->DefaultValue.c_str(), convar->Flags, convar->HelpString.c_str());
+				ConVar::StaticCreate(convar->Name.c_str(), convar->DefaultValue.c_str(), convar->Flags, convar->HelpString.c_str());
 			}
 		}
 

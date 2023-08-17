@@ -19,9 +19,6 @@ using namespace std::chrono_literals;
 
 MasterServerManager* g_pMasterServerManager;
 
-ConVar* Cvar_ns_masterserver_hostname;
-ConVar* Cvar_ns_curl_log_enable;
-
 RemoteServerInfo::RemoteServerInfo(
 	const char* newId,
 	const char* newName,
@@ -1013,9 +1010,6 @@ MasterServerManager::MasterServerManager() : m_pendingConnectionInfo {}, m_sOwnS
 ON_DLL_LOAD_RELIESON("engine.dll", MasterServer, (ConCommand, ServerPresence), (CModule module))
 {
 	g_pMasterServerManager = new MasterServerManager;
-
-	Cvar_ns_masterserver_hostname = new ConVar("ns_masterserver_hostname", "127.0.0.1", FCVAR_NONE, "");
-	Cvar_ns_curl_log_enable = new ConVar("ns_curl_log_enable", "0", FCVAR_NONE, "Whether curl should log to the console");
 
 	RegisterConCommand("ns_fetchservers", ConCommand_ns_fetchservers, "Fetch all servers from the masterserver", FCVAR_CLIENTDLL);
 

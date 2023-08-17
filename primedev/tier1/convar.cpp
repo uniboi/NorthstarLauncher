@@ -1,7 +1,6 @@
 #include "bits.h"
 #include "cvar.h"
 #include "convar.h"
-#include "tier1/interface.h"
 
 #include <float.h>
 
@@ -25,54 +24,29 @@ void* g_pConVar_Vtable = nullptr;
 void* g_pIConVar_Vtable = nullptr;
 
 //-----------------------------------------------------------------------------
-// Purpose: ConVar interface initialization
+// Purpose: 
 //-----------------------------------------------------------------------------
-ON_DLL_LOAD("engine.dll", ConVar, (CModule module))
-{
-	conVarMalloc = module.Offset(0x415C20).RCast<ConVarMallocType>();
-	conVarRegister = module.Offset(0x417230).RCast<ConVarRegisterType>();
-
-	g_pConVar_Vtable = module.Offset(0x67FD28);
-	g_pIConVar_Vtable = module.Offset(0x67FDC8);
-
-	g_pCVar = Sys_GetFactoryPtr("vstdlib.dll", "VEngineCvar007").RCast<CCvar*>();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: constructor
-//-----------------------------------------------------------------------------
-ConVar::ConVar(const char* pszName, const char* pszDefaultValue, int nFlags, const char* pszHelpString)
+ConVar* ConVar::StaticCreate(const char* pszName,
+							 const char* pszDefaultValue,
+							 int nFlags,
+							 const char* pszHelpString,
+							 bool bMin,
+							 float fMin,
+							 bool bMax,
+							 float fMax,
+							 FnChangeCallback_t pCallback)
 {
 	DevMsg(eLog::ENGINE, "Registering Convar %s\n", pszName);
 
-	this->m_ConCommandBase.m_pConCommandBaseVTable = g_pConVar_Vtable;
-	this->m_ConCommandBase.s_pConCommandBases = (ConCommandBase*)g_pIConVar_Vtable;
+	ConVar* pConVar = reinterpret_cast<ConVar*>(GlobalMemAllocSingleton()->m_vtable->Alloc(g_pMemAllocSingleton, sizeof(ConVar)));
 
-	conVarMalloc(&this->m_pMalloc, 0, 0); // Allocate new memory for ConVar.
-	conVarRegister(this, pszName, pszDefaultValue, nFlags, pszHelpString, 0, 0, 0, 0, 0);
-}
+	pConVar->m_ConCommandBase.m_pConCommandBaseVTable = g_pConVar_Vtable;
+	pConVar->m_ConCommandBase.s_pConCommandBases = (ConCommandBase*)g_pIConVar_Vtable;
 
-//-----------------------------------------------------------------------------
-// Purpose: constructor
-//-----------------------------------------------------------------------------
-ConVar::ConVar(
-	const char* pszName,
-	const char* pszDefaultValue,
-	int nFlags,
-	const char* pszHelpString,
-	bool bMin,
-	float fMin,
-	bool bMax,
-	float fMax,
-	FnChangeCallback_t pCallback)
-{
-	DevMsg(eLog::ENGINE, "Registering Convar %s\n", pszName);
+	conVarMalloc(&pConVar->m_pMalloc, 0, 0);
+	conVarRegister(pConVar, pszName, pszDefaultValue, nFlags, pszHelpString, 0, 0, 0, 0, 0);
 
-	this->m_ConCommandBase.m_pConCommandBaseVTable = g_pConVar_Vtable;
-	this->m_ConCommandBase.s_pConCommandBases = (ConCommandBase*)g_pIConVar_Vtable;
-
-	conVarMalloc(&this->m_pMalloc, 0, 0); // Allocate new memory for ConVar.
-	conVarRegister(this, pszName, pszDefaultValue, nFlags, pszHelpString, bMin, fMin, bMax, fMax, (void*)pCallback);
+	return pConVar;
 }
 
 //-----------------------------------------------------------------------------
@@ -521,4 +495,62 @@ int ParseConVarFlagsString(std::string modName, std::string sFlags)
 	}
 
 	return iFlags;
+}
+AUTOHOOK_INIT()
+
+/*
+NOTE [Fifty]: These are calls to CCVar::AllocateDLLIdentifier() which is only called from ConVar_Register
+launcher.dll + 0x29b8b
+inputsystem.dll + 0x1090b
+vphysics.dll + 0x13c56b
+materialsystem_dx11.dll + 0x11dc7b
+datacache.dll + 0x8426b
+studiorender.dll + 0x2be8b
+engine.dll + 0x4170cb
+localize.dll + 0x1bc1b
+vguimatsurface.dll + 0x465bb
+vgui2.dll + 0x479fb
+server.dll + 0x724f9b
+client.dll + 0x73836b
+*/
+AUTOHOOK(ConVar_Register_Client, client.dll + 0x738330, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
+{
+	ConVar_Register_Client(nCVarFlag, pAccessor);
+	CVar_InitShipped("client.dll");
+}
+
+ON_DLL_LOAD("client.dll", ConVar_Client, (CModule module)) {
+	AUTOHOOK_DISPATCH_MODULE(client.dll)}
+
+AUTOHOOK(ConVar_Register_Server, server.dll + 0x724F60, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
+{
+	ConVar_Register_Server(nCVarFlag, pAccessor);
+	CVar_InitShipped("server.dll");
+}
+
+ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module))
+{
+	AUTOHOOK_DISPATCH_MODULE(server.dll)
+}
+
+AUTOHOOK(ConVar_Register_Engine, engine.dll + 0x417090, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
+{
+	ConVar_Register_Engine(nCVarFlag, pAccessor);
+	CVar_InitShipped("engine.dll");
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: ConVar interface initialization
+//-----------------------------------------------------------------------------
+ON_DLL_LOAD("engine.dll", ConVar, (CModule module))
+{
+	AUTOHOOK_DISPATCH_MODULE(engine.dll)
+
+	conVarMalloc = module.Offset(0x415C20).RCast<ConVarMallocType>();
+	conVarRegister = module.Offset(0x417230).RCast<ConVarRegisterType>();
+
+	g_pConVar_Vtable = module.Offset(0x67FD28);
+	g_pIConVar_Vtable = module.Offset(0x67FDC8);
+
+	g_pCVar = Sys_GetFactoryPtr("vstdlib.dll", "VEngineCvar007").RCast<CCvar*>();
 }

@@ -1,12 +1,9 @@
 #include "serverpresence.h"
 #include "shared/playlist.h"
-#include "tier1/convar.h"
 
 #include <regex>
 
 ServerPresenceManager* g_pServerPresence;
-
-ConVar* Cvar_hostname;
 
 // Convert a hex digit char to integer.
 inline int hctod(char c)
@@ -68,33 +65,6 @@ std::string UnescapeUnicode(const std::string& str)
 		result.append(last_match.suffix());
 
 	return result;
-}
-
-void ServerPresenceManager::CreateConVars()
-{
-	// clang-format off
-	// register convars
-	Cvar_ns_server_presence_update_rate = new ConVar(
-		"ns_server_presence_update_rate", "5000", FCVAR_GAMEDLL, "How often we update our server's presence on server lists in ms");
-
-	Cvar_ns_server_name = new ConVar("ns_server_name", "Unnamed Northstar Server", FCVAR_GAMEDLL, "This server's description", false, 0, false, 0, [](ConVar* cvar, const char* pOldValue, float flOldValue) {
-			g_pServerPresence->SetName(UnescapeUnicode(g_pServerPresence->Cvar_ns_server_name->GetString()));
-
-			// update engine hostname cvar
-			Cvar_hostname->SetValue(g_pServerPresence->Cvar_ns_server_name->GetString());
-		});
-
-	Cvar_ns_server_desc = new ConVar("ns_server_desc", "Default server description", FCVAR_GAMEDLL, "This server's name", false, 0, false, 0, [](ConVar* cvar, const char* pOldValue, float flOldValue) {
-			g_pServerPresence->SetDescription(UnescapeUnicode(g_pServerPresence->Cvar_ns_server_desc->GetString()));
-		});
-
-	Cvar_ns_server_password = new ConVar("ns_server_password", "", FCVAR_GAMEDLL, "This server's password", false, 0, false, 0, [](ConVar* cvar, const char* pOldValue, float flOldValue) {
-			g_pServerPresence->SetPassword(g_pServerPresence->Cvar_ns_server_password->GetString());
-		});
-
-	Cvar_ns_report_server_to_masterserver = new ConVar("ns_report_server_to_masterserver", "1", FCVAR_GAMEDLL, "Whether we should report this server to the masterserver");
-	Cvar_ns_report_sp_server_to_masterserver = new ConVar("ns_report_sp_server_to_masterserver", "0", FCVAR_GAMEDLL, "Whether we should report this server to the masterserver, when started in singleplayer");
-	// clang-format on
 }
 
 void ServerPresenceManager::AddPresenceReporter(ServerPresenceReporter* reporter)
@@ -222,6 +192,5 @@ void ServerPresenceManager::SetPlayerCount(const int iPlayerCount)
 
 ON_DLL_LOAD_RELIESON("engine.dll", ServerPresence, ConVar, (CModule module))
 {
-	g_pServerPresence->CreateConVars();
-	Cvar_hostname = module.Offset(0x1315BAE8).Deref().RCast<ConVar*>();
+	// 
 }

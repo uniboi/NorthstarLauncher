@@ -17,8 +17,6 @@ namespace R2
 	DEFINED_VAR_AT(engine.dll + 0x18C680, GetCurrentPlaylistVar);
 } // namespace R2
 
-ConVar* Cvar_ns_use_clc_SetPlaylistVarOverride;
-
 // clang-format off
 AUTOHOOK(clc_SetPlaylistVarOverride__Process, engine.dll + 0x222180,
 char, __fastcall, (void* a1, void* a2))
@@ -108,13 +106,6 @@ ON_DLL_LOAD_RELIESON("engine.dll", PlaylistHooks, (ConCommand, ConVar), (CModule
 	RegisterConCommand("playlist", ConCommand_playlist, "Sets the current playlist", FCVAR_NONE);
 	RegisterConCommand("setplaylist", ConCommand_playlist, "Sets the current playlist", FCVAR_NONE);
 	RegisterConCommand("setplaylistvaroverrides", ConCommand_setplaylistvaroverride, "sets a playlist var override", FCVAR_NONE);
-
-	// note: clc_SetPlaylistVarOverride is pretty insecure, since it allows for entirely arbitrary playlist var overrides to be sent to the
-	// server, this is somewhat restricted on custom servers to prevent it being done outside of private matches, but ideally it should be
-	// disabled altogether, since the custom menus won't use it anyway this should only really be accepted if you want vanilla client
-	// compatibility
-	Cvar_ns_use_clc_SetPlaylistVarOverride = new ConVar(
-		"ns_use_clc_SetPlaylistVarOverride", "0", FCVAR_GAMEDLL, "Whether the server should accept clc_SetPlaylistVarOverride messages");
 
 	// patch to prevent clc_SetPlaylistVarOverride from being able to crash servers if we reach max overrides due to a call to Error (why is
 	// this possible respawn, wtf) todo: add a warning for this

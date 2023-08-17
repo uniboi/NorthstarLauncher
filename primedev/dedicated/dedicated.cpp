@@ -9,12 +9,6 @@
 
 AUTOHOOK_INIT()
 
-bool IsDedicatedServer()
-{
-	static bool result = strstr(GetCommandLineA(), "-dedicated");
-	return result;
-}
-
 // CDedidcatedExports defs
 struct CDedicatedExports; // forward declare
 
@@ -270,7 +264,6 @@ void, __fastcall, (void* sqvm))
 
 	// close dedicated server if a fatal error is hit
 	// atm, this will crash if not aborted, so this just closes more gracefully
-	static ConVar* Cvar_fatal_script_errors = g_pCVar->FindVar("fatal_script_errors");
 	if (Cvar_fatal_script_errors->GetBool())
 	{
 		abort();

@@ -4,8 +4,6 @@
 
 AUTOHOOK_INIT()
 
-ConVar* Cvar_ns_has_agreed_to_send_token;
-
 // mirrored in script
 const int NOT_DECIDED_TO_SEND_TOKEN = 0;
 const int AGREED_TO_SEND_TOKEN = 1;
@@ -53,11 +51,4 @@ ON_DLL_LOAD_CLIENT_RELIESON("engine.dll", ClientAuthHooks, ConVar, (CModule modu
 	AUTOHOOK_DISPATCH()
 
 	p3PToken = module.Offset(0x13979D80).RCast<char*>();
-
-	// this cvar will save to cfg once initially agreed with
-	Cvar_ns_has_agreed_to_send_token = new ConVar(
-		"ns_has_agreed_to_send_token",
-		"0",
-		FCVAR_ARCHIVE_PLAYERPROFILE,
-		"whether the user has agreed to send their origin token to the northstar masterserver");
 }

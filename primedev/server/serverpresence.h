@@ -1,5 +1,6 @@
 #pragma once
-#include "tier1/convar.h"
+
+std::string UnescapeUnicode(const std::string& str);
 
 struct ServerPresence
 {
@@ -62,19 +63,9 @@ class ServerPresenceManager
 	std::vector<ServerPresenceReporter*> m_vPresenceReporters;
 
 	double m_flLastPresenceUpdate = 0;
-	ConVar* Cvar_ns_server_presence_update_rate;
-
-	ConVar* Cvar_ns_server_name;
-	ConVar* Cvar_ns_server_desc;
-	ConVar* Cvar_ns_server_password;
-
-	ConVar* Cvar_ns_report_server_to_masterserver;
-	ConVar* Cvar_ns_report_sp_server_to_masterserver;
 
   public:
 	void AddPresenceReporter(ServerPresenceReporter* reporter);
-
-	void CreateConVars();
 
 	void CreatePresence();
 	void DestroyPresence();

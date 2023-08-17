@@ -2,7 +2,6 @@
 #include "GameConsole.h"
 #include "tier1/cmd.h"
 #include "util/printcommands.h"
-#include "tier1/interface.h"
 
 AUTOHOOK_INIT()
 
