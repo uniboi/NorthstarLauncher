@@ -26,7 +26,7 @@ void DediClientMsg(const char* pszMessage)
 		return;
 
 	std::string sLogMessage = fmt::format("{}", pszMessage);
-	for (int i = 0; i < g_pGlobals->m_nMaxClients; i++)
+	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
 		CBaseClient* pClient = &g_pClientArray[i];
 

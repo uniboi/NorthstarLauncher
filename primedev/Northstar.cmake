@@ -47,6 +47,8 @@ add_library(NorthstarDLL SHARED
             "engine/common.cpp"
             "engine/datamap.cpp"
             "engine/datamap.h"
+            "engine/edict.h"
+			"engine/globalvars_base.h"
             "engine/host.cpp"
             "engine/hoststate.cpp"
             "engine/hoststate.h"

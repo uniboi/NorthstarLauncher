@@ -180,7 +180,7 @@ void ConCommand_ban(const CCommand& args)
 	if (args.ArgC() < 2)
 		return;
 
-	for (int i = 0; i < g_pGlobals->m_nMaxClients; i++)
+	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
 		CBaseClient* player = &g_pClientArray[i];
 

@@ -176,7 +176,7 @@ struct CAI_Network
 void DumpAINInfo(CAI_Network* aiNetwork)
 {
 	fs::path writePath(fmt::format("{}/maps/graphs", g_pModName));
-	writePath /= g_pGlobals->m_pMapName;
+	writePath /= g_pServerGlobalVariables->m_pMapName;
 	writePath += ".ain";
 
 	// dump from memory
@@ -186,7 +186,7 @@ void DumpAINInfo(CAI_Network* aiNetwork)
 	DevMsg(eLog::NS, "writing ainet version: %i\n", AINET_VERSION_NUMBER);
 	writeStream.write((char*)&AINET_VERSION_NUMBER, sizeof(int));
 
-	int mapVersion = g_pGlobals->m_nMapVersion;
+	int mapVersion = g_pServerGlobalVariables->m_nMapVersion;
 	DevMsg(eLog::NS, "writing map version: %i\n", mapVersion);
 	writeStream.write((char*)&mapVersion, sizeof(int));
 	DevMsg(eLog::NS, "writing placeholder crc: %i\n", PLACEHOLDER_CRC);

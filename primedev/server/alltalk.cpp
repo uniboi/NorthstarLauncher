@@ -8,7 +8,7 @@ size_t __fastcall ShouldAllowAlltalk()
 		return 0;
 
 	// lobby should default to alltalk, otherwise don't allow it
-	return strcmp(g_pGlobals->m_pMapName, "mp_lobby");
+	return strcmp(g_pServerGlobalVariables->m_pMapName, "mp_lobby");
 }
 
 ON_DLL_LOAD_RELIESON("engine.dll", ServerAllTalk, ConVar, (CModule module))
