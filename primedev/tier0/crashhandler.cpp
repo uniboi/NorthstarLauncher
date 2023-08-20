@@ -77,9 +77,7 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionInfo)
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CCrashHandler::CCrashHandler()
-	: m_hExceptionFilter(nullptr), m_pExceptionInfos(nullptr), m_bAllExceptionsFatal(false),
-	  m_bHasShownCrashMsg(false), m_bState(false)
+CCrashHandler::CCrashHandler() : m_hExceptionFilter(nullptr), m_pExceptionInfos(nullptr), m_bAllExceptionsFatal(false), m_bHasShownCrashMsg(false), m_bState(false)
 {
 	Init();
 }
@@ -135,14 +133,7 @@ void CCrashHandler::SetCrashedModule()
 		if (dwErrorID != 0)
 		{
 			LPSTR pszBuffer;
-			DWORD dwSize = FormatMessageA(
-				FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL,
-				dwErrorID,
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				(LPSTR)&pszBuffer,
-				0,
-				NULL);
+			DWORD dwSize = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwErrorID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&pszBuffer, 0, NULL);
 
 			if (dwSize > 0)
 			{
@@ -268,12 +259,9 @@ void CCrashHandler::ShowPopUpMessage()
 
 	if (true) // todo: isdedi
 	{
-		std::string svMessage = FormatA(
-			"Northstar has crashed! Crash info can be found at %s/logs!\n\n%s\n%s + %s",
-			"", // todo: profile
-			GetExceptionString(),
-			m_svCrashedModule.c_str(),
-			m_svCrashedOffset.c_str());
+		std::string svMessage = FormatA("Northstar has crashed! Crash info can be found at %s/logs!\n\n%s\n%s + %s",
+										"", // todo: profile
+										GetExceptionString(), m_svCrashedModule.c_str(), m_svCrashedOffset.c_str());
 
 		MessageBoxA(GetForegroundWindow(), svMessage.c_str(), "Northstar has crashed!", MB_ICONERROR | MB_OK);
 	}
@@ -393,23 +381,9 @@ void CCrashHandler::FormatIntReg(const CHAR* pszRegister, DWORD64 nValue)
 //-----------------------------------------------------------------------------
 void CCrashHandler::FormatFloatReg(const CHAR* pszRegister, M128A nValue)
 {
-	DWORD nVec[4] = {
-		static_cast<DWORD>(nValue.Low & UINT_MAX),
-		static_cast<DWORD>(nValue.Low >> 32),
-		static_cast<DWORD>(nValue.High & UINT_MAX),
-		static_cast<DWORD>(nValue.High >> 32)};
+	DWORD nVec[4] = {static_cast<DWORD>(nValue.Low & UINT_MAX), static_cast<DWORD>(nValue.Low >> 32), static_cast<DWORD>(nValue.High & UINT_MAX), static_cast<DWORD>(nValue.High >> 32)};
 
-	m_svLog += FormatA(
-		"\t%s: [ %f, %f, %f, %f ]; [ 0x%x, 0x%x, 0x%x, 0x%x ]\n",
-		pszRegister,
-		static_cast<float>(nVec[0]),
-		static_cast<float>(nVec[1]),
-		static_cast<float>(nVec[2]),
-		static_cast<float>(nVec[3]),
-		nVec[0],
-		nVec[1],
-		nVec[2],
-		nVec[3]);
+	m_svLog += FormatA("\t%s: [ %f, %f, %f, %f ]; [ 0x%x, 0x%x, 0x%x, 0x%x ]\n", pszRegister, static_cast<float>(nVec[0]), static_cast<float>(nVec[1]), static_cast<float>(nVec[2]), static_cast<float>(nVec[3]), nVec[0], nVec[1], nVec[2], nVec[3]);
 }
 
 //-----------------------------------------------------------------------------

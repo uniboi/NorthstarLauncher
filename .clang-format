@@ -26,3 +26,4 @@ IndentExternBlock: Indent
 PointerAlignment: Left
 SortIncludes: false
 NamespaceIndentation: All
+AllowShortFunctionsOnASingleLine: Empty
