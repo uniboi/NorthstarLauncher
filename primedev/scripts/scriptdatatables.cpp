@@ -41,7 +41,8 @@ struct Datatable
 	int rowInfo;
 };
 
-template <ScriptContext context> Datatable* (*SQ_GetDatatableInternal)(HSquirrelVM* sqvm);
+template <ScriptContext context>
+Datatable* (*SQ_GetDatatableInternal)(HSquirrelVM* sqvm);
 
 struct CSVData
 {

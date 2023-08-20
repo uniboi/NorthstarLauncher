@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-
 //-----------------------------------------------------------------------------
 // Purpose: Returns a string from fieldtype_t enum entry
 // Input  : type -

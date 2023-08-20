@@ -95,4 +95,3 @@ void SpdLog_Shutdown(void)
 {
 	spdlog::shutdown();
 }
-

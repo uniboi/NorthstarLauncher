@@ -81,7 +81,7 @@ enum class EngineState_t
 
 class CEngine
 {
-	public:
+  public:
 	virtual void unknown() = 0; // unsure if this is where
 	virtual bool Load(bool dedicated, const char* baseDir) = 0;
 	virtual void Unload() = 0;
@@ -162,7 +162,6 @@ enum server_state_t
 extern server_state_t* g_pServerState;
 
 extern char* g_pModName;
-
 
 extern CGlobalVars* g_pServerGlobalVariables;
 extern CGlobalVarsBase* g_pClientGlobalVariables;

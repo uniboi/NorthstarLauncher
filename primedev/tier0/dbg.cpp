@@ -181,7 +181,7 @@ void CoreMsg(eLog eContext, eLogLevel eLevel, const int iCode, const char* pszNa
 
 #if defined(LAUNCHER) || defined(WSOCKPROXY)
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 void LogMsg(eLogLevel eLevel, const char* pszMessage, int nCode)
 {

@@ -20,7 +20,7 @@ SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
 SpaceBeforeRangeBasedForLoopColon: true
 UseTab: Always
-ColumnLimit: 0
+ColumnLimit: 256
 BreakBeforeBraces: Allman
 IndentExternBlock: Indent
 PointerAlignment: Left

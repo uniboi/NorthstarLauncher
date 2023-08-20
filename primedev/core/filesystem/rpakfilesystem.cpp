@@ -140,7 +140,6 @@ void LoadCustomMapPaks(char** pakName, bool* bNeedToFreePakName)
 {
 	// whether the vanilla game has this rpak
 
-
 	bool bHasOriginalPak = FileExists(fs::path("r2/paks/Win64/") / *pakName);
 
 	// note, loading from ./ is necessary otherwise paks will load from gamedir/r2/paks

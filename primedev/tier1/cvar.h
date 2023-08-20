@@ -82,5 +82,4 @@ class CCvar : public ICvar
 	std::unordered_map<std::string, ConCommandBase*> DumpToMap();
 };
 
-
 extern CCvar* g_pCVar;

@@ -9,7 +9,6 @@
 
 AUTOHOOK_INIT()
 
-
 CHostState* g_pHostState;
 
 std::string sLastMode;

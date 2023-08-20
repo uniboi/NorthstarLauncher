@@ -148,12 +148,10 @@ void CNorthstarLauncher::InitCoreSubsystems()
 
 	if (!hTier0 && FileExists(wsvTier0Path))
 	{
-		MessageBoxA(
-			NULL,
-			"Failed to load tier0.dll. The file exists. This means you're missing x64 msvc 2012 redistributables.\n\nPlease verify your "
-			"files and try again.",
-			"Northstar Prime error",
-			MB_ICONERROR);
+		MessageBoxA(NULL,
+					"Failed to load tier0.dll. The file exists. This means you're missing x64 msvc 2012 redistributables.\n\nPlease verify your "
+					"files and try again.",
+					"Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
@@ -215,8 +213,7 @@ void CNorthstarLauncher::InjectNorthstar()
 
 	if (!hNorthstar)
 	{
-		MessageBoxA(
-			NULL, "Failed to load Northstar.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+		MessageBoxA(NULL, "Failed to load Northstar.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
@@ -226,11 +223,7 @@ void CNorthstarLauncher::InjectNorthstar()
 
 	if (!NorthstarPrime_Initilase)
 	{
-		MessageBoxA(
-			NULL,
-			"Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.",
-			"Northstar Prime error",
-			MB_ICONERROR);
+		MessageBoxA(NULL, "Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 

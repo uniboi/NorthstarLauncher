@@ -192,5 +192,5 @@ void ServerPresenceManager::SetPlayerCount(const int iPlayerCount)
 
 ON_DLL_LOAD_RELIESON("engine.dll", ServerPresence, ConVar, (CModule module))
 {
-	// 
+	//
 }

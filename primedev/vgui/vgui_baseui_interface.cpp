@@ -20,5 +20,3 @@ ON_DLL_LOAD_CLIENT("engine.dll", EngineVgui, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 }
-
-

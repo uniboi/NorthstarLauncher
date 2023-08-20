@@ -54,7 +54,7 @@ void SetCommonHttpClientOptions(CURL* curl)
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, Cvar_ns_curl_log_enable->GetBool());
 
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, NORTHSTAR_USERAGENT);
-	
+
 	// Timeout since the MS has fucky async functions without await, making curl hang due to a successful connection but no response for ~90
 	// seconds.
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
@@ -314,7 +314,8 @@ void MasterServerManager::RequestServerList()
 				std::sort(
 					m_vRemoteServers.begin(),
 					m_vRemoteServers.end(),
-					[](RemoteServerInfo& a, RemoteServerInfo& b) { return a.playerCount > b.playerCount; });
+					[](RemoteServerInfo& a, RemoteServerInfo& b)
+					{ return a.playerCount > b.playerCount; });
 			}
 			else
 			{

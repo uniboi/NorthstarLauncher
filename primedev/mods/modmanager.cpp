@@ -552,7 +552,8 @@ struct Test
 	ScriptContext context;
 };
 
-template <ScriptContext context> auto ModConCommandCallback_Internal(std::string name, const CCommand& command)
+template <ScriptContext context>
+auto ModConCommandCallback_Internal(std::string name, const CCommand& command)
 {
 	if (g_pSquirrel<context>->m_pSQVM && g_pSquirrel<context>->m_pSQVM)
 	{
@@ -597,7 +598,8 @@ auto ModConCommandCallback(const CCommand& command)
 		auto res = std::find_if(
 			mod.ConCommands.begin(),
 			mod.ConCommands.end(),
-			[&commandString](const ModConCommand* other) { return other->Name == commandString; });
+			[&commandString](const ModConCommand* other)
+			{ return other->Name == commandString; });
 		if (res != mod.ConCommands.end())
 		{
 			found = *res;
@@ -748,7 +750,8 @@ void ModManager::LoadMods()
 	}
 
 	// sort by load prio, lowest-highest
-	std::sort(m_LoadedMods.begin(), m_LoadedMods.end(), [](Mod& a, Mod& b) { return a.LoadPriority < b.LoadPriority; });
+	std::sort(m_LoadedMods.begin(), m_LoadedMods.end(), [](Mod& a, Mod& b)
+			  { return a.LoadPriority < b.LoadPriority; });
 
 	for (Mod& mod : m_LoadedMods)
 	{

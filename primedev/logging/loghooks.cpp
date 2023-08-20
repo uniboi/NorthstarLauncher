@@ -245,10 +245,8 @@ bool,, (void* thisptr, uintptr_t msg))
 	return true;
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", EngineSpewFuncHooks, ConVar, (CModule module))
-{
-	AUTOHOOK_DISPATCH_MODULE(engine.dll)
-}
+ON_DLL_LOAD_RELIESON("engine.dll", EngineSpewFuncHooks, ConVar, (CModule module)) {
+	AUTOHOOK_DISPATCH_MODULE(engine.dll)}
 
 ON_DLL_LOAD_CLIENT_RELIESON("client.dll", ClientPrintHooks, ConVar, (CModule module))
 {

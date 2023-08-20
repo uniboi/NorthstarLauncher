@@ -6,10 +6,8 @@
 
 AUTOHOOK_INIT()
 
-
 bool bReadingOriginalFile = false;
 std::string sCurrentModPath;
-
 
 IFileSystem* g_pFilesystem;
 

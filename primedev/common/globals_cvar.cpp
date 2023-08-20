@@ -22,7 +22,7 @@ void CVar_InitModule(std::string svModule)
 		Cvar_ns_print_played_sounds = ConVar::StaticCreate("ns_print_played_sounds", "0", FCVAR_NONE, "");
 		Cvar_r_latencyflex = ConVar::StaticCreate("r_latencyflex", "1", FCVAR_ARCHIVE, "Whether or not to use LatencyFleX input latency reduction.");
 		Cvar_cl_showtextmsg = ConVar::StaticCreate("cl_showtextmsg", "1", FCVAR_NONE, "Enable/disable text messages printing on the screen.");
-		//ns_test = ConVar::StaticCreate("ns_test", "0", FCVAR_NONE, "Testing");
+		// ns_test = ConVar::StaticCreate("ns_test", "0", FCVAR_NONE, "Testing");
 
 		DevMsg(eLog::NS, "Finished initilasing new cvars for '%s'\n", "client.dll");
 		return;
@@ -84,7 +84,7 @@ void CVar_InitModule(std::string svModule)
 		return;
 	}
 
-	//Warning(eLog::NS, "Tried to initilase new cvars for '%s'\n", svModule.c_str());
+	// Warning(eLog::NS, "Tried to initilase new cvars for '%s'\n", svModule.c_str());
 }
 
 //-----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ void CVar_InitShipped(std::string svModule)
 	// mp_gamemode
 	if (!Cvar_mp_gamemode && (Cvar_mp_gamemode = g_pCVar->FindVar("mp_gamemode")))
 	{
-		// 
+		//
 	}
 
 	// sv_cheats

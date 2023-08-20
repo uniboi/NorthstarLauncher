@@ -101,7 +101,7 @@ std::string FormatAV(const char* fmt, va_list vArgs)
 		svResult.resize(iLen);
 		std::vsnprintf(svResult.data(), iLen + 1, fmt, vArgs);
 	}
-	
+
 	return svResult;
 }
 

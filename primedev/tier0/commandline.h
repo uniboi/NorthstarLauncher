@@ -28,7 +28,7 @@ class ICommandLine
 
 class CCommandLine : public ICommandLine
 {
-	// 
+	//
 };
 
 inline CCommandLine* (*CommandLine)();

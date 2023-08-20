@@ -24,7 +24,7 @@ void* g_pConVar_Vtable = nullptr;
 void* g_pIConVar_Vtable = nullptr;
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 ConVar* ConVar::StaticCreate(const char* pszName,
 							 const char* pszDefaultValue,
@@ -528,10 +528,8 @@ AUTOHOOK(ConVar_Register_Server, server.dll + 0x724F60, void, __fastcall, (int n
 	CVar_InitShipped("server.dll");
 }
 
-ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module))
-{
-	AUTOHOOK_DISPATCH_MODULE(server.dll)
-}
+ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module)) {
+	AUTOHOOK_DISPATCH_MODULE(server.dll)}
 
 AUTOHOOK(ConVar_Register_Engine, engine.dll + 0x417090, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
 {

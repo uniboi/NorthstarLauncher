@@ -12,7 +12,7 @@ const char* DataMap_GetSizeTypeStr(int iBytes);
 
 //-----------------------------------------------------------------------------
 //
-void DataMap_Dump(datamap_t *pMap);
+void DataMap_Dump(datamap_t* pMap);
 
 //-----------------------------------------------------------------------------
 // field types

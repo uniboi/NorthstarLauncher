@@ -186,7 +186,8 @@ template class SquirrelManager<ScriptContext::SERVER>;
 template class SquirrelManager<ScriptContext::CLIENT>;
 template class SquirrelManager<ScriptContext::UI>;
 
-template <ScriptContext context> void SquirrelManager<context>::VMCreated(CSquirrelVM* newSqvm)
+template <ScriptContext context>
+void SquirrelManager<context>::VMCreated(CSquirrelVM* newSqvm)
 {
 	m_pSQVM = newSqvm;
 
@@ -218,7 +219,8 @@ template <ScriptContext context> void SquirrelManager<context>::VMCreated(CSquir
 	g_pSquirrel<context>->messageBuffer = new SquirrelMessageBuffer();
 }
 
-template <ScriptContext context> void SquirrelManager<context>::VMDestroyed()
+template <ScriptContext context>
+void SquirrelManager<context>::VMDestroyed()
 {
 	// Call all registered mod Destroy callbacks.
 	if (g_pModManager)
@@ -250,7 +252,8 @@ template <ScriptContext context> void SquirrelManager<context>::VMDestroyed()
 	g_pSquirrel<context>->messageBuffer = nullptr;
 }
 
-template <ScriptContext context> void SquirrelManager<context>::ExecuteCode(const char* pCode)
+template <ScriptContext context>
+void SquirrelManager<context>::ExecuteCode(const char* pCode)
 {
 	if (!m_pSQVM || !m_pSQVM->sqvm)
 	{
@@ -275,7 +278,8 @@ template <ScriptContext context> void SquirrelManager<context>::ExecuteCode(cons
 	}
 }
 
-template <ScriptContext context> void SquirrelManager<context>::AddFuncRegistration(
+template <ScriptContext context>
+void SquirrelManager<context>::AddFuncRegistration(
 	std::string returnType, std::string name, std::string argTypes, std::string helpText, SQFunction func)
 {
 	SQFuncRegistration* reg = new SQFuncRegistration;
@@ -299,7 +303,8 @@ template <ScriptContext context> void SquirrelManager<context>::AddFuncRegistrat
 	m_funcRegistrations.push_back(reg);
 }
 
-template <ScriptContext context> SQRESULT SquirrelManager<context>::setupfunc(const SQChar* funcname)
+template <ScriptContext context>
+SQRESULT SquirrelManager<context>::setupfunc(const SQChar* funcname)
 {
 	pushroottable(m_pSQVM->sqvm);
 	pushstring(m_pSQVM->sqvm, funcname, -1);
@@ -311,7 +316,8 @@ template <ScriptContext context> SQRESULT SquirrelManager<context>::setupfunc(co
 	return result;
 }
 
-template <ScriptContext context> void SquirrelManager<context>::AddFuncOverride(std::string name, SQFunction func)
+template <ScriptContext context>
+void SquirrelManager<context>::AddFuncOverride(std::string name, SQFunction func)
 {
 	m_funcOverrides[name] = func;
 }
@@ -322,8 +328,10 @@ bool IsUIVM(ScriptContext context, HSquirrelVM* pSqvm)
 	return ScriptContext(pSqvm->sharedState->cSquirrelVM->vmContext) == ScriptContext::UI;
 }
 
-template <ScriptContext context> void* (*__fastcall sq_compiler_create)(HSquirrelVM* sqvm, void* a2, void* a3, SQBool bShouldThrowError);
-template <ScriptContext context> void* __fastcall sq_compiler_createHook(HSquirrelVM* sqvm, void* a2, void* a3, SQBool bShouldThrowError)
+template <ScriptContext context>
+void* (*__fastcall sq_compiler_create)(HSquirrelVM* sqvm, void* a2, void* a3, SQBool bShouldThrowError);
+template <ScriptContext context>
+void* __fastcall sq_compiler_createHook(HSquirrelVM* sqvm, void* a2, void* a3, SQBool bShouldThrowError)
 {
 	// store whether errors generated from this compile should be fatal
 	if (IsUIVM(context, sqvm))
@@ -334,8 +342,10 @@ template <ScriptContext context> void* __fastcall sq_compiler_createHook(HSquirr
 	return sq_compiler_create<context>(sqvm, a2, a3, bShouldThrowError);
 }
 
-template <ScriptContext context> SQInteger (*SQPrint)(HSquirrelVM* sqvm, const char* fmt);
-template <ScriptContext context> SQInteger SQPrintHook(HSquirrelVM* sqvm, const char* fmt, ...)
+template <ScriptContext context>
+SQInteger (*SQPrint)(HSquirrelVM* sqvm, const char* fmt);
+template <ScriptContext context>
+SQInteger SQPrintHook(HSquirrelVM* sqvm, const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
@@ -354,8 +364,10 @@ template <ScriptContext context> SQInteger SQPrintHook(HSquirrelVM* sqvm, const 
 	return 0;
 }
 
-template <ScriptContext context> CSquirrelVM* (*__fastcall CreateNewVM)(void* a1, ScriptContext realContext);
-template <ScriptContext context> CSquirrelVM* __fastcall CreateNewVMHook(void* a1, ScriptContext realContext)
+template <ScriptContext context>
+CSquirrelVM* (*__fastcall CreateNewVM)(void* a1, ScriptContext realContext);
+template <ScriptContext context>
+CSquirrelVM* __fastcall CreateNewVMHook(void* a1, ScriptContext realContext)
 {
 	CSquirrelVM* sqvm = CreateNewVM<context>(a1, realContext);
 	if (realContext == ScriptContext::UI)
@@ -367,8 +379,10 @@ template <ScriptContext context> CSquirrelVM* __fastcall CreateNewVMHook(void* a
 	return sqvm;
 }
 
-template <ScriptContext context> bool (*__fastcall CSquirrelVM_init)(CSquirrelVM* vm, ScriptContext realContext, float time);
-template <ScriptContext context> bool __fastcall CSquirrelVM_initHook(CSquirrelVM* vm, ScriptContext realContext, float time)
+template <ScriptContext context>
+bool (*__fastcall CSquirrelVM_init)(CSquirrelVM* vm, ScriptContext realContext, float time);
+template <ScriptContext context>
+bool __fastcall CSquirrelVM_initHook(CSquirrelVM* vm, ScriptContext realContext, float time)
 {
 	bool ret = CSquirrelVM_init<context>(vm, realContext, time);
 	for (Mod mod : g_pModManager->m_LoadedMods)
@@ -384,8 +398,10 @@ template <ScriptContext context> bool __fastcall CSquirrelVM_initHook(CSquirrelV
 	return ret;
 }
 
-template <ScriptContext context> void (*__fastcall DestroyVM)(void* a1, CSquirrelVM* sqvm);
-template <ScriptContext context> void __fastcall DestroyVMHook(void* a1, CSquirrelVM* sqvm)
+template <ScriptContext context>
+void (*__fastcall DestroyVM)(void* a1, CSquirrelVM* sqvm);
+template <ScriptContext context>
+void __fastcall DestroyVMHook(void* a1, CSquirrelVM* sqvm)
 {
 	ScriptContext realContext = context; // ui and client use the same function so we use this for prints
 	if (IsUIVM(context, sqvm->sqvm))
@@ -476,8 +492,10 @@ int64_t __fastcall RegisterSquirrelFunctionHook(CSquirrelVM* sqvm, SQFuncRegistr
 	return g_pSquirrel<context>->RegisterSquirrelFunc(sqvm, funcReg, unknown);
 }
 
-template <ScriptContext context> bool (*__fastcall CallScriptInitCallback)(void* sqvm, const char* callback);
-template <ScriptContext context> bool __fastcall CallScriptInitCallbackHook(void* sqvm, const char* callback)
+template <ScriptContext context>
+bool (*__fastcall CallScriptInitCallback)(void* sqvm, const char* callback);
+template <ScriptContext context>
+bool __fastcall CallScriptInitCallbackHook(void* sqvm, const char* callback)
 {
 	ScriptContext realContext = context;
 	bool bShouldCallCustomCallbacks = true;
@@ -551,13 +569,15 @@ template <ScriptContext context> bool __fastcall CallScriptInitCallbackHook(void
 	return ret;
 }
 
-template <ScriptContext context> void ConCommand_script(const CCommand& args)
+template <ScriptContext context>
+void ConCommand_script(const CCommand& args)
 {
 	g_pSquirrel<context>->ExecuteCode(args.ArgS());
 }
 
 // literal class type that wraps a constant expression string
-template <size_t N> struct TemplateStringLiteral
+template <size_t N>
+struct TemplateStringLiteral
 {
 	constexpr TemplateStringLiteral(const char (&str)[N])
 	{
@@ -567,13 +587,15 @@ template <size_t N> struct TemplateStringLiteral
 	char value[N];
 };
 
-template <ScriptContext context, TemplateStringLiteral funcName> SQRESULT SQ_StubbedFunc(HSquirrelVM* sqvm)
+template <ScriptContext context, TemplateStringLiteral funcName>
+SQRESULT SQ_StubbedFunc(HSquirrelVM* sqvm)
 {
 	DevMsg(SQ_GetLogContextNative(context), "Blocking call to stubbed function %s in %s\n", funcName.value, GetContextName(context));
 	return SQRESULT_NULL;
 }
 
-template <ScriptContext context> void StubUnsafeSQFuncs()
+template <ScriptContext context>
+void StubUnsafeSQFuncs()
 {
 	if (!CommandLine()->CheckParm("-allowunsafesqfuncs"))
 	{
@@ -586,7 +608,8 @@ template <ScriptContext context> void StubUnsafeSQFuncs()
 	}
 }
 
-template <ScriptContext context> void SquirrelManager<context>::ProcessMessageBuffer()
+template <ScriptContext context>
+void SquirrelManager<context>::ProcessMessageBuffer()
 {
 	while (std::optional<SquirrelMessage> maybeMessage = messageBuffer->pop())
 	{
