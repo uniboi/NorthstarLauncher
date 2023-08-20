@@ -10,8 +10,7 @@
 #include <Psapi.h>
 
 // called from the ON_DLL_LOAD macros
-__dllLoadCallback::__dllLoadCallback(
-	eDllLoadCallbackSide side, const std::string dllName, DllLoadCallbackFuncType callback, std::string uniqueStr, std::string reliesOn)
+__dllLoadCallback::__dllLoadCallback(eDllLoadCallbackSide side, const std::string dllName, DllLoadCallbackFuncType callback, std::string uniqueStr, std::string reliesOn)
 {
 	// parse reliesOn array from string
 	std::vector<std::string> reliesOnArray;
@@ -75,8 +74,7 @@ void __fileAutohook::DispatchForModule(const char* pModuleName)
 	const int iModuleNameLen = strlen(pModuleName);
 
 	for (__autohook* hook : hooks)
-		if ((hook->iAddressResolutionMode == __autohook::OFFSET_STRING && !strncmp(pModuleName, hook->pAddrString, iModuleNameLen)) ||
-			(hook->iAddressResolutionMode == __autohook::PROCADDRESS && !strcmp(pModuleName, hook->pModuleName)))
+		if ((hook->iAddressResolutionMode == __autohook::OFFSET_STRING && !strncmp(pModuleName, hook->pAddrString, iModuleNameLen)) || (hook->iAddressResolutionMode == __autohook::PROCADDRESS && !strcmp(pModuleName, hook->pModuleName)))
 			hook->Dispatch();
 }
 
@@ -181,8 +179,7 @@ void AddDllLoadCallback(std::string dll, DllLoadCallbackFuncType callback, std::
 	callbackStruct.called = false;
 }
 
-void AddDllLoadCallbackForDedicatedServer(
-	std::string dll, DllLoadCallbackFuncType callback, std::string tag, std::vector<std::string> reliesOn)
+void AddDllLoadCallbackForDedicatedServer(std::string dll, DllLoadCallbackFuncType callback, std::string tag, std::vector<std::string> reliesOn)
 {
 	if (!IsDedicatedServer())
 		return;

@@ -84,8 +84,7 @@ void SaveFileManager::SaveFileAsync(fs::path file, std::string contents)
 				if (GetSizeOfFolderContentsMinusFile(dir, file.filename().string()) + contents.length() > MAX_FOLDER_SIZE)
 				{
 					// tbh, you're either trying to fill the hard drive or use so much data, you SHOULD be congratulated.
-					Error(
-						eLog::MODSYS, NO_ERROR, "Mod spamming save requests? Folder limit bypassed despite previous checks. Not saving.\n");
+					Error(eLog::MODSYS, NO_ERROR, "Mod spamming save requests? Folder limit bypassed despite previous checks. Not saving.\n");
 					mutex.get().unlock();
 					return;
 				}
@@ -202,8 +201,7 @@ bool ContainsInvalidChars(std::string str)
 {
 	// we don't allow null characters either, even if they're ASCII characters because idk if people can
 	// use it to circumvent the file extension suffix.
-	return std::any_of(str.begin(), str.end(), [](char c)
-					   { return c == '\0'; });
+	return std::any_of(str.begin(), str.end(), [](char c) { return c == '\0'; });
 }
 
 // Checks if the relative path (param) remains inside the mod directory (dir).
@@ -217,14 +215,12 @@ bool IsPathSafe(const std::string param, fs::path dir)
 
 		auto itr = std::search(normChild.begin(), normChild.end(), normRoot.begin(), normRoot.end());
 		// we return if the file is safe (inside the directory) and uses only ASCII chars in the path.
-		return itr == normChild.begin() && std::none_of(
-											   param.begin(),
-											   param.end(),
-											   [](char c)
-											   {
-												   unsigned char unsignedC = static_cast<unsigned char>(c);
-												   return unsignedC > 127 || unsignedC < 0;
-											   });
+		return itr == normChild.begin() && std::none_of(param.begin(), param.end(),
+														[](char c)
+														{
+															unsigned char unsignedC = static_cast<unsigned char>(c);
+															return unsignedC > 127 || unsignedC < 0;
+														});
 	}
 	catch (fs::filesystem_error err)
 	{
@@ -246,22 +242,17 @@ ADD_SQFUNC("void", NSSaveFile, "string file, string data", "", ScriptContext::SE
 	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				fileName,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
 	std::string content = g_pSquirrel<context>->getstring(sqvm, 2);
 	if (ContainsInvalidChars(content))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -271,13 +262,10 @@ ADD_SQFUNC("void", NSSaveFile, "string file, string data", "", ScriptContext::SE
 	// this ain't a cloud service.
 	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + content.length() > MAX_FOLDER_SIZE)
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
-				"or increase the maximum folder size using the -maxfoldersize launch parameter.",
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
+														   "or increase the maximum folder size using the -maxfoldersize launch parameter.",
+														   mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -300,14 +288,10 @@ ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext:
 	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				fileName,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -316,8 +300,7 @@ ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext:
 	std::string content = EncodeJSON<context>(sqvm);
 	if (ContainsInvalidChars(content))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -327,13 +310,10 @@ ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext:
 	// this ain't a cloud service.
 	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + content.length() > MAX_FOLDER_SIZE)
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
-				"or increase the maximum folder size using the -maxfoldersize launch parameter.",
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
+														   "or increase the maximum folder size using the -maxfoldersize launch parameter.",
+														   mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -356,14 +336,10 @@ ADD_SQFUNC("int", NS_InternalLoadFile, "string file", "", ScriptContext::SERVER 
 	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				fileName,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -381,14 +357,10 @@ ADD_SQFUNC("bool", NSDoesFileExist, "string file", "", ScriptContext::SERVER | S
 	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				fileName,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -405,14 +377,10 @@ ADD_SQFUNC("int", NSGetFileSize, "string file", "", ScriptContext::SERVER | Scri
 	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				fileName,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 	try
@@ -439,14 +407,10 @@ ADD_SQFUNC("void", NSDeleteFile, "string file", "", ScriptContext::SERVER | Scri
 	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				fileName,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -466,14 +430,10 @@ ADD_SQFUNC("array<string>", NS_InternalGetAllFiles, "string path", "", ScriptCon
 		path = dir / pathStr;
 	if (!IsPathSafe(pathStr, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				pathStr,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   pathStr, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 	try
@@ -504,14 +464,10 @@ ADD_SQFUNC("bool", NSIsFolder, "string path", "", ScriptContext::CLIENT | Script
 		path = dir / pathStr;
 	if (!IsPathSafe(pathStr, dir))
 	{
-		g_pSquirrel<context>->raiseerror(
-			sqvm,
-			fmt::format(
-				"File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-				"save folder.",
-				pathStr,
-				mod->Name)
-				.c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   pathStr, mod->Name)
+												   .c_str());
 		return SQRESULT_ERROR;
 	}
 	try

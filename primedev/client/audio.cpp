@@ -25,9 +25,8 @@ EventOverrideData::EventOverrideData()
 }
 
 // Empty stereo 48000 WAVE file
-unsigned char EMPTY_WAVE[45] = {0x52, 0x49, 0x46, 0x46, 0x25, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74,
-								0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x44, 0xAC, 0x00, 0x00, 0x88, 0x58,
-								0x01, 0x00, 0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x74, 0x00, 0x00, 0x00, 0x00};
+unsigned char EMPTY_WAVE[45] = {0x52, 0x49, 0x46, 0x46, 0x25, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02,
+								0x00, 0x44, 0xAC, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00, 0x02, 0x00, 0x10, 0x00, 0x64, 0x61, 0x74, 0x61, 0x74, 0x00, 0x00, 0x00, 0x00};
 
 EventOverrideData::EventOverrideData(const std::string& data, const fs::path& path)
 {
@@ -42,12 +41,10 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 
 	if (!FileExists(samplesFolder))
 	{
-		Error(
-			eLog::AUDIO,
-			NO_ERROR,
-			"Failed reading audio override file %s: samples folder doesn't exist; should be named the same as the definition file without "
-			"JSON extension.\n",
-			path.string().c_str());
+		Error(eLog::AUDIO, NO_ERROR,
+			  "Failed reading audio override file %s: samples folder doesn't exist; should be named the same as the definition file without "
+			  "JSON extension.\n",
+			  path.string().c_str());
 		return;
 	}
 
@@ -57,13 +54,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 	// fail if parse error
 	if (dataJson.HasParseError())
 	{
-		Error(
-			eLog::AUDIO,
-			NO_ERROR,
-			"Failed reading audio override file %s: encountered parse error \"%s\" at offset %i\n",
-			path.string().c_str(),
-			GetParseError_En(dataJson.GetParseError()),
-			dataJson.GetErrorOffset());
+		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: encountered parse error \"%s\" at offset %i\n", path.string().c_str(), GetParseError_En(dataJson.GetParseError()), dataJson.GetErrorOffset());
 		return;
 	}
 
@@ -77,11 +68,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 	// fail if no event ids given
 	if (!dataJson.HasMember("EventId"))
 	{
-		Error(
-			eLog::AUDIO,
-			NO_ERROR,
-			"Failed reading audio override file %s: JSON object does not have the EventId property\n",
-			path.string().c_str());
+		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: JSON object does not have the EventId property\n", path.string().c_str());
 		return;
 	}
 
@@ -92,11 +79,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		{
 			if (!eventId.IsString())
 			{
-				Error(
-					eLog::AUDIO,
-					NO_ERROR,
-					"Failed reading audio override file %s: EventId array has a value of invalid type, all must be strings\n",
-					path.string().c_str());
+				Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: EventId array has a value of invalid type, all must be strings\n", path.string().c_str());
 				return;
 			}
 
@@ -111,11 +94,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 	// incorrect type
 	else
 	{
-		Error(
-			eLog::AUDIO,
-			NO_ERROR,
-			"Failed reading audio override file %s: EventId property is of invalid type (must be a string or an array of strings)\n",
-			path.string().c_str());
+		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: EventId property is of invalid type (must be a string or an array of strings)\n", path.string().c_str());
 		return;
 	}
 
@@ -128,11 +107,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 			{
 				if (!eventId.IsString())
 				{
-					Error(
-						eLog::AUDIO,
-						NO_ERROR,
-						"Failed reading audio override file %s: EventIdRegex array has a value of invalid type, all must be strings\n",
-						path.string().c_str());
+					Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: EventIdRegex array has a value of invalid type, all must be strings\n", path.string().c_str());
 					return;
 				}
 
@@ -144,8 +119,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 				}
 				catch (...)
 				{
-					Error(
-						eLog::AUDIO, NO_ERROR, "Malformed regex \"%s\" in audio override file %s\n", regex.c_str(), path.string().c_str());
+					Error(eLog::AUDIO, NO_ERROR, "Malformed regex \"%s\" in audio override file %s\n", regex.c_str(), path.string().c_str());
 					return;
 				}
 			}
@@ -167,12 +141,10 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		// incorrect type
 		else
 		{
-			Error(
-				eLog::AUDIO,
-				NO_ERROR,
-				"Failed reading audio override file %s: EventIdRegex property is of invalid type (must be a string or an array of "
-				"strings)\n",
-				path.string().c_str());
+			Error(eLog::AUDIO, NO_ERROR,
+				  "Failed reading audio override file %s: EventIdRegex property is of invalid type (must be a string or an array of "
+				  "strings)\n",
+				  path.string().c_str());
 			return;
 		}
 	}
@@ -181,11 +153,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 	{
 		if (!dataJson["AudioSelectionStrategy"].IsString())
 		{
-			Error(
-				eLog::AUDIO,
-				NO_ERROR,
-				"Failed reading audio override file %s: AudioSelectionStrategy property must be a string\n",
-				path.string().c_str());
+			Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: AudioSelectionStrategy property must be a string\n", path.string().c_str());
 			return;
 		}
 
@@ -201,11 +169,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		}
 		else
 		{
-			Error(
-				eLog::AUDIO,
-				NO_ERROR,
-				"Failed reading audio override file %s: AudioSelectionStrategy string must be either \"sequential\" or \"random\"\n",
-				path.string().c_str());
+			Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: AudioSelectionStrategy string must be either \"sequential\" or \"random\"\n", path.string().c_str());
 			return;
 		}
 	}
@@ -391,8 +355,7 @@ bool ShouldPlayAudioEvent(const char* eventName, const std::shared_ptr<EventOver
 }
 
 // forward declare
-bool __declspec(noinline) __fastcall LoadSampleMetadata_Internal(
-	uintptr_t parentEvent, void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType);
+bool __declspec(noinline) __fastcall LoadSampleMetadata_Internal(uintptr_t parentEvent, void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType);
 
 // DO NOT TOUCH THIS FUNCTION
 // The actual logic of it in a separate function (forcefully not inlined) to preserve the r12 register, which holds the event pointer.
@@ -412,8 +375,7 @@ bool, __fastcall, (void* sample, void* audioBuffer, unsigned int audioBufferLeng
 
 // DO NOT INLINE THIS FUNCTION
 // See comment below.
-bool __declspec(noinline) __fastcall LoadSampleMetadata_Internal(
-	uintptr_t parentEvent, void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType)
+bool __declspec(noinline) __fastcall LoadSampleMetadata_Internal(uintptr_t parentEvent, void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType)
 {
 	char* eventName = (char*)parentEvent + 0x110;
 

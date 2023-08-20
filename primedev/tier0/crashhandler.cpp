@@ -20,8 +20,10 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionInfo)
 	g_pCrashHandler->SetExceptionInfos(pExceptionInfo);
 
 	// Check if we should handle this
-	// NOTE [Fifty]: This gets called before even a try{} catch() {} can handle an exception
-	//               we don't handle these unless "-crash_handle_all" is passed as a launch arg
+	// NOTE [Fifty]: This gets called before even a try{} catch() {} can handle
+	// an exception
+	//               we don't handle these unless "-crash_handle_all" is passed
+	//               as a launch arg
 	if (!g_pCrashHandler->IsExceptionFatal() && !g_pCrashHandler->GetAllFatal())
 	{
 		g_pCrashHandler->Unlock();
@@ -259,7 +261,8 @@ void CCrashHandler::ShowPopUpMessage()
 
 	if (true) // todo: isdedi
 	{
-		std::string svMessage = FormatA("Northstar has crashed! Crash info can be found at %s/logs!\n\n%s\n%s + %s",
+		std::string svMessage = FormatA("Northstar has crashed! Crash info can be found at "
+										"%s/logs!\n\n%s\n%s + %s",
 										"", // todo: profile
 										GetExceptionString(), m_svCrashedModule.c_str(), m_svCrashedOffset.c_str());
 
@@ -311,8 +314,8 @@ void CCrashHandler::FormatCallstack()
 
 	int iFrames = RtlCaptureStackBackTrace(0, CRASHHANDLER_MAX_FRAMES, pFrames, NULL);
 
-	// Above call gives us frames after the crash occured, we only want to print the ones starting from where
-	// the exception was called
+	// Above call gives us frames after the crash occured, we only want to print
+	// the ones starting from where the exception was called
 	bool bSkipExceptionHandlingFrames = true;
 
 	// We ran into an error when getting the offset, just print all frames
@@ -504,10 +507,12 @@ void CCrashHandler::WriteMinidump()
 	time_t time = std::time(nullptr);
 	tm currentTime = *std::localtime(&time);
 	std::stringstream stream;
-	stream << std::put_time(&currentTime, (g_svProfileDir + "/logs/nsdump%Y-%m-%d %H-%M-%S.dmp").c_str());
+	stream << std::put_time(&currentTime, (g_svProfileDir +
+	"/logs/nsdump%Y-%m-%d %H-%M-%S.dmp").c_str());
 
-	HANDLE hMinidumpFile = CreateFileA(stream.str().c_str(), GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-	if (hMinidumpFile)
+	HANDLE hMinidumpFile = CreateFileA(stream.str().c_str(), GENERIC_WRITE,
+	FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0); if
+	(hMinidumpFile)
 	{
 		MINIDUMP_EXCEPTION_INFORMATION dumpExceptionInfo;
 		dumpExceptionInfo.ThreadId = GetCurrentThreadId();
@@ -518,10 +523,8 @@ void CCrashHandler::WriteMinidump()
 			GetCurrentProcess(),
 			GetCurrentProcessId(),
 			hMinidumpFile,
-			MINIDUMP_TYPE(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory),
-			&dumpExceptionInfo,
-			nullptr,
-			nullptr);
+			MINIDUMP_TYPE(MiniDumpWithIndirectlyReferencedMemory |
+	MiniDumpScanMemory), &dumpExceptionInfo, nullptr, nullptr);
 		CloseHandle(hMinidumpFile);
 	}
 	else

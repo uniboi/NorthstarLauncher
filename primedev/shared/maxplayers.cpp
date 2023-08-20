@@ -179,10 +179,7 @@ void,, (bool a1, float a2))
 	auto sub_1805A6C20 = (void(__fastcall*)(__int64))(base + 0x5A6C20);
 
 	v3 = *(unsigned char*)(g_pGlobals + 73);
-	if (*(DWORD*)(qword_1814D9648 + 92) &&
-		((*(unsigned __int8(__fastcall**)(__int64))(*(__int64*)g_pEngineServer + 32))(g_pEngineServer) ||
-		 !*(DWORD*)(qword_1814DA408 + 92)) &&
-		v3)
+	if (*(DWORD*)(qword_1814D9648 + 92) && ((*(unsigned __int8(__fastcall**)(__int64))(*(__int64*)g_pEngineServer + 32))(g_pEngineServer) || !*(DWORD*)(qword_1814DA408 + 92)) && v3)
 	{
 		globals = g_pGlobals;
 		v5 = 1;
@@ -477,12 +474,10 @@ ON_DLL_LOAD("client.dll", MaxPlayersOverride_Client, (CModule module))
 	ChangeOffset<unsigned char>(module.Offset(0x1640C4 + 2), NEW_MAX_PLAYERS - 32);
 
 	// C_PlayerResource::C_PlayerResource - change m_szName address
-	ChangeOffset<unsigned int>(
-		module.Offset(0x1640D0 + 3), C_PlayerResource_OriginalSize + PlayerResource_Name_Start); // appended to the end of the class
+	ChangeOffset<unsigned int>(module.Offset(0x1640D0 + 3), C_PlayerResource_OriginalSize + PlayerResource_Name_Start); // appended to the end of the class
 
 	// C_PlayerResource::C_PlayerResource - change m_szName address
-	ChangeOffset<unsigned int>(
-		module.Offset(0x1640D0 + 3), C_PlayerResource_OriginalSize + PlayerResource_Name_Start); // appended to the end of the class
+	ChangeOffset<unsigned int>(module.Offset(0x1640D0 + 3), C_PlayerResource_OriginalSize + PlayerResource_Name_Start); // appended to the end of the class
 
 	// C_PlayerResource::C_PlayerResource - increase memset length to clean newly allocated data
 	ChangeOffset<unsigned int>(module.Offset(0x1640D0 + 3), 2244 + C_PlayerResource_AddedSize);

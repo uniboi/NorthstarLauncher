@@ -19,7 +19,7 @@ class SourceAllocator
 {
   public:
 	static const bool kNeedFree = true;
-	void* Malloc(size_t size)
+	void* Malloc(size_t size))
 	{
 		if (size) // behavior of malloc(0) is implementation defined.
 			return _malloc_base(size);

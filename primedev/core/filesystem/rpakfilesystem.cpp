@@ -164,8 +164,7 @@ void LoadCustomMapPaks(char** pakName, bool* bNeedToFreePakName)
 					(*pakName)[path.size()] = '\0';
 
 					bHasOriginalPak = true;
-					*bNeedToFreePakName =
-						true; // we can't free this memory until we're done with the pak, so let whatever's calling this deal with it
+					*bNeedToFreePakName = true; // we can't free this memory until we're done with the pak, so let whatever's calling this deal with it
 				}
 				else
 					g_pPakLoadManager->LoadPakAsync((modPakPath / pak.m_sPakName).string().c_str(), ePakLoadSource::MAP);
@@ -209,8 +208,7 @@ int, __fastcall, (char* pPath, void* unknownSingleton, int flags, void* pCallbac
 		// dedicated only needs common, common_mp, common_sp, and sp_<map> rpaks
 		// sp_<map> rpaks contain tutorial ghost data
 		// sucks to have to load the entire rpak for that but sp was never meant to be done on dedi
-		if (IsDedicatedServer() && (CommandLine()->CheckParm("-nopakdedi") ||
-									strncmp(&originalPath[0], "common", 6) && strncmp(&originalPath[0], "sp_", 3)))
+		if (IsDedicatedServer() && (CommandLine()->CheckParm("-nopakdedi") || strncmp(&originalPath[0], "common", 6) && strncmp(&originalPath[0], "sp_", 3)))
 		{
 			if (bNeedToFreePakName)
 				delete[] pPath;

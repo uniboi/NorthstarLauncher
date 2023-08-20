@@ -55,8 +55,7 @@
 #define FCVAR_SERVER_CAN_EXECUTE \
 	(1 << 28) // the server is allowed to execute this command on clients via
 			  // ClientCommand/NET_StringCmd/CBaseClientState::ProcessStringCmd.
-#define FCVAR_SERVER_CANNOT_QUERY \
-	(1 << 29) // If this is set, then the server is not allowed to query this cvar's value (via IServerPluginHelpers::StartQueryCvarValue).
+#define FCVAR_SERVER_CANNOT_QUERY (1 << 29) // If this is set, then the server is not allowed to query this cvar's value (via IServerPluginHelpers::StartQueryCvarValue).
 
 // !!!NOTE!!! : this is likely incorrect, there are multiple concommands that the vanilla game registers with this flag that 100% should not
 // be remotely executable i.e. multiple commands that only exist on client (screenshot, joystick_initialize) we now use
@@ -73,41 +72,40 @@
 // #define FCVAR_AVAILABLE			(1<<31)
 
 // flag => string stuff
-const std::multimap<int, const char*> g_PrintCommandFlags = {
-	{FCVAR_UNREGISTERED, "UNREGISTERED"},
-	{FCVAR_DEVELOPMENTONLY, "DEVELOPMENTONLY"},
-	{FCVAR_GAMEDLL, "GAMEDLL"},
-	{FCVAR_CLIENTDLL, "CLIENTDLL"},
-	{FCVAR_HIDDEN, "HIDDEN"},
-	{FCVAR_PROTECTED, "PROTECTED"},
-	{FCVAR_SPONLY, "SPONLY"},
-	{FCVAR_ARCHIVE, "ARCHIVE"},
-	{FCVAR_NOTIFY, "NOTIFY"},
-	{FCVAR_USERINFO, "USERINFO"},
+const std::multimap<int, const char*> g_PrintCommandFlags = {{FCVAR_UNREGISTERED, "UNREGISTERED"},
+															 {FCVAR_DEVELOPMENTONLY, "DEVELOPMENTONLY"},
+															 {FCVAR_GAMEDLL, "GAMEDLL"},
+															 {FCVAR_CLIENTDLL, "CLIENTDLL"},
+															 {FCVAR_HIDDEN, "HIDDEN"},
+															 {FCVAR_PROTECTED, "PROTECTED"},
+															 {FCVAR_SPONLY, "SPONLY"},
+															 {FCVAR_ARCHIVE, "ARCHIVE"},
+															 {FCVAR_NOTIFY, "NOTIFY"},
+															 {FCVAR_USERINFO, "USERINFO"},
 
-	// TODO: PRINTABLEONLY and GAMEDLL_FOR_REMOTE_CLIENTS are both 1<<10, one is for vars and one is for commands
-	// this fucking sucks i think
-	{FCVAR_PRINTABLEONLY, "PRINTABLEONLY"},
-	{FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS, "GAMEDLL_FOR_REMOTE_CLIENTS"},
+															 // TODO: PRINTABLEONLY and GAMEDLL_FOR_REMOTE_CLIENTS are both 1<<10, one is for vars and one is for commands
+															 // this fucking sucks i think
+															 {FCVAR_PRINTABLEONLY, "PRINTABLEONLY"},
+															 {FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS, "GAMEDLL_FOR_REMOTE_CLIENTS"},
 
-	{FCVAR_UNLOGGED, "UNLOGGED"},
-	{FCVAR_NEVER_AS_STRING, "NEVER_AS_STRING"},
-	{FCVAR_REPLICATED, "REPLICATED"},
-	{FCVAR_CHEAT, "CHEAT"},
-	{FCVAR_SS, "SS"},
-	{FCVAR_DEMO, "DEMO"},
-	{FCVAR_DONTRECORD, "DONTRECORD"},
-	{FCVAR_SS_ADDED, "SS_ADDED"},
-	{FCVAR_RELEASE, "RELEASE"},
-	{FCVAR_RELOAD_MATERIALS, "RELOAD_MATERIALS"},
-	{FCVAR_RELOAD_TEXTURES, "RELOAD_TEXTURES"},
-	{FCVAR_NOT_CONNECTED, "NOT_CONNECTED"},
-	{FCVAR_MATERIAL_SYSTEM_THREAD, "MATERIAL_SYSTEM_THREAD"},
-	{FCVAR_ARCHIVE_PLAYERPROFILE, "ARCHIVE_PLAYERPROFILE"},
-	{FCVAR_SERVER_CAN_EXECUTE, "SERVER_CAN_EXECUTE"},
-	{FCVAR_SERVER_CANNOT_QUERY, "SERVER_CANNOT_QUERY"},
-	{FCVAR_CLIENTCMD_CAN_EXECUTE, "UNKNOWN"},
-	{FCVAR_ACCESSIBLE_FROM_THREADS, "ACCESSIBLE_FROM_THREADS"}};
+															 {FCVAR_UNLOGGED, "UNLOGGED"},
+															 {FCVAR_NEVER_AS_STRING, "NEVER_AS_STRING"},
+															 {FCVAR_REPLICATED, "REPLICATED"},
+															 {FCVAR_CHEAT, "CHEAT"},
+															 {FCVAR_SS, "SS"},
+															 {FCVAR_DEMO, "DEMO"},
+															 {FCVAR_DONTRECORD, "DONTRECORD"},
+															 {FCVAR_SS_ADDED, "SS_ADDED"},
+															 {FCVAR_RELEASE, "RELEASE"},
+															 {FCVAR_RELOAD_MATERIALS, "RELOAD_MATERIALS"},
+															 {FCVAR_RELOAD_TEXTURES, "RELOAD_TEXTURES"},
+															 {FCVAR_NOT_CONNECTED, "NOT_CONNECTED"},
+															 {FCVAR_MATERIAL_SYSTEM_THREAD, "MATERIAL_SYSTEM_THREAD"},
+															 {FCVAR_ARCHIVE_PLAYERPROFILE, "ARCHIVE_PLAYERPROFILE"},
+															 {FCVAR_SERVER_CAN_EXECUTE, "SERVER_CAN_EXECUTE"},
+															 {FCVAR_SERVER_CANNOT_QUERY, "SERVER_CANNOT_QUERY"},
+															 {FCVAR_CLIENTCMD_CAN_EXECUTE, "UNKNOWN"},
+															 {FCVAR_ACCESSIBLE_FROM_THREADS, "ACCESSIBLE_FROM_THREADS"}};
 
 //-----------------------------------------------------------------------------
 // Forward declarations
@@ -124,15 +122,7 @@ typedef void (*FnChangeCallback_t)(ConVar* var, const char* pOldValue, float flO
 class ConVar
 {
   public:
-	static ConVar* StaticCreate(const char* pszName,
-								const char* pszDefaultValue,
-								int nFlags,
-								const char* pszHelpString,
-								bool bMin = false,
-								float fMin = 0.0,
-								bool bMax = false,
-								float fMax = 0.0,
-								FnChangeCallback_t pCallback = nullptr);
+	static ConVar* StaticCreate(const char* pszName, const char* pszDefaultValue, int nFlags, const char* pszHelpString, bool bMin = false, float fMin = 0.0, bool bMax = false, float fMax = 0.0, FnChangeCallback_t pCallback = nullptr);
 
 	~ConVar(void);
 

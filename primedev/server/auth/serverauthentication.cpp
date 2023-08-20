@@ -187,8 +187,7 @@ void ServerAuthenticationManager::WritePersistentData(CBaseClient* pPlayer)
 {
 	if (pPlayer->m_iPersistenceReady == ePersistenceReady::READY_REMOTE)
 	{
-		g_pMasterServerManager->WritePlayerPersistentData(
-			pPlayer->m_UID, (const char*)pPlayer->m_PersistenceBuffer, m_PlayerAuthenticationData[pPlayer].pdataSize);
+		g_pMasterServerManager->WritePlayerPersistentData(pPlayer->m_UID, (const char*)pPlayer->m_PersistenceBuffer, m_PlayerAuthenticationData[pPlayer].pdataSize);
 	}
 	else if (Cvar_ns_auth_allow_insecure_write->GetBool())
 	{
@@ -343,8 +342,7 @@ ON_DLL_LOAD_RELIESON("engine.dll", ServerAuthentication, (ConCommand, ConVar), (
 
 	g_pServerAuthentication = new ServerAuthenticationManager;
 
-	RegisterConCommand(
-		"ns_resetpersistence", ConCommand_ns_resetpersistence, "resets your pdata when you next enter the lobby", FCVAR_NONE);
+	RegisterConCommand("ns_resetpersistence", ConCommand_ns_resetpersistence, "resets your pdata when you next enter the lobby", FCVAR_NONE);
 
 	// patch to disable kicking based on incorrect serverfilter in connectclient, since we repurpose it for use as an auth token
 	module.Offset(0x114655).Patch("EB");

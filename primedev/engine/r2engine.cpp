@@ -13,8 +13,7 @@ CBaseClient* g_pClientArray;
 
 server_state_t* g_pServerState;
 
-char* g_pModName =
-	nullptr; // we cant set this up here atm since we dont have an offset to it in engine, instead we store it in IsRespawnMod
+char* g_pModName = nullptr; // we cant set this up here atm since we dont have an offset to it in engine, instead we store it in IsRespawnMod
 
 CGlobalVars* g_pServerGlobalVariables;
 CGlobalVarsBase* g_pClientGlobalVariables;

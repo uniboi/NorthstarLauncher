@@ -120,8 +120,7 @@ char* ConCommandBase::CopyString(const char* szFrom) const
 	return szTo;
 }
 
-typedef void (*ConCommandConstructorType)(
-	ConCommand* newCommand, const char* name, FnCommandCallback_t callback, const char* helpString, int flags, void* parent);
+typedef void (*ConCommandConstructorType)(ConCommand* newCommand, const char* name, FnCommandCallback_t callback, const char* helpString, int flags, void* parent);
 ConCommandConstructorType ConCommandConstructor;
 
 void RegisterConCommand(const char* name, FnCommandCallback_t callback, const char* helpString, int flags)
@@ -133,8 +132,7 @@ void RegisterConCommand(const char* name, FnCommandCallback_t callback, const ch
 	ConCommandConstructor(newCommand, name, callback, helpString, flags, nullptr);
 }
 
-void RegisterConCommand(
-	const char* name, FnCommandCallback_t callback, const char* helpString, int flags, FnCommandCompletionCallback completionCallback)
+void RegisterConCommand(const char* name, FnCommandCallback_t callback, const char* helpString, int flags, FnCommandCompletionCallback completionCallback)
 {
 	DevMsg(eLog::ENGINE, "Registering ConCommand %s\n", name);
 

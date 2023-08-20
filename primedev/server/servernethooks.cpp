@@ -15,11 +15,7 @@ static void ProcessAtlasConnectionlessPacketSigreq1(netpacket_t* packet, bool db
 	if (pData.length() < HMACSHA256_LEN)
 	{
 		if (dbg)
-			Warning(
-				eLog::MS,
-				"ignoring Atlas connectionless packet (size=%i type=%s): invalid: too short for signature\n",
-				packet->size,
-				pType.c_str());
+			Warning(eLog::MS, "ignoring Atlas connectionless packet (size=%i type=%s): invalid: too short for signature\n", packet->size, pType.c_str());
 		return;
 	}
 
@@ -30,12 +26,7 @@ static void ProcessAtlasConnectionlessPacketSigreq1(netpacket_t* packet, bool db
 	if (!g_pMasterServerManager || !g_pMasterServerManager->m_sOwnServerAuthToken[0])
 	{
 		if (dbg)
-			Warning(
-				eLog::MS,
-				"ignoring Atlas connectionless packet (size=%i type=%s): invalid (data=%s): no masterserver token yet\n",
-				packet->size,
-				pType.c_str(),
-				pData.c_str());
+			Warning(eLog::MS, "ignoring Atlas connectionless packet (size=%i type=%s): invalid (data=%s): no masterserver token yet\n", packet->size, pType.c_str(), pData.c_str());
 		return;
 	}
 
@@ -44,19 +35,10 @@ static void ProcessAtlasConnectionlessPacketSigreq1(netpacket_t* packet, bool db
 		if (!Cvar_net_debug_atlas_packet_insecure->GetBool())
 		{
 			if (dbg)
-				Warning(
-					eLog::MS,
-					"ignoring Atlas connectionless packet (size=%i type=%s): invalid: invalid signature (key=%s)\n",
-					packet->size,
-					pType.c_str(),
-					g_pMasterServerManager->m_sOwnServerAuthToken);
+				Warning(eLog::MS, "ignoring Atlas connectionless packet (size=%i type=%s): invalid: invalid signature (key=%s)\n", packet->size, pType.c_str(), g_pMasterServerManager->m_sOwnServerAuthToken);
 			return;
 		}
-		Warning(
-			eLog::MS,
-			"processing Atlas connectionless packet (size=%i type=%s) with invalid signature due to net_debug_atlas_packet_insecure\n",
-			packet->size,
-			pType.c_str());
+		Warning(eLog::MS, "processing Atlas connectionless packet (size=%i type=%s) with invalid signature due to net_debug_atlas_packet_insecure\n", packet->size, pType.c_str());
 	}
 
 	if (dbg)

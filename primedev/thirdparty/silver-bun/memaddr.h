@@ -15,7 +15,7 @@
 
 class CMemory
 {
-public:
+  public:
 	enum class Direction : int
 	{
 		DOWN = 0,
@@ -41,17 +41,17 @@ public:
 		return ptr != NULL;
 	}
 
-	inline bool operator!= (const CMemory& addr) const
+	inline bool operator!=(const CMemory& addr) const
 	{
 		return ptr != addr.ptr;
 	}
 
-	inline bool operator== (const CMemory& addr) const
+	inline bool operator==(const CMemory& addr) const
 	{
 		return ptr == addr.ptr;
 	}
 
-	inline bool operator== (const uintptr_t& addr) const
+	inline bool operator==(const uintptr_t& addr) const
 	{
 		return ptr == addr;
 	}
@@ -61,22 +61,26 @@ public:
 		return ptr;
 	}
 
-	template<class T> inline T GetValue(void) const
+	template <class T>
+	inline T GetValue(void) const
 	{
 		return *reinterpret_cast<T*>(ptr);
 	}
 
-	template<class T> inline T GetVirtualFunctionIndex(void) const
+	template <class T>
+	inline T GetVirtualFunctionIndex(void) const
 	{
 		return *reinterpret_cast<T*>(ptr) / 8;
 	}
 
-	template<typename T> inline T CCast(void) const
+	template <typename T>
+	inline T CCast(void) const
 	{
 		return (T)ptr;
 	}
 
-	template<typename T> inline T RCast(void) const
+	template <typename T>
+	inline T RCast(void) const
 	{
 		return reinterpret_cast<T>(ptr);
 	}
@@ -149,6 +153,6 @@ public:
 	static void HookVirtualMethod(const uintptr_t virtualTable, const void* pHookMethod, const ptrdiff_t methodIndex, void** ppOriginalMethod);
 	static void HookImportedFunction(const uintptr_t pImportedMethod, const void* pHookMethod, void** ppOriginalMethod);
 
-private:
+  private:
 	uintptr_t ptr = 0;
 };

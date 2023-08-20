@@ -4,17 +4,7 @@
 
 #include <float.h>
 
-typedef void (*ConVarRegisterType)(
-	ConVar* pConVar,
-	const char* pszName,
-	const char* pszDefaultValue,
-	int nFlags,
-	const char* pszHelpString,
-	bool bMin,
-	float fMin,
-	bool bMax,
-	float fMax,
-	void* pCallback);
+typedef void (*ConVarRegisterType)(ConVar* pConVar, const char* pszName, const char* pszDefaultValue, int nFlags, const char* pszHelpString, bool bMin, float fMin, bool bMax, float fMax, void* pCallback);
 ConVarRegisterType conVarRegister;
 
 typedef void (*ConVarMallocType)(void* pConVarMaloc, int a2, int a3);
@@ -26,15 +16,7 @@ void* g_pIConVar_Vtable = nullptr;
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-ConVar* ConVar::StaticCreate(const char* pszName,
-							 const char* pszDefaultValue,
-							 int nFlags,
-							 const char* pszHelpString,
-							 bool bMin,
-							 float fMin,
-							 bool bMax,
-							 float fMax,
-							 FnChangeCallback_t pCallback)
+ConVar* ConVar::StaticCreate(const char* pszName, const char* pszDefaultValue, int nFlags, const char* pszHelpString, bool bMin, float fMin, bool bMax, float fMax, FnChangeCallback_t pCallback)
 {
 	DevMsg(eLog::ENGINE, "Registering Convar %s\n", pszName);
 
@@ -388,8 +370,7 @@ bool ConVar::SetColorFromString(const char* pszValue)
 			nRGBA[3] = 255;
 		}
 
-		if (nRGBA[0] >= 0 && nRGBA[0] <= 255 && nRGBA[1] >= 0 && nRGBA[1] <= 255 && nRGBA[2] >= 0 && nRGBA[2] <= 255 && nRGBA[3] >= 0 &&
-			nRGBA[3] <= 255)
+		if (nRGBA[0] >= 0 && nRGBA[0] <= 255 && nRGBA[1] >= 0 && nRGBA[1] <= 255 && nRGBA[2] >= 0 && nRGBA[2] <= 255 && nRGBA[3] >= 0 && nRGBA[3] <= 255)
 		{
 			// printf("*** WOW! Found a color!! ***\n");
 
@@ -519,8 +500,7 @@ AUTOHOOK(ConVar_Register_Client, client.dll + 0x738330, void, __fastcall, (int n
 	CVar_InitShipped("client.dll");
 }
 
-ON_DLL_LOAD("client.dll", ConVar_Client, (CModule module)) {
-	AUTOHOOK_DISPATCH_MODULE(client.dll)}
+ON_DLL_LOAD("client.dll", ConVar_Client, (CModule module)) {AUTOHOOK_DISPATCH_MODULE(client.dll)}
 
 AUTOHOOK(ConVar_Register_Server, server.dll + 0x724F60, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
 {
@@ -528,8 +508,7 @@ AUTOHOOK(ConVar_Register_Server, server.dll + 0x724F60, void, __fastcall, (int n
 	CVar_InitShipped("server.dll");
 }
 
-ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module)) {
-	AUTOHOOK_DISPATCH_MODULE(server.dll)}
+ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module)) {AUTOHOOK_DISPATCH_MODULE(server.dll)}
 
 AUTOHOOK(ConVar_Register_Engine, engine.dll + 0x417090, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
 {

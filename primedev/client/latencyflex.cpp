@@ -23,11 +23,9 @@ ON_DLL_LOAD_CLIENT_RELIESON("client.dll", LatencyFlex, ConVar, (CModule module))
 	HMODULE pLfxModule;
 
 	if (pLfxModule = LoadLibraryA("latencyflex_layer.dll"))
-		m_winelfx_WaitAndBeginFrame =
-			reinterpret_cast<void (*)()>(reinterpret_cast<void*>(GetProcAddress(pLfxModule, "lfx_WaitAndBeginFrame")));
+		m_winelfx_WaitAndBeginFrame = reinterpret_cast<void (*)()>(reinterpret_cast<void*>(GetProcAddress(pLfxModule, "lfx_WaitAndBeginFrame")));
 	else if (pLfxModule = LoadLibraryA("latencyflex_wine.dll"))
-		m_winelfx_WaitAndBeginFrame =
-			reinterpret_cast<void (*)()>(reinterpret_cast<void*>(GetProcAddress(pLfxModule, "winelfx_WaitAndBeginFrame")));
+		m_winelfx_WaitAndBeginFrame = reinterpret_cast<void (*)()>(reinterpret_cast<void*>(GetProcAddress(pLfxModule, "winelfx_WaitAndBeginFrame")));
 	else
 	{
 		Warning(eLog::NS, "Unable to load LatencyFleX library, LatencyFleX disabled.\n");

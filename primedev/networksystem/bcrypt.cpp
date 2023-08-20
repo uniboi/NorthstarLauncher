@@ -27,11 +27,7 @@ bool InitHMACSHA256()
 
 	if (hashLength != HMACSHA256_LEN)
 	{
-		Error(
-			eLog::NS,
-			NO_ERROR,
-			"failed to initialize HMAC-SHA256: BCryptGetProperty(BCRYPT_HASH_LENGTH): unexpected value %i\n",
-			hashLength);
+		Error(eLog::NS, NO_ERROR, "failed to initialize HMAC-SHA256: BCryptGetProperty(BCRYPT_HASH_LENGTH): unexpected value %i\n", hashLength);
 		return false;
 	}
 

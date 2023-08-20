@@ -134,8 +134,7 @@ ADD_SQFUNC("bool", NSIsModRequiredOnClient, "string modName", "", ScriptContext:
 	return SQRESULT_NULL;
 }
 
-ADD_SQFUNC(
-	"array<string>", NSGetModConvarsByModName, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+ADD_SQFUNC("array<string>", NSGetModConvarsByModName, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
 {
 	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
 	g_pSquirrel<context>->newarray(sqvm, 0);

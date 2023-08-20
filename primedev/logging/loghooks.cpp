@@ -42,18 +42,9 @@ enum class SpewType_t
 };
 
 const std::unordered_map<SpewType_t, const char*> PrintSpewTypes = {
-	{SpewType_t::SPEW_MESSAGE, "SPEW_MESSAGE"},
-	{SpewType_t::SPEW_WARNING, "SPEW_WARNING"},
-	{SpewType_t::SPEW_ASSERT, "SPEW_ASSERT"},
-	{SpewType_t::SPEW_ERROR, "SPEW_ERROR"},
-	{SpewType_t::SPEW_LOG, "SPEW_LOG"}};
+	{SpewType_t::SPEW_MESSAGE, "SPEW_MESSAGE"}, {SpewType_t::SPEW_WARNING, "SPEW_WARNING"}, {SpewType_t::SPEW_ASSERT, "SPEW_ASSERT"}, {SpewType_t::SPEW_ERROR, "SPEW_ERROR"}, {SpewType_t::SPEW_LOG, "SPEW_LOG"}};
 
-const std::unordered_map<SpewType_t, const char> PrintSpewTypes_Short = {
-	{SpewType_t::SPEW_MESSAGE, 'M'},
-	{SpewType_t::SPEW_WARNING, 'W'},
-	{SpewType_t::SPEW_ASSERT, 'A'},
-	{SpewType_t::SPEW_ERROR, 'E'},
-	{SpewType_t::SPEW_LOG, 'L'}};
+const std::unordered_map<SpewType_t, const char> PrintSpewTypes_Short = {{SpewType_t::SPEW_MESSAGE, 'M'}, {SpewType_t::SPEW_WARNING, 'W'}, {SpewType_t::SPEW_ASSERT, 'A'}, {SpewType_t::SPEW_ERROR, 'E'}, {SpewType_t::SPEW_LOG, 'L'}};
 
 ICenterPrint* pInternalCenterPrint = NULL;
 
@@ -245,8 +236,7 @@ bool,, (void* thisptr, uintptr_t msg))
 	return true;
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", EngineSpewFuncHooks, ConVar, (CModule module)) {
-	AUTOHOOK_DISPATCH_MODULE(engine.dll)}
+ON_DLL_LOAD_RELIESON("engine.dll", EngineSpewFuncHooks, ConVar, (CModule module)) {AUTOHOOK_DISPATCH_MODULE(engine.dll)}
 
 ON_DLL_LOAD_CLIENT_RELIESON("client.dll", ClientPrintHooks, ConVar, (CModule module))
 {

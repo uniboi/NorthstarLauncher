@@ -111,31 +111,15 @@ void ConCommand_cvar_reset(const CCommand& arg)
 
 void AddMiscConCommands()
 {
-	RegisterConCommand(
-		"force_newgame",
-		ConCommand_force_newgame,
-		"forces a map load through directly setting g_pHostState->m_iNextState to HS_NEW_GAME",
-		FCVAR_NONE);
+	RegisterConCommand("force_newgame", ConCommand_force_newgame, "forces a map load through directly setting g_pHostState->m_iNextState to HS_NEW_GAME", FCVAR_NONE);
 
-	RegisterConCommand(
-		"ns_start_reauth_and_leave_to_lobby",
-		ConCommand_ns_start_reauth_and_leave_to_lobby,
-		"called by the server, used to reauth and return the player to lobby when leaving a game",
-		FCVAR_SERVER_CAN_EXECUTE);
+	RegisterConCommand("ns_start_reauth_and_leave_to_lobby", ConCommand_ns_start_reauth_and_leave_to_lobby, "called by the server, used to reauth and return the player to lobby when leaving a game", FCVAR_SERVER_CAN_EXECUTE);
 
 	// this is a concommand because we make a deferred call to it from another thread
 	RegisterConCommand("ns_end_reauth_and_leave_to_lobby", ConCommand_ns_end_reauth_and_leave_to_lobby, "", FCVAR_NONE);
 
-	RegisterConCommand(
-		"cvar_setdefaultvalue",
-		ConCommand_cvar_setdefaultvalue,
-		"overwrites the default value of a cvar, for use with script and cvar_reset",
-		FCVAR_NONE);
-	RegisterConCommand(
-		"cvar_setvalueanddefaultvalue",
-		ConCommand_cvar_setvalueanddefaultvalue,
-		"overwrites the current value and default value of a cvar, for use with script and cvar_reset",
-		FCVAR_NONE);
+	RegisterConCommand("cvar_setdefaultvalue", ConCommand_cvar_setdefaultvalue, "overwrites the default value of a cvar, for use with script and cvar_reset", FCVAR_NONE);
+	RegisterConCommand("cvar_setvalueanddefaultvalue", ConCommand_cvar_setvalueanddefaultvalue, "overwrites the current value and default value of a cvar, for use with script and cvar_reset", FCVAR_NONE);
 	RegisterConCommand("cvar_reset", ConCommand_cvar_reset, "resets a cvar's value to its default value", FCVAR_NONE);
 }
 

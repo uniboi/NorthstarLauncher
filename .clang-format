@@ -27,3 +27,4 @@ PointerAlignment: Left
 SortIncludes: false
 NamespaceIndentation: All
 AllowShortFunctionsOnASingleLine: Empty
+AlignEscapedNewlines: Left

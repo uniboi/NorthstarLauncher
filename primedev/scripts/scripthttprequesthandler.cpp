@@ -134,10 +134,7 @@ bool IsHttpDestinationHostAllowed(const std::string& host, std::string& outHostn
 	{
 		if (bFoundIPv6)
 		{
-			Error(
-				eLog::NS,
-				NO_ERROR,
-				"Only IPv4 destinations are supported for HTTP requests. To allow IPv6, launch the game using -allowlocalhttp.\n");
+			Error(eLog::NS, NO_ERROR, "Only IPv4 destinations are supported for HTTP requests. To allow IPv6, launch the game using -allowlocalhttp.\n");
 		}
 		else
 		{
@@ -221,10 +218,8 @@ int HttpRequestHandler::MakeHttpRequest(const HttpRequest& requestParameters)
 
 	if (IsHttpDisabled())
 	{
-		Warning(
-			eLog::NS,
-			"NS_InternalMakeHttpRequest called while the game is running with -disablehttprequests."
-			" Please check if requests are allowed using NSIsHttpEnabled() first.\n");
+		Warning(eLog::NS, "NS_InternalMakeHttpRequest called while the game is running with -disablehttprequests."
+						  " Please check if requests are allowed using NSIsHttpEnabled() first.\n");
 		return -1;
 	}
 
@@ -242,16 +237,11 @@ int HttpRequestHandler::MakeHttpRequest(const HttpRequest& requestParameters)
 			{
 				if (!IsHttpDestinationHostAllowed(requestParameters.baseUrl, hostname, resolvedAddress, resolvedPort))
 				{
-					Warning(
-						eLog::NS,
-						"HttpRequestHandler::MakeHttpRequest attempted to make a request to a private network. This is only allowed when "
-						"running the game with -allowlocalhttp.\n");
-					g_pSquirrel<context>->AsyncCall(
-						"NSHandleFailedHttpRequest",
-						handle,
-						(int)0,
-						"Cannot make HTTP requests to private network hosts without -allowlocalhttp. Check your console for more "
-						"information.");
+					Warning(eLog::NS, "HttpRequestHandler::MakeHttpRequest attempted to make a request to a private network. This is only allowed when "
+									  "running the game with -allowlocalhttp.\n");
+					g_pSquirrel<context>->AsyncCall("NSHandleFailedHttpRequest", handle, (int)0,
+													"Cannot make HTTP requests to private network hosts without -allowlocalhttp. Check your console for more "
+													"information.");
 					return;
 				}
 			}
@@ -260,8 +250,7 @@ int HttpRequestHandler::MakeHttpRequest(const HttpRequest& requestParameters)
 			if (!curl)
 			{
 				Error(eLog::NS, NO_ERROR, "HttpRequestHandler::MakeHttpRequest failed to init libcurl for request.\n");
-				g_pSquirrel<context>->AsyncCall(
-					"NSHandleFailedHttpRequest", handle, static_cast<int>(CURLE_FAILED_INIT), curl_easy_strerror(CURLE_FAILED_INIT));
+				g_pSquirrel<context>->AsyncCall("NSHandleFailedHttpRequest", handle, static_cast<int>(CURLE_FAILED_INIT), curl_easy_strerror(CURLE_FAILED_INIT));
 				return;
 			}
 
@@ -318,9 +307,7 @@ int HttpRequestHandler::MakeHttpRequest(const HttpRequest& requestParameters)
 
 			// GET requests, or POST-like requests with an empty body, can have query parameters.
 			// Append them to the base url.
-			if (HttpRequestMethod::CanHaveQueryParameters(requestParameters.method) &&
-					!HttpRequestMethod::UsesCurlPostOptions(requestParameters.method) ||
-				requestParameters.body.empty())
+			if (HttpRequestMethod::CanHaveQueryParameters(requestParameters.method) && !HttpRequestMethod::UsesCurlPostOptions(requestParameters.method) || requestParameters.body.empty())
 			{
 				bool isFirstValue = true;
 				for (const auto& kv : requestParameters.queryParameters)
@@ -422,31 +409,21 @@ int HttpRequestHandler::MakeHttpRequest(const HttpRequest& requestParameters)
 					// Squirrel side will handle firing the correct callback.
 					long httpCode = 0;
 					curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
-					g_pSquirrel<context>->AsyncCall(
-						"NSHandleSuccessfulHttpRequest", handle, static_cast<int>(httpCode), bodyBuffer, headerBuffer);
+					g_pSquirrel<context>->AsyncCall("NSHandleSuccessfulHttpRequest", handle, static_cast<int>(httpCode), bodyBuffer, headerBuffer);
 				}
 				else
 				{
 					// Pass CURL result code & error.
-					Error(
-						eLog::NS,
-						NO_ERROR,
-						"curl_easy_perform() failed with code %i, error: %s\n",
-						static_cast<int>(result),
-						curl_easy_strerror(result));
+					Error(eLog::NS, NO_ERROR, "curl_easy_perform() failed with code %i, error: %s\n", static_cast<int>(result), curl_easy_strerror(result));
 
 					// If it's an SSL issue, tell the user they may disable SSL checks using -disablehttpssl.
-					if (result == CURLE_PEER_FAILED_VERIFICATION || result == CURLE_SSL_CERTPROBLEM ||
-						result == CURLE_SSL_INVALIDCERTSTATUS)
+					if (result == CURLE_PEER_FAILED_VERIFICATION || result == CURLE_SSL_CERTPROBLEM || result == CURLE_SSL_INVALIDCERTSTATUS)
 					{
-						Warning(
-							eLog::NS,
-							"You can try disabling SSL verifications for this issue using the -disablehttpssl launch argument. "
-							"Keep in mind this is potentially dangerous!\n");
+						Warning(eLog::NS, "You can try disabling SSL verifications for this issue using the -disablehttpssl launch argument. "
+										  "Keep in mind this is potentially dangerous!\n");
 					}
 
-					g_pSquirrel<context>->AsyncCall(
-						"NSHandleFailedHttpRequest", handle, static_cast<int>(result), curl_easy_strerror(result));
+					g_pSquirrel<context>->AsyncCall("NSHandleFailedHttpRequest", handle, static_cast<int>(result), curl_easy_strerror(result));
 				}
 			}
 
@@ -473,10 +450,8 @@ SQRESULT SQ_InternalMakeHttpRequest(HSquirrelVM* sqvm)
 
 	if (IsHttpDisabled())
 	{
-		Warning(
-			eLog::NS,
-			"NS_InternalMakeHttpRequest called while the game is running with -disablehttprequests."
-			" Please check if requests are allowed using NSIsHttpEnabled() first.\n");
+		Warning(eLog::NS, "NS_InternalMakeHttpRequest called while the game is running with -disablehttprequests."
+						  " Please check if requests are allowed using NSIsHttpEnabled() first.\n");
 		g_pSquirrel<context>->pushinteger(sqvm, -1);
 		return SQRESULT_NOTNULL;
 	}
@@ -559,29 +534,18 @@ SQRESULT SQ_IsLocalHttpAllowed(HSquirrelVM* sqvm)
 template <ScriptContext context>
 void HttpRequestHandler::RegisterSQFuncs()
 {
-	g_pSquirrel<context>->AddFuncRegistration(
-		"int",
-		"NS_InternalMakeHttpRequest",
-		"int method, string baseUrl, table<string, array<string> > headers, table<string, array<string> > queryParams, string contentType, "
-		"string body, "
-		"int timeout, string userAgent",
-		"[Internal use only] Passes the HttpRequest struct fields to be reconstructed in native and used for an http request",
-		SQ_InternalMakeHttpRequest<context>);
+	g_pSquirrel<context>->AddFuncRegistration("int", "NS_InternalMakeHttpRequest",
+											  "int method, string baseUrl, table<string, array<string> > headers, table<string, array<string> > queryParams, string contentType, "
+											  "string body, "
+											  "int timeout, string userAgent",
+											  "[Internal use only] Passes the HttpRequest struct fields to be reconstructed in native and used for an http request", SQ_InternalMakeHttpRequest<context>);
 
-	g_pSquirrel<context>->AddFuncRegistration(
-		"bool",
-		"NSIsHttpEnabled",
-		"",
-		"Whether or not HTTP requests are enabled. You can opt-out by starting the game with -disablehttprequests.",
-		SQ_IsHttpEnabled<context>);
+	g_pSquirrel<context>->AddFuncRegistration("bool", "NSIsHttpEnabled", "", "Whether or not HTTP requests are enabled. You can opt-out by starting the game with -disablehttprequests.", SQ_IsHttpEnabled<context>);
 
-	g_pSquirrel<context>->AddFuncRegistration(
-		"bool",
-		"NSIsLocalHttpAllowed",
-		"",
-		"Whether or not HTTP requests can be made to a private network address. You can enable this by starting the game with "
-		"-allowlocalhttp.",
-		SQ_IsLocalHttpAllowed<context>);
+	g_pSquirrel<context>->AddFuncRegistration("bool", "NSIsLocalHttpAllowed", "",
+											  "Whether or not HTTP requests can be made to a private network address. You can enable this by starting the game with "
+											  "-allowlocalhttp.",
+											  SQ_IsLocalHttpAllowed<context>);
 }
 
 ON_DLL_LOAD_RELIESON("client.dll", HttpRequestHandler_ClientInit, ClientSquirrel, (CModule module))

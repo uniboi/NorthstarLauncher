@@ -58,12 +58,7 @@ ADD_SQFUNC("bool", NSIsDedicated, "", "", ScriptContext::SERVER)
 	return SQRESULT_NOTNULL;
 }
 
-ADD_SQFUNC(
-	"bool",
-	NSDisconnectPlayer,
-	"entity player, string reason",
-	"Disconnects the player from the server with the given reason",
-	ScriptContext::SERVER)
+ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconnects the player from the server with the given reason", ScriptContext::SERVER)
 {
 	const CBasePlayer* pPlayer = g_pSquirrel<context>->template getentity<CBasePlayer>(sqvm, 1);
 	const char* reason = g_pSquirrel<context>->getstring(sqvm, 2);

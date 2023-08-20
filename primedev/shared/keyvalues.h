@@ -57,8 +57,7 @@ class KeyValues
 	KeyValues(const char* pszSetName, const char* pszFirstKey, const char* pszFirstValue);
 	KeyValues(const char* pszSetName, const char* pszFirstKey, const wchar_t* pwszFirstValue);
 	KeyValues(const char* pszSetName, const char* pszFirstKey, int iFirstValue);
-	KeyValues(
-		const char* pszSetName, const char* pszFirstKey, const char* pszFirstValue, const char* pszSecondKey, const char* pszSecondValue);
+	KeyValues(const char* pszSetName, const char* pszFirstKey, const char* pszFirstValue, const char* pszSecondKey, const char* pszSecondValue);
 	KeyValues(const char* pszSetName, const char* pszFirstKey, int iFirstValue, const char* pszSecondKey, int iSecondValue);
 	~KeyValues(void);
 

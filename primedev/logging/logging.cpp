@@ -29,25 +29,19 @@ void SpdLog_PreInit(void)
 	}
 
 	// Show message box
-	int iAction = MessageBoxA(
-		NULL,
-		"The current directory isn't writable!\n"
-		"Please move the game into a writable directory to be able to continue\n\n"
-		"Click \"OK\" to open the wiki in your browser",
-		"Northstar Prime Error",
-		MB_ICONERROR | MB_OKCANCEL);
+	int iAction = MessageBoxA(NULL,
+							  "The current directory isn't writable!\n"
+							  "Please move the game into a writable directory to be able to continue\n\n"
+							  "Click \"OK\" to open the wiki in your browser",
+							  "Northstar Prime Error", MB_ICONERROR | MB_OKCANCEL);
 
 	// User chose to open the troubleshooting wiki page
 	if (iAction == IDOK)
 	{
-		ShellExecuteA(
-			NULL,
-			NULL,
-			"https://r2northstar.gitbook.io/r2northstar-wiki/installing-northstar/"
-			"troubleshooting#cannot-write-log-file-when-using-northstar-on-ea-app",
-			NULL,
-			NULL,
-			SW_NORMAL);
+		ShellExecuteA(NULL, NULL,
+					  "https://r2northstar.gitbook.io/r2northstar-wiki/installing-northstar/"
+					  "troubleshooting#cannot-write-log-file-when-using-northstar-on-ea-app",
+					  NULL, NULL, SW_NORMAL);
 	}
 
 	// Gracefully close
@@ -77,15 +71,9 @@ void SpdLog_Init(void)
 //-----------------------------------------------------------------------------
 void SpdLog_CreateLoggers(void)
 {
-	spdlog::rotating_logger_mt<spdlog::synchronous_factory>(
-		"northstar(info)", fmt::format("{:s}\\{:s}", g_svLogDirectory, "message.txt"), SPDLOG_MAX_LOG_SIZE, SPDLOG_MAX_FILES)
-		->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
-	spdlog::rotating_logger_mt<spdlog::synchronous_factory>(
-		"northstar(warning)", fmt::format("{:s}\\{:s}", g_svLogDirectory, "warning.txt"), SPDLOG_MAX_LOG_SIZE, SPDLOG_MAX_FILES)
-		->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
-	spdlog::rotating_logger_mt<spdlog::synchronous_factory>(
-		"northstar(error)", fmt::format("{:s}\\{:s}", g_svLogDirectory, "error.txt"), SPDLOG_MAX_LOG_SIZE, SPDLOG_MAX_FILES)
-		->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
+	spdlog::rotating_logger_mt<spdlog::synchronous_factory>("northstar(info)", fmt::format("{:s}\\{:s}", g_svLogDirectory, "message.txt"), SPDLOG_MAX_LOG_SIZE, SPDLOG_MAX_FILES)->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
+	spdlog::rotating_logger_mt<spdlog::synchronous_factory>("northstar(warning)", fmt::format("{:s}\\{:s}", g_svLogDirectory, "warning.txt"), SPDLOG_MAX_LOG_SIZE, SPDLOG_MAX_FILES)->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
+	spdlog::rotating_logger_mt<spdlog::synchronous_factory>("northstar(error)", fmt::format("{:s}\\{:s}", g_svLogDirectory, "error.txt"), SPDLOG_MAX_LOG_SIZE, SPDLOG_MAX_FILES)->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %v");
 }
 
 //-----------------------------------------------------------------------------

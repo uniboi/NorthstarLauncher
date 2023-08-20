@@ -218,8 +218,7 @@ void DumpAINInfo(CAI_Network* aiNetwork)
 
 		memcpy(diskNode.unk3, aiNetwork->nodes[i]->unk3, sizeof(diskNode.unk3));
 		diskNode.unk4 = aiNetwork->nodes[i]->unk6;
-		diskNode.unk5 =
-			-1; // aiNetwork->nodes[i]->unk8; // this field is wrong, however, it's always -1 in vanilla navmeshes anyway, so no biggie
+		diskNode.unk5 = -1; // aiNetwork->nodes[i]->unk8; // this field is wrong, however, it's always -1 in vanilla navmeshes anyway, so no biggie
 		memcpy(diskNode.unk6, aiNetwork->nodes[i]->unk10, sizeof(diskNode.unk6));
 
 		DevMsg(eLog::NS, "writing node %i from %li to 0x%p\n", aiNetwork->nodes[i]->index, (void*)aiNetwork->nodes[i], writeStream.tellp());

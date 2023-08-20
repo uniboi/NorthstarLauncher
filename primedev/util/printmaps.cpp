@@ -17,8 +17,7 @@ enum class MapSource_t
 	MOD
 };
 
-const std::unordered_map<MapSource_t, const char*> PrintMapSource = {
-	{MapSource_t::VPK, "VPK"}, {MapSource_t::MOD, "MOD"}, {MapSource_t::GAMEDIR, "R2"}};
+const std::unordered_map<MapSource_t, const char*> PrintMapSource = {{MapSource_t::VPK, "VPK"}, {MapSource_t::MOD, "MOD"}, {MapSource_t::GAMEDIR, "R2"}};
 
 struct MapVPKInfo
 {
@@ -60,8 +59,7 @@ void RefreshMapList()
 	// get maps in vpk
 	{
 		const int iNumRetailNonMapVpks = 1;
-		static const char* const ppRetailNonMapVpks[] = {
-			"englishclient_frontend.bsp.pak000_dir.vpk"}; // don't include mp_common here as it contains mp_lobby
+		static const char* const ppRetailNonMapVpks[] = {"englishclient_frontend.bsp.pak000_dir.vpk"}; // don't include mp_common here as it contains mp_lobby
 
 		// matches directory vpks, and captures their map name in the first group
 		static const std::regex rVpkMapRegex("englishclient_([a-zA-Z0-9_]+)\\.bsp\\.pak000_dir\\.vpk", std::regex::icase);
@@ -133,23 +131,14 @@ int, __fastcall, (const char *const cmdname, const char *const partial, char com
 		if (!strncmp(query, vMapList[i].name.c_str(), queryLength))
 		{
 			strcpy(commands[numMaps], cmdname);
-			strncpy_s(
-				commands[numMaps++] + cmdLength,
-				COMMAND_COMPLETION_ITEM_LENGTH,
-				&vMapList[i].name[0],
-				COMMAND_COMPLETION_ITEM_LENGTH - cmdLength);
+			strncpy_s(commands[numMaps++] + cmdLength, COMMAND_COMPLETION_ITEM_LENGTH, &vMapList[i].name[0], COMMAND_COMPLETION_ITEM_LENGTH - cmdLength);
 		}
 	}
 
 	return numMaps;
 }
 
-ADD_SQFUNC(
-	"array<string>",
-	NSGetLoadedMapNames,
-	"",
-	"Returns a string array of loaded map file names",
-	ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+ADD_SQFUNC("array<string>", NSGetLoadedMapNames, "", "Returns a string array of loaded map file names", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
 {
 	// Maybe we should call this on mods reload instead
 	RefreshMapList();

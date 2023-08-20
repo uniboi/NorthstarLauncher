@@ -83,8 +83,7 @@ typedef void (*FnCommandCallback_t)(const CCommand& command);
 //-----------------------------------------------------------------------------
 // Returns 0 to COMMAND_COMPLETION_MAXITEMS worth of completion strings
 //-----------------------------------------------------------------------------
-typedef int (*__fastcall FnCommandCompletionCallback)(
-	const char* partial, char commands[COMMAND_COMPLETION_MAXITEMS][COMMAND_COMPLETION_ITEM_LENGTH]);
+typedef int (*__fastcall FnCommandCompletionCallback)(const char* partial, char commands[COMMAND_COMPLETION_MAXITEMS][COMMAND_COMPLETION_ITEM_LENGTH]);
 
 // From r5reloaded
 class ConCommandBase
@@ -136,5 +135,4 @@ class ConCommand : public ConCommandBase
 }; // Size: 0x0060
 
 void RegisterConCommand(const char* name, void (*callback)(const CCommand&), const char* helpString, int flags);
-void RegisterConCommand(
-	const char* name, void (*callback)(const CCommand&), const char* helpString, int flags, FnCommandCompletionCallback completionCallback);
+void RegisterConCommand(const char* name, void (*callback)(const CCommand&), const char* helpString, int flags, FnCommandCompletionCallback completionCallback);

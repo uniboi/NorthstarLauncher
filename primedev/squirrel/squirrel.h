@@ -129,8 +129,7 @@ class SquirrelManagerBase
 		__sq_defconst(sqvm, pName, nValue);
 	}
 
-	inline SQRESULT
-	compilebuffer(CompileBufferState* bufferState, const SQChar* bufferName = "unnamedbuffer", const SQBool bShouldThrowError = false)
+	inline SQRESULT compilebuffer(CompileBufferState* bufferState, const SQChar* bufferName = "unnamedbuffer", const SQBool bShouldThrowError = false)
 	{
 		return __sq_compilebuffer(m_pSQVM->sqvm, bufferState, bufferName, -1, bShouldThrowError);
 	}
@@ -357,12 +356,7 @@ class SquirrelManager : public virtual SquirrelManagerBase
 		if (!m_pSQVM || !m_pSQVM->sqvm)
 		{
 			// TODO [Fifty]: Potentially make this fatal?
-			Error(
-				SQ_GetLogContextNative(context),
-				NO_ERROR,
-				"%s was called on context %s while VM was not initialized. This will crash\n",
-				__FUNCTION__,
-				GetContextName(context));
+			Error(SQ_GetLogContextNative(context), NO_ERROR, "%s was called on context %s while VM was not initialized. This will crash\n", __FUNCTION__, GetContextName(context));
 		}
 
 		SQObject functionobj {};
@@ -387,12 +381,7 @@ class SquirrelManager : public virtual SquirrelManagerBase
 		if (!m_pSQVM || !m_pSQVM->sqvm)
 		{
 			// TODO [Fifty]: Potentially make this fatal?
-			Error(
-				SQ_GetLogContextNative(context),
-				NO_ERROR,
-				"%s was called on context %s while VM was not initialized. This will crash\n",
-				__FUNCTION__,
-				GetContextName(context));
+			Error(SQ_GetLogContextNative(context), NO_ERROR, "%s was called on context %s while VM was not initialized. This will crash\n", __FUNCTION__, GetContextName(context));
 		}
 		SQObject functionobj {};
 		int result = sq_getfunction(m_pSQVM->sqvm, funcname, &functionobj, 0);
