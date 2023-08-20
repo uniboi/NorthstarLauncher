@@ -4,7 +4,7 @@
 #include "engine/r2engine.h"
 #include "client/r2client.h"
 #include "engine/hoststate.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "mods/modmanager.h"
 #include "server/auth/serverauthentication.h"
 #include "squirrel/squirrel.h"

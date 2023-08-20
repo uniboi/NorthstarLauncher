@@ -1,7 +1,7 @@
 #include "gamepresence.h"
 #include "dedicated/dedicated.h"
 #include "server/serverpresence.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "squirrel/squirrel.h"
 
 GameStatePresence* g_pGameStatePresence;

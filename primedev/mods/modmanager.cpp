@@ -2,7 +2,7 @@
 #include "tier1/convar.h"
 #include "tier1/cmd.h"
 #include "client/audio.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "core/filesystem/filesystem.h"
 #include "core/filesystem/rpakfilesystem.h"
 #include "squirrel/squirrel.h"

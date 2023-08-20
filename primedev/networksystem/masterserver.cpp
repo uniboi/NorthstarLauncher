@@ -1,4 +1,4 @@
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "tier1/cmd.h"
 #include "shared/playlist.h"
 #include "server/auth/serverauthentication.h"

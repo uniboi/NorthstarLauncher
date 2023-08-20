@@ -4,7 +4,7 @@
 #include "engine/r2engine.h"
 #include "engine/hoststate.h"
 #include "server/auth/serverauthentication.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "util/printcommands.h"
 
 AUTOHOOK_INIT()

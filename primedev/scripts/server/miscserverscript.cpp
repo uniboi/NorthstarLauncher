@@ -1,5 +1,5 @@
 #include "squirrel/squirrel.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "server/auth/serverauthentication.h"
 #include "dedicated/dedicated.h"
 #include "client/r2client.h"

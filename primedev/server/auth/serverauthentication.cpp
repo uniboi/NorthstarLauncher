@@ -1,6 +1,6 @@
 #include "serverauthentication.h"
 #include "shared/exploit_fixes/ns_limits.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "server/serverpresence.h"
 #include "engine/hoststate.h"
 #include "bansystem.h"

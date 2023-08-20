@@ -1,4 +1,4 @@
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 #include "tier1/convar.h"
 #include "client/r2client.h"
 

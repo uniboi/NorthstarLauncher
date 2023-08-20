@@ -1,5 +1,5 @@
 #include "squirrel/squirrel.h"
-#include "masterserver/masterserver.h"
+#include "networksystem/masterserver.h"
 
 // mirror this in script
 enum eMainMenuPromoDataProperty
