@@ -3,8 +3,8 @@
 #include "tier1/cmd.h"
 #include "client/audio.h"
 #include "networksystem/masterserver.h"
-#include "core/filesystem/filesystem.h"
-#include "core/filesystem/rpakfilesystem.h"
+#include "filesystem/basefilesystem.h"
+#include "rtech/pakapi.h"
 #include "squirrel/squirrel.h"
 
 #include "rapidjson/error/en.h"

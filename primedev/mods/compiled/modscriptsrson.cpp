@@ -1,5 +1,5 @@
 #include "mods/modmanager.h"
-#include "core/filesystem/filesystem.h"
+#include "filesystem/basefilesystem.h"
 #include "squirrel/squirrel.h"
 
 #include <fstream>

@@ -1,5 +1,5 @@
 #include "mods/modmanager.h"
-#include "core/filesystem/filesystem.h"
+#include "filesystem/basefilesystem.h"
 
 #include <map>
 #include <sstream>

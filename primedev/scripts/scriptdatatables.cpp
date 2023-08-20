@@ -1,8 +1,8 @@
 #include "squirrel/squirrel.h"
-#include "core/filesystem/rpakfilesystem.h"
+#include "rtech/pakapi.h"
 #include "tier1/convar.h"
 #include "dedicated/dedicated.h"
-#include "core/filesystem/filesystem.h"
+#include "filesystem/basefilesystem.h"
 #include "mathlib/vector.h"
 #include "engine/r2engine.h"
 #include <iostream>
