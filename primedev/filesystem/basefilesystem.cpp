@@ -1,4 +1,4 @@
-#include "filesystem.h"
+#include "filesystem/basefilesystem.h"
 #include "mods/modmanager.h"
 
 #include <iostream>
@@ -42,17 +42,17 @@ std::string ReadVPKOriginalFile(const char* path)
 }
 
 // clang-format off
-AUTOHOOK(AddSearchPath, filesystem_stdio.dll + 0xb510,
+AUTOHOOK(CBaseFileSystem__AddSearchPath, filesystem_stdio.dll + 0xb510,
 void, __fastcall, (IFileSystem * fileSystem, const char* pPath, const char* pathID, SearchPathAdd_t addType))
 // clang-format on
 {
-	AddSearchPath(fileSystem, pPath, pathID, addType);
+	CBaseFileSystem__AddSearchPath(fileSystem, pPath, pathID, addType);
 
 	// make sure current mod paths are at head
 	if (!strcmp(pathID, "GAME") && sCurrentModPath.compare(pPath) && addType == PATH_ADD_TO_HEAD)
 	{
-		AddSearchPath(fileSystem, sCurrentModPath.c_str(), "GAME", PATH_ADD_TO_HEAD);
-		AddSearchPath(fileSystem, GetCompiledAssetsPath().string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+		CBaseFileSystem__AddSearchPath(fileSystem, sCurrentModPath.c_str(), "GAME", PATH_ADD_TO_HEAD);
+		CBaseFileSystem__AddSearchPath(fileSystem, GetCompiledAssetsPath().string().c_str(), "GAME", PATH_ADD_TO_HEAD);
 	}
 }
 
@@ -67,12 +67,12 @@ void SetNewModSearchPaths(Mod* mod)
 			// NOTE [Fifty]: Possibly put this behind some check
 			// DevMsg(eLog::FS, "Changing mod search path from %s to %s\n", sCurrentModPath.c_str(), mod->m_ModDirectory.string().c_str());
 
-			AddSearchPath(&*g_pFilesystem, (fs::absolute(mod->m_ModDirectory) / MOD_OVERRIDE_DIR).string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+			CBaseFileSystem__AddSearchPath(&*g_pFilesystem, (fs::absolute(mod->m_ModDirectory) / MOD_OVERRIDE_DIR).string().c_str(), "GAME", PATH_ADD_TO_HEAD);
 			sCurrentModPath = (fs::absolute(mod->m_ModDirectory) / MOD_OVERRIDE_DIR).string();
 		}
 	}
 	else // push compiled to head
-		AddSearchPath(&*g_pFilesystem, fs::absolute(GetCompiledAssetsPath()).string().c_str(), "GAME", PATH_ADD_TO_HEAD);
+		CBaseFileSystem__AddSearchPath(&*g_pFilesystem, fs::absolute(GetCompiledAssetsPath()).string().c_str(), "GAME", PATH_ADD_TO_HEAD);
 }
 
 bool TryReplaceFile(const char* pPath, bool shouldCompile)
@@ -97,19 +97,19 @@ bool TryReplaceFile(const char* pPath, bool shouldCompile)
 
 // force modded files to be read from mods, not cache
 // clang-format off
-AUTOHOOK(ReadFromCache, filesystem_stdio.dll + 0xfe50,
+AUTOHOOK(CBaseFileSystem__ReadFromCache, filesystem_stdio.dll + 0xfe50,
 bool, __fastcall, (IFileSystem * filesystem, char* pPath, void* result))
 // clang-format off
 {
 	if (TryReplaceFile(pPath, true))
 		return false;
 
-	return ReadFromCache(filesystem, pPath, result);
+	return CBaseFileSystem__ReadFromCache(filesystem, pPath, result);
 }
 
 // force modded files to be read from mods, not vpk
 // clang-format off
-AUTOHOOK(ReadFileFromVPK, filesystem_stdio.dll + 0x5CBA0,
+AUTOHOOK(CBaseFileSystem__ReadFileFromVPK, filesystem_stdio.dll + 0x5CBA0,
 FileHandle_t, __fastcall, (VPKData* vpkInfo, uint64_t* b, char* filename))
 // clang-format on
 {
@@ -120,7 +120,7 @@ FileHandle_t, __fastcall, (VPKData* vpkInfo, uint64_t* b, char* filename))
 		return b;
 	}
 
-	return ReadFileFromVPK(vpkInfo, b, filename);
+	return CBaseFileSystem__ReadFileFromVPK(vpkInfo, b, filename);
 }
 
 // clang-format off
@@ -132,10 +132,10 @@ FileHandle_t, __fastcall, (IFileSystem* filesystem, const char* pPath, const cha
 	return CBaseFileSystem__OpenEx(filesystem, pPath, pOptions, flags, pPathID, ppszResolvedFilename);
 }
 
-AUTOHOOK(MountVPK, filesystem_stdio.dll + 0xbea0, VPKData*, , (IFileSystem * fileSystem, const char* pVpkPath))
+AUTOHOOK(CBaseFileSystem__MountVPK, filesystem_stdio.dll + 0xbea0, VPKData*, , (IFileSystem * fileSystem, const char* pVpkPath))
 {
 	DevMsg(eLog::FS, "MountVPK %s\n", pVpkPath);
-	VPKData* ret = MountVPK(fileSystem, pVpkPath);
+	VPKData* ret = CBaseFileSystem__MountVPK(fileSystem, pVpkPath);
 
 	for (Mod mod : g_pModManager->m_LoadedMods)
 	{
@@ -155,7 +155,7 @@ AUTOHOOK(MountVPK, filesystem_stdio.dll + 0xbea0, VPKData*, , (IFileSystem * fil
 					continue;
 			}
 
-			VPKData* loaded = MountVPK(fileSystem, vpkEntry.m_sVpkPath.c_str());
+			VPKData* loaded = CBaseFileSystem__MountVPK(fileSystem, vpkEntry.m_sVpkPath.c_str());
 			if (!ret) // this is primarily for map vpks and stuff, so the map's vpk is what gets returned from here
 				ret = loaded;
 		}
