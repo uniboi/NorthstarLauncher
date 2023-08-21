@@ -523,6 +523,8 @@ ON_DLL_LOAD("engine.dll", ConVar, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(engine.dll)
 
+	CCommand__Tokenize = module.Offset(0x418380).RCast<bool (*)(CCommand&, const char*, cmd_source_t)>();
+
 	conVarMalloc = module.Offset(0x415C20).RCast<ConVarMallocType>();
 	conVarRegister = module.Offset(0x417230).RCast<ConVarRegisterType>();
 

@@ -2,8 +2,9 @@
 #include "mathlib/color.h"
 #include "cvar.h"
 #include "tier1/cmd.h"
+#include "engine/cmd.h"
 
-// taken directly from iconvar.h
+inline bool (*CCommand__Tokenize)(CCommand& self, const char* pCommandString, cmd_source_t commandSource);
 
 // The default, no flags at all
 #define FCVAR_NONE 0
