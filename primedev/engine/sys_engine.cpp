@@ -1,7 +1,10 @@
+#include "engine/sys_engine.h"
+
 #include "engine/r2engine.h"
 #include "server/r2server.h"
 #include "hoststate.h"
 #include "server/serverpresence.h"
+
 
 AUTOHOOK_INIT()
 
@@ -16,4 +19,6 @@ void, __fastcall, (CEngine* self))
 ON_DLL_LOAD("engine.dll", RunFrame, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
+
+	g_pEngine = module.Offset(0x7D70C8).Deref().RCast<CEngine*>();
 }

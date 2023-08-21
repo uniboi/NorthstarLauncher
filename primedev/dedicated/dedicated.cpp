@@ -6,6 +6,7 @@
 #include "server/auth/serverauthentication.h"
 #include "networksystem/masterserver.h"
 #include "util/printcommands.h"
+#include "engine/sys_engine.h"
 
 AUTOHOOK_INIT()
 
