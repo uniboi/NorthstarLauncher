@@ -4,7 +4,7 @@
 #include "engine/r2engine.h"
 #include "logging/logging.h"
 
-void (*CGameClient__ClientPrintf)(CBaseClient* pClient, const char* fmt, ...);
+void (*CGameClient__ClientPrintf)(CClient* pClient, const char* fmt, ...);
 
 void DediClientMsg(const char* pszMessage)
 {
@@ -28,9 +28,9 @@ void DediClientMsg(const char* pszMessage)
 	std::string sLogMessage = fmt::format("{}", pszMessage);
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CBaseClient* pClient = &g_pClientArray[i];
+		CClient* pClient = &g_pClientArray[i];
 
-		if (pClient->m_Signon >= eSignonState::CONNECTED)
+		if (pClient->m_nSignonState >= eSignonState::CONNECTED)
 		{
 			CGameClient__ClientPrintf(pClient, sLogMessage.c_str());
 
@@ -42,5 +42,5 @@ void DediClientMsg(const char* pszMessage)
 
 ON_DLL_LOAD_DEDI("engine.dll", DedicatedServerLogToClient, (CModule module))
 {
-	CGameClient__ClientPrintf = module.Offset(0x1016A0).RCast<void (*)(CBaseClient*, const char*, ...)>();
+	CGameClient__ClientPrintf = module.Offset(0x1016A0).RCast<void (*)(CClient*, const char*, ...)>();
 }

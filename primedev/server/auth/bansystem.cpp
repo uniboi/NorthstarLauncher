@@ -182,12 +182,12 @@ void ConCommand_ban(const CCommand& args)
 
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CBaseClient* player = &g_pClientArray[i];
+		CClient* player = &g_pClientArray[i];
 
-		if (!strcmp(player->m_Name, args.Arg(1)) || !strcmp(player->m_UID, args.Arg(1)))
+		if (!strcmp(player->m_szServerName, args.Arg(1)) || !strcmp(player->m_UID, args.Arg(1)))
 		{
 			g_pBanSystem->BanUID(strtoull(player->m_UID, nullptr, 10));
-			CBaseClient__Disconnect(player, 1, "Banned from server");
+			CClient__Disconnect(player, 1, "Banned from server");
 			break;
 		}
 	}

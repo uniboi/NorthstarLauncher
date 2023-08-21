@@ -55,7 +55,7 @@ inline bool (*CCommand__Tokenize)(CCommand& self, const char* pCommandString, cm
 
 #define FCVAR_SERVER_CAN_EXECUTE \
 	(1 << 28) // the server is allowed to execute this command on clients via
-			  // ClientCommand/NET_StringCmd/CBaseClientState::ProcessStringCmd.
+			  // ClientCommand/NET_StringCmd/CClientState::ProcessStringCmd.
 #define FCVAR_SERVER_CANNOT_QUERY (1 << 29) // If this is set, then the server is not allowed to query this cvar's value (via IServerPluginHelpers::StartQueryCvarValue).
 
 // !!!NOTE!!! : this is likely incorrect, there are multiple concommands that the vanilla game registers with this flag that 100% should not

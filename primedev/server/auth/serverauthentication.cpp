@@ -36,7 +36,7 @@ void ServerAuthenticationManager::AddRemotePlayer(std::string token, uint64_t ui
 	m_RemoteAuthenticationData[token] = newAuthData;
 }
 
-void ServerAuthenticationManager::AddPlayer(CBaseClient* pPlayer, const char* pToken)
+void ServerAuthenticationManager::AddPlayer(CClient* pPlayer, const char* pToken)
 {
 	PlayerAuthenticationData additionalData;
 
@@ -46,12 +46,12 @@ void ServerAuthenticationManager::AddPlayer(CBaseClient* pPlayer, const char* pT
 	else
 		additionalData.pdataSize = PERSISTENCE_MAX_SIZE;
 
-	additionalData.usingLocalPdata = pPlayer->m_iPersistenceReady == ePersistenceReady::READY_INSECURE;
+	additionalData.usingLocalPdata = pPlayer->m_nPersistenceState == ePersistenceReady::READY_INSECURE;
 
 	m_PlayerAuthenticationData.insert(std::make_pair(pPlayer, additionalData));
 }
 
-void ServerAuthenticationManager::RemovePlayer(CBaseClient* pPlayer)
+void ServerAuthenticationManager::RemovePlayer(CClient* pPlayer)
 {
 	if (m_PlayerAuthenticationData.count(pPlayer))
 		m_PlayerAuthenticationData.erase(pPlayer);
@@ -84,7 +84,7 @@ bool ServerAuthenticationManager::VerifyPlayerName(const char* pAuthToken, const
 	return true;
 }
 
-bool ServerAuthenticationManager::IsDuplicateAccount(CBaseClient* pPlayer, const char* pPlayerUid)
+bool ServerAuthenticationManager::IsDuplicateAccount(CClient* pPlayer, const char* pPlayerUid)
 {
 	if (m_bAllowDuplicateAccounts)
 		return false;
@@ -97,7 +97,7 @@ bool ServerAuthenticationManager::IsDuplicateAccount(CBaseClient* pPlayer, const
 	return false;
 }
 
-bool ServerAuthenticationManager::CheckAuthentication(CBaseClient* pPlayer, uint64_t iUid, char* pAuthToken)
+bool ServerAuthenticationManager::CheckAuthentication(CClient* pPlayer, uint64_t iUid, char* pAuthToken)
 {
 	std::string sUid = std::to_string(iUid);
 
@@ -122,7 +122,7 @@ bool ServerAuthenticationManager::CheckAuthentication(CBaseClient* pPlayer, uint
 	return false;
 }
 
-void ServerAuthenticationManager::AuthenticatePlayer(CBaseClient* pPlayer, uint64_t iUid, char* pAuthToken)
+void ServerAuthenticationManager::AuthenticatePlayer(CClient* pPlayer, uint64_t iUid, char* pAuthToken)
 {
 	// for bot players, generate a new uid
 	if (pPlayer->m_bFakePlayer)
@@ -145,18 +145,18 @@ void ServerAuthenticationManager::AuthenticatePlayer(CBaseClient* pPlayer, uint6
 		}
 
 		// set persistent data as ready
-		pPlayer->m_iPersistenceReady = ePersistenceReady::READY_REMOTE;
+		pPlayer->m_nPersistenceState = ePersistenceReady::READY_REMOTE;
 	}
 	// we probably allow insecure at this point, but make sure not to write anyway if not insecure
 	else if (Cvar_ns_auth_allow_insecure->GetBool() || pPlayer->m_bFakePlayer)
 	{
 		// set persistent data as ready
 		// note: actual placeholder persistent data is populated in script with InitPersistentData()
-		pPlayer->m_iPersistenceReady = ePersistenceReady::READY_INSECURE;
+		pPlayer->m_nPersistenceState = ePersistenceReady::READY_INSECURE;
 	}
 }
 
-bool ServerAuthenticationManager::RemovePlayerAuthData(CBaseClient* pPlayer)
+bool ServerAuthenticationManager::RemovePlayerAuthData(CClient* pPlayer)
 {
 	if (!Cvar_ns_erase_auth_info->GetBool()) // keep auth data forever
 		return false;
@@ -183,9 +183,9 @@ bool ServerAuthenticationManager::RemovePlayerAuthData(CBaseClient* pPlayer)
 	return false;
 }
 
-void ServerAuthenticationManager::WritePersistentData(CBaseClient* pPlayer)
+void ServerAuthenticationManager::WritePersistentData(CClient* pPlayer)
 {
-	if (pPlayer->m_iPersistenceReady == ePersistenceReady::READY_REMOTE)
+	if (pPlayer->m_nPersistenceState == ePersistenceReady::READY_REMOTE)
 	{
 		g_pMasterServerManager->WritePlayerPersistentData(pPlayer->m_UID, (const char*)pPlayer->m_PersistenceBuffer, m_PlayerAuthenticationData[pPlayer].pdataSize);
 	}
@@ -197,8 +197,8 @@ void ServerAuthenticationManager::WritePersistentData(CBaseClient* pPlayer)
 
 // auth hooks
 
-// store these in vars so we can use them in CBaseClient::Connect
-// this is fine because ptrs won't decay by the time we use this, just don't use it outside of calls from cbaseclient::connectclient
+// store these in vars so we can use them in CClient::Connect
+// this is fine because ptrs won't decay by the time we use this, just don't use it outside of calls from CClient::connectclient
 char* pNextPlayerToken;
 uint64_t iNextPlayerUid;
 
@@ -232,8 +232,8 @@ void*,, (
 }
 
 // clang-format off
-AUTOHOOK(CBaseClient__Connect, engine.dll + 0x101740,
-bool,, (CBaseClient* self, char* pName, void* pNetChannel, char bFakePlayer, void* a5, char pDisconnectReason[256], void* a7))
+AUTOHOOK(CClient__Connect, engine.dll + 0x101740,
+bool,, (CClient* self, char* pName, void* pNetChannel, char bFakePlayer, void* a5, char pDisconnectReason[256], void* a7))
 // clang-format on
 {
 	const char* pAuthenticationFailure = nullptr;
@@ -260,7 +260,7 @@ bool,, (CBaseClient* self, char* pName, void* pNetChannel, char bFakePlayer, voi
 	}
 
 	// try to actually connect the player
-	if (!CBaseClient__Connect(self, pVerifiedName, pNetChannel, bFakePlayer, a5, pDisconnectReason, a7))
+	if (!CClient__Connect(self, pVerifiedName, pNetChannel, bFakePlayer, a5, pDisconnectReason, a7))
 		return false;
 
 	// we already know this player's authentication data is legit, actually write it to them now
@@ -273,26 +273,26 @@ bool,, (CBaseClient* self, char* pName, void* pNetChannel, char bFakePlayer, voi
 }
 
 // clang-format off
-AUTOHOOK(CBaseClient__ActivatePlayer, engine.dll + 0x100F80,
-void,, (CBaseClient* self))
+AUTOHOOK(CClient__ActivatePlayer, engine.dll + 0x100F80,
+void,, (CClient* self))
 // clang-format on
 {
 	// if we're authed, write our persistent data
 	// RemovePlayerAuthData returns true if it removed successfully, i.e. on first call only, and we only want to write on >= second call
 	// (since this func is called on map loads)
-	if (self->m_iPersistenceReady >= ePersistenceReady::READY && !g_pServerAuthentication->RemovePlayerAuthData(self))
+	if (self->m_nPersistenceState >= ePersistenceReady::READY && !g_pServerAuthentication->RemovePlayerAuthData(self))
 	{
 		g_pServerAuthentication->m_bForceResetLocalPlayerPersistence = false;
 		g_pServerAuthentication->WritePersistentData(self);
 		g_pServerPresence->SetPlayerCount(g_pServerAuthentication->m_PlayerAuthenticationData.size());
 	}
 
-	CBaseClient__ActivatePlayer(self);
+	CClient__ActivatePlayer(self);
 }
 
 // clang-format off
-AUTOHOOK(_CBaseClient__Disconnect, engine.dll + 0x1012C0,
-void,, (CBaseClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
+AUTOHOOK(_CClient__Disconnect, engine.dll + 0x1012C0,
+void,, (CClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
 // clang-format on
 {
 	// have to manually format message because can't pass varargs to original func
@@ -306,7 +306,7 @@ void,, (CBaseClient* self, uint32_t unknownButAlways1, const char* pReason, ...)
 	// this reason is used while connecting to a local server, hacky, but just ignore it
 	if (strcmp(pReason, "Connection closing"))
 	{
-		DevMsg(eLog::NS, "Player %s disconnected: \"%s\"\n", self->m_Name, buf);
+		DevMsg(eLog::NS, "Player %s disconnected: \"%s\"\n", self->m_szServerName, buf);
 
 		// dcing, write persistent data
 		if (g_pServerAuthentication->m_PlayerAuthenticationData[self].needPersistenceWriteOnLeave)
@@ -321,7 +321,7 @@ void,, (CBaseClient* self, uint32_t unknownButAlways1, const char* pReason, ...)
 
 	g_pServerPresence->SetPlayerCount(g_pServerAuthentication->m_PlayerAuthenticationData.size());
 
-	_CBaseClient__Disconnect(self, unknownButAlways1, buf);
+	_CClient__Disconnect(self, unknownButAlways1, buf);
 }
 
 void ConCommand_ns_resetpersistence(const CCommand& args)
