@@ -3,6 +3,7 @@
 #include "squirrel/squirrel.h"
 #include "server/r2server.h"
 #include "util/utils.h"
+#include "engine/server/server.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
@@ -51,7 +52,7 @@ void, __fastcall, (CServerGameDLL* self, unsigned int senderPlayerId, const char
 	}
 
 	// check chat ratelimits
-	if (!g_pServerLimits->CheckChatLimits(&g_pClientArray[senderPlayerId - 1]))
+	if (!g_pServerLimits->CheckChatLimits(&g_pServer->m_Clients[senderPlayerId - 1]))
 		return;
 
 	SQRESULT result = g_pSquirrel<ScriptContext::SERVER>->Call("CServerGameDLL_ProcessMessageStartThread", static_cast<int>(senderPlayerId) - 1, text, isTeam);

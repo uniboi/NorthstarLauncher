@@ -7,6 +7,7 @@
 #include "tier1/cmd.h"
 #include "dedicated/dedicated.h"
 #include "engine/r2engine.h"
+#include "engine/server/server.h"
 #include "client/r2client.h"
 #include "server/r2server.h"
 
@@ -91,7 +92,7 @@ bool ServerAuthenticationManager::IsDuplicateAccount(CClient* pPlayer, const cha
 
 	bool bHasUidPlayer = false;
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
-		if (&g_pClientArray[i] != pPlayer && !strcmp(pPlayerUid, g_pClientArray[i].m_UID))
+		if (&g_pServer->m_Clients[i] != pPlayer && !strcmp(pPlayerUid, g_pServer->m_Clients[i].m_UID))
 			return true;
 
 	return false;
@@ -326,7 +327,7 @@ void,, (CClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
 
 void ConCommand_ns_resetpersistence(const CCommand& args)
 {
-	if (*g_pServerState == server_state_t::ss_active)
+	if (g_pServer->m_State == server_state_t::ss_active)
 	{
 		Error(eLog::NS, NO_ERROR, "ns_resetpersistence must be entered from the main menu\n");
 		return;

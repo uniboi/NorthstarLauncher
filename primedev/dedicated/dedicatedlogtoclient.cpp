@@ -2,16 +2,17 @@
 
 #include "tier1/convar.h"
 #include "engine/r2engine.h"
+#include "engine/server/server.h"
 #include "logging/logging.h"
 
 void (*CGameClient__ClientPrintf)(CClient* pClient, const char* fmt, ...);
 
 void DediClientMsg(const char* pszMessage)
 {
-	if (g_pServerState == NULL || g_pCVar == NULL)
+	if (g_pServer == NULL || g_pCVar == NULL)
 		return;
 
-	if (*g_pServerState == server_state_t::ss_dead)
+	if (g_pServer->m_State == server_state_t::ss_dead)
 		return;
 
 	enum class eSendPrintsToClient
@@ -28,7 +29,7 @@ void DediClientMsg(const char* pszMessage)
 	std::string sLogMessage = fmt::format("{}", pszMessage);
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CClient* pClient = &g_pClientArray[i];
+		CClient* pClient = &g_pServer->m_Clients[i];
 
 		if (pClient->m_nSignonState >= eSignonState::CONNECTED)
 		{

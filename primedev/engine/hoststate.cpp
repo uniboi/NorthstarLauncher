@@ -3,7 +3,7 @@
 #include "server/auth/serverauthentication.h"
 #include "server/serverpresence.h"
 #include "shared/playlist.h"
-#include "engine/r2engine.h"
+#include "engine/server/server.h"
 #include "shared/exploit_fixes/ns_limits.h"
 #include "squirrel/squirrel.h"
 
@@ -150,7 +150,7 @@ void, __fastcall, (CHostState* self, double flCurrentTime, float flFrameTime))
 {
 	CHostState__FrameUpdate(self, flCurrentTime, flFrameTime);
 
-	if (*g_pServerState == server_state_t::ss_active)
+	if (g_pServer->m_State == server_state_t::ss_active)
 	{
 		// update server presence
 		g_pServerPresence->RunFrame(flCurrentTime);

@@ -3,6 +3,7 @@
 #include "tier1/cmd.h"
 #include "server/r2server.h"
 #include "engine/r2engine.h"
+#include "engine/server/server.h"
 
 #include <filesystem>
 
@@ -182,7 +183,7 @@ void ConCommand_ban(const CCommand& args)
 
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CClient* player = &g_pClientArray[i];
+		CClient* player = &g_pServer->m_Clients[i];
 
 		if (!strcmp(player->m_szServerName, args.Arg(1)) || !strcmp(player->m_UID, args.Arg(1)))
 		{
