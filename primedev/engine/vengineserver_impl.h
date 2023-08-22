@@ -2,7 +2,7 @@
 
 #include "engine/eiface.h"
 
-class CVEngineServer : IVEngineServer
+class CVEngineServer : public IVEngineServer
 {
 	//
 };
