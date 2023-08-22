@@ -57,6 +57,8 @@ add_library(NorthstarDLL SHARED
             "engine/r2engine.cpp"
             "engine/r2engine.h"
             "engine/sys_engine.cpp"
+			"engine/vengineserver_impl.cpp"
+			"engine/vengineserver_impl.h"
 			"filesystem/basefilesystem.cpp"
 			"filesystem/basefilesystem.h"
             "gameui/GameConsole.cpp"
