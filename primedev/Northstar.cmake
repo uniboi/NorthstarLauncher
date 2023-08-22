@@ -61,6 +61,8 @@ add_library(NorthstarDLL SHARED
 			"engine/vengineserver_impl.h"
 			"filesystem/basefilesystem.cpp"
 			"filesystem/basefilesystem.h"
+            "game/server/gameinterface.cpp"
+            "game/server/gameinterface.h"
             "gameui/GameConsole.cpp"
 			"gameui/GameConsole.h"
             "launcher/launcher.cpp"

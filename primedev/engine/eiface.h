@@ -237,3 +237,36 @@ class IVEngineServer
 	virtual void sub_18011A9A0() = 0;
 	virtual void sub_18011CE80() = 0;
 };
+
+
+class IServerGameClients
+{
+  public:
+	virtual void GetPlayerLimits(int& nMinPlayers, int& nMaxPlayers, int& nDefaultMaxPlayers) = 0;
+
+	virtual void sub_180153970() = 0;
+
+	virtual void ClientActive(edict_t pEntity, bool bLoadGame) = 0;
+
+	virtual void ClientFullyConnect(edict_t nEntity, bool bRestore) = 0;
+
+	virtual void sub_1801539A0() = 0;
+	virtual void sub_180153BC0() = 0;
+	virtual void sub_1801538C0() = 0;
+	virtual void sub_180153CA0() = 0;
+
+	virtual void ProcessUsercmds(edict_t nPlayer, __int64 a3, int a4, unsigned int a5, int a6, char a7, char a8) = 0;
+
+	virtual void sub_1801575E0() = 0;
+	virtual void sub_180153AC0() = 0;
+	virtual void sub_180153920() = 0;
+	virtual void sub_180153C30() = 0;
+	virtual void sub_18015ACC0() = 0;
+	virtual void sub_18015AD20() = 0;
+	virtual void sub_180157490() = 0;
+	virtual void sub_18015AC80() = 0;
+	virtual void sub_180159B20() = 0;
+	virtual void nullsub_243() = 0;
+	virtual void sub_180157060() = 0;
+	virtual void sub_180157040() = 0;
+};
