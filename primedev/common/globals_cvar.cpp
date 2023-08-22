@@ -59,10 +59,10 @@ void CVar_InitModule(std::string svModule)
 		Cvar_ns_auth_allow_insecure_write = ConVar::StaticCreate("ns_auth_allow_insecure_write", "0", FCVAR_GAMEDLL, "Whether the pdata of unauthenticated clients will be written to disk when changed");
 		Cvar_net_debug_atlas_packet = ConVar::StaticCreate("net_debug_atlas_packet", "0", FCVAR_NONE, "Whether to log detailed debugging information for Atlas connectionless packets (warning: this allows unlimited amounts of arbitrary data to be logged)");
 		Cvar_net_debug_atlas_packet_insecure = ConVar::StaticCreate("net_debug_atlas_packet_insecure", "0", FCVAR_NONE, "Whether to disable signature verification for Atlas connectionless packets (DANGEROUS: this allows anyone to impersonate Atlas)");
-		Cvar_ns_server_name = ConVar::StaticCreate("ns_server_name", "Unnamed Northstar Server", FCVAR_GAMEDLL, "This server's description", false, 0.0, false, 0.0, &Host_ServerName_f);
+		Cvar_ns_server_name = ConVar::StaticCreate("ns_server_name", "Unnamed Northstar Server", FCVAR_GAMEDLL, "This server's description", false, 0.0, false, 0.0, &NS_ServerName_f);
 		Cvar_ns_server_presence_update_rate = ConVar::StaticCreate("ns_server_presence_update_rate", "5000", FCVAR_GAMEDLL, "How often we update our server's presence on server lists in ms");
-		Cvar_ns_server_desc = ConVar::StaticCreate("ns_server_desc", "Default server description", FCVAR_GAMEDLL, "This server's name", false, 0, false, 0, &Host_ServerDesc_f);
-		Cvar_ns_server_password = ConVar::StaticCreate("ns_server_password", "", FCVAR_GAMEDLL, "This server's password", false, 0, false, 0, &Host_ServerPass_f);
+		Cvar_ns_server_desc = ConVar::StaticCreate("ns_server_desc", "Default server description", FCVAR_GAMEDLL, "This server's name", false, 0, false, 0, &NS_ServerDesc_f);
+		Cvar_ns_server_password = ConVar::StaticCreate("ns_server_password", "", FCVAR_GAMEDLL, "This server's password", false, 0, false, 0, &NS_ServerPass_f);
 		Cvar_ns_report_server_to_masterserver = ConVar::StaticCreate("ns_report_server_to_masterserver", "1", FCVAR_GAMEDLL, "Whether we should report this server to the masterserver");
 		Cvar_ns_report_sp_server_to_masterserver = ConVar::StaticCreate("ns_report_sp_server_to_masterserver", "0", FCVAR_GAMEDLL, "Whether we should report this server to the masterserver, when started in singleplayer");
 		CVar_sv_quota_stringcmdspersecond = ConVar::StaticCreate("sv_quota_stringcmdspersecond", "60", FCVAR_GAMEDLL, "How many string commands per second clients are allowed to submit, 0 to disallow all string commands, -1 to disable");
