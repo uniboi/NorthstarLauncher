@@ -80,31 +80,9 @@ int, __fastcall, ())
 	return iMaxPlayers;
 }
 
-void ConCommand_playlist(const CCommand& args)
-{
-	if (args.ArgC() < 2)
-		return;
-
-	R2::SetCurrentPlaylist(args.Arg(1));
-}
-
-void ConCommand_setplaylistvaroverride(const CCommand& args)
-{
-	if (args.ArgC() < 3)
-		return;
-
-	for (int i = 1; i < args.ArgC(); i += 2)
-		R2::SetPlaylistVarOverride(args.Arg(i), args.Arg(i + 1));
-}
-
 ON_DLL_LOAD_RELIESON("engine.dll", PlaylistHooks, (ConCommand, ConVar), (CModule module))
 {
 	AUTOHOOK_DISPATCH()
-
-	// playlist is the name of the command on respawn servers, but we already use setplaylist so can't get rid of it
-	RegisterConCommand("playlist", ConCommand_playlist, "Sets the current playlist", FCVAR_NONE);
-	RegisterConCommand("setplaylist", ConCommand_playlist, "Sets the current playlist", FCVAR_NONE);
-	RegisterConCommand("setplaylistvaroverrides", ConCommand_setplaylistvaroverride, "sets a playlist var override", FCVAR_NONE);
 
 	// patch to prevent clc_SetPlaylistVarOverride from being able to crash servers if we reach max overrides due to a call to Error (why is
 	// this possible respawn, wtf) todo: add a warning for this

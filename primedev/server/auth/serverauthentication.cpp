@@ -325,25 +325,11 @@ void,, (CClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
 	_CClient__Disconnect(self, unknownButAlways1, buf);
 }
 
-void ConCommand_ns_resetpersistence(const CCommand& args)
-{
-	if (g_pServer->m_State == server_state_t::ss_active)
-	{
-		Error(eLog::NS, NO_ERROR, "ns_resetpersistence must be entered from the main menu\n");
-		return;
-	}
-
-	Warning(eLog::NS, "resetting persistence on next lobby load...\n");
-	g_pServerAuthentication->m_bForceResetLocalPlayerPersistence = true;
-}
-
 ON_DLL_LOAD_RELIESON("engine.dll", ServerAuthentication, (ConCommand, ConVar), (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 
 	g_pServerAuthentication = new ServerAuthenticationManager;
-
-	RegisterConCommand("ns_resetpersistence", ConCommand_ns_resetpersistence, "resets your pdata when you next enter the lobby", FCVAR_NONE);
 
 	// patch to disable kicking based on incorrect serverfilter in connectclient, since we repurpose it for use as an auth token
 	module.Offset(0x114655).Patch("EB");

@@ -24,6 +24,18 @@ void CVar_InitModule(std::string svModule)
 		Cvar_cl_showtextmsg = ConVar::StaticCreate("cl_showtextmsg", "1", FCVAR_NONE, "Enable/disable text messages printing on the screen.");
 		// ns_test = ConVar::StaticCreate("ns_test", "0", FCVAR_NONE, "Testing");
 
+		ConCommand::StaticCreate("script_client", "Executes script code on the client vm", FCVAR_CLIENTDLL, CC_script_cl_f, nullptr);
+		ConCommand::StaticCreate("script_ui", "Executes script code on the ui vm", FCVAR_CLIENTDLL, CC_script_ui_f, nullptr);
+
+		if (!IsDedicatedServer()) // CLIENT
+		{
+			ConCommand::StaticCreate("toggleconsole", "Show/hide the console.", FCVAR_DONTRECORD, CC_ToggleConsole_f, nullptr);
+			ConCommand::StaticCreate("showconsole", "Show the console.", FCVAR_DONTRECORD, CC_ShowConsole_f, nullptr);
+			ConCommand::StaticCreate("hideconsole", "Hide the console.", FCVAR_DONTRECORD, CC_HideConsole_f, nullptr);
+		
+			ConCommand::StaticCreate("ns_script_servertoclientstringcommand", "", FCVAR_CLIENTDLL | FCVAR_SERVER_CAN_EXECUTE, CC_ns_script_servertoclientstringcommand_f, nullptr);
+		}
+
 		DevMsg(eLog::NS, "Finished initilasing new cvars for '%s'\n", "client.dll");
 		return;
 	}
@@ -37,6 +49,10 @@ void CVar_InitModule(std::string svModule)
 		Cvar_ns_ai_dumpAINfileFromLoad = ConVar::StaticCreate("ns_ai_dumpAINfileFromLoad", "0", FCVAR_NONE, "For debugging: whether we should dump ain data for ains loaded from disk");
 		Cvar_ns_exploitfixes_log = ConVar::StaticCreate("ns_exploitfixes_log", "1", FCVAR_GAMEDLL, "Whether to log whenever ExploitFixes.cpp blocks/corrects something");
 		Cvar_ns_should_log_all_clientcommands = ConVar::StaticCreate("ns_should_log_all_clientcommands", "0", FCVAR_NONE, "Whether to log all clientcommands");
+
+		// FCVAR_CHEAT and FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS allows clients to execute this, but since it's unsafe we only allow it when cheats
+		// are enabled for script_client and script_ui, we don't use cheats, so clients can execute them on themselves all they want
+		ConCommand::StaticCreate("script", "Executes script code on the server vm", FCVAR_GAMEDLL | FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS | FCVAR_CHEAT, CC_script_sv_f, nullptr);
 
 		DevMsg(eLog::NS, "Finished initilasing new cvars for '%s'\n", "server.dll");
 		return;
@@ -79,6 +95,36 @@ void CVar_InitModule(std::string svModule)
 		// disabled altogether, since the custom menus won't use it anyway this should only really be accepted if you want vanilla client
 		// compatibility
 		Cvar_ns_use_clc_SetPlaylistVarOverride = ConVar::StaticCreate("ns_use_clc_SetPlaylistVarOverride", "0", FCVAR_GAMEDLL, "Whether the server should accept clc_SetPlaylistVarOverride messages");
+
+		ConCommand::StaticCreate("reload_mods", "reloads mods", FCVAR_NONE, CC_reload_mods_f, nullptr);
+		ConCommand::StaticCreate("ns_fetchservers", "Fetch all servers from the masterserver", FCVAR_CLIENTDLL, CC_ns_fetchservers_f, nullptr);
+
+		ConCommand::StaticCreate("dump_datatables", "dumps all datatables from a hardcoded list", FCVAR_NONE, CC_dump_datatables_f, nullptr);
+		ConCommand::StaticCreate("dump_datatable", "dump a datatable", FCVAR_NONE, CC_dump_datatable_f, nullptr);
+
+		ConCommand::StaticCreate("ban", "bans a given player by uid or name", FCVAR_GAMEDLL, CC_ban_f, nullptr);
+		ConCommand::StaticCreate("unban", "unbans a given player by uid", FCVAR_GAMEDLL, CC_unban_f, nullptr);
+		ConCommand::StaticCreate("clearbanlist", "clears all uids on the banlist", FCVAR_GAMEDLL, CC_clearbanlist_f, nullptr);
+
+		ConCommand::StaticCreate("ns_resetpersistence", "resets your pdata when you next enter the lobby", FCVAR_NONE, CC_ns_resetpersistence_f, nullptr);
+
+		ConCommand::StaticCreate("ns_start_reauth_and_leave_to_lobby", "called by the server, used to reauth and return the player to lobby when leaving a game", FCVAR_SERVER_CAN_EXECUTE, CC_ns_start_reauth_and_leave_to_lobby_f, nullptr);
+		ConCommand::StaticCreate("ns_end_reauth_and_leave_to_lobby", "", FCVAR_NONE, CC_ns_end_reauth_and_leave_to_lobby_f, nullptr);
+
+		// playlist is the name of the command on respawn servers, but we already use setplaylist so can't get rid of it
+		ConCommand::StaticCreate("playlist", "Sets the current playlist", FCVAR_NONE, CC_playlist_f, nullptr);
+		ConCommand::StaticCreate("setplaylist", "Sets the current playlist", FCVAR_NONE, CC_playlist_f, nullptr);
+		ConCommand::StaticCreate("setplaylistvaroverrides", "sets a playlist var override", FCVAR_NONE, CC_setplaylistvaroverride_f, nullptr);
+
+		ConCommand::StaticCreate("find", "Find concommands with the specified string in their name/help text.", FCVAR_NONE, CC_find_f, nullptr);
+		ConCommand::StaticCreate("findflags", "Find concommands by flags.", FCVAR_NONE, CC_findflags_f, nullptr);
+
+		if (!IsDedicatedServer()) // CLIENT
+		{
+			ConCommand::StaticCreate("say", "Enters a message in public chat", FCVAR_CLIENTDLL, CC_Say_f, nullptr);
+			ConCommand::StaticCreate("say_team", "Enters a message in team chat", FCVAR_CLIENTDLL, CC_SayTeam_f, nullptr);
+			ConCommand::StaticCreate("log", "Log a message to the local chat window", FCVAR_CLIENTDLL, CC_Log_f, nullptr);
+		}
 
 		DevMsg(eLog::NS, "Finished initilasing new cvars for '%s'\n", "engine.dll");
 		return;

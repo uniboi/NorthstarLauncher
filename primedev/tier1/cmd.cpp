@@ -4,6 +4,21 @@
 
 #include <iostream>
 
+typedef void (*ConCommandConstructorType)(ConCommand* newCommand, const char* name, FnCommandCallback callback, const char* helpString, int flags, void* parent);
+ConCommandConstructorType ConCommandConstructor;
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+ConCommand* ConCommand::StaticCreate(const char* szName, const char* szHelpString, int nFlags, FnCommandCallback pCallback, FnCommandCompletionCallback pCommandCompletionCallback)
+{
+	ConCommand* pConCommand = reinterpret_cast<ConCommand*>(GlobalMemAllocSingleton()->m_vtable->Alloc(g_pMemAllocSingleton, sizeof(ConCommand)));
+	ConCommandConstructor(pConCommand, szName, pCallback, szHelpString, nFlags, nullptr);
+	pConCommand->m_pCompletionCallback = pCommandCompletionCallback;
+
+	return pConCommand;
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Returns true if this is a command
 // Output : bool
@@ -120,30 +135,7 @@ char* ConCommandBase::CopyString(const char* szFrom) const
 	return szTo;
 }
 
-typedef void (*ConCommandConstructorType)(ConCommand* newCommand, const char* name, FnCommandCallback_t callback, const char* helpString, int flags, void* parent);
-ConCommandConstructorType ConCommandConstructor;
-
-void RegisterConCommand(const char* name, FnCommandCallback_t callback, const char* helpString, int flags)
-{
-	DevMsg(eLog::ENGINE, "Registering ConCommand %s\n", name);
-
-	// no need to free this ever really, it should exist as long as game does
-	ConCommand* newCommand = new ConCommand;
-	ConCommandConstructor(newCommand, name, callback, helpString, flags, nullptr);
-}
-
-void RegisterConCommand(const char* name, FnCommandCallback_t callback, const char* helpString, int flags, FnCommandCompletionCallback completionCallback)
-{
-	DevMsg(eLog::ENGINE, "Registering ConCommand %s\n", name);
-
-	// no need to free this ever really, it should exist as long as game does
-	ConCommand* newCommand = new ConCommand;
-	ConCommandConstructor(newCommand, name, callback, helpString, flags, nullptr);
-	newCommand->m_pCompletionCallback = completionCallback;
-}
-
 ON_DLL_LOAD("engine.dll", ConCommand, (CModule module))
 {
 	ConCommandConstructor = module.Offset(0x415F60).RCast<ConCommandConstructorType>();
-	AddMiscConCommands();
 }

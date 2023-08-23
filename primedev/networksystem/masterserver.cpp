@@ -843,18 +843,11 @@ void MasterServerManager::ProcessConnectionlessPacketSigreq1(std::string data)
 	Error(eLog::MS, NO_ERROR, "invalid Atlas connectionless packet request: unknown type %s\n", type.c_str());
 }
 
-void ConCommand_ns_fetchservers(const CCommand& args)
-{
-	g_pMasterServerManager->RequestServerList();
-}
-
 MasterServerManager::MasterServerManager() : m_pendingConnectionInfo {}, m_sOwnServerId {""}, m_sOwnClientAuthToken {""} {}
 
 ON_DLL_LOAD_RELIESON("engine.dll", MasterServer, (ConCommand, ServerPresence), (CModule module))
 {
 	g_pMasterServerManager = new MasterServerManager;
-
-	RegisterConCommand("ns_fetchservers", ConCommand_ns_fetchservers, "Fetch all servers from the masterserver", FCVAR_CLIENTDLL);
 
 	MasterServerPresenceReporter* presenceReporter = new MasterServerPresenceReporter;
 	g_pServerPresence->AddPresenceReporter(presenceReporter);

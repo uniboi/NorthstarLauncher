@@ -709,9 +709,7 @@ void ModManager::LoadMods()
 			// make sure command isnt't registered multiple times.
 			if (!g_pCVar->FindCommand(command->Name.c_str()))
 			{
-				ConCommand* newCommand = new ConCommand();
-				std::string funcName = command->Function;
-				RegisterConCommand(command->Name.c_str(), ModConCommandCallback, command->HelpString.c_str(), command->Flags);
+				ConCommand::StaticCreate(command->Name.c_str(), command->HelpString.c_str(), command->Flags, ModConCommandCallback, nullptr);
 			}
 		}
 
@@ -1037,11 +1035,6 @@ void ModManager::CompileAssetsForFile(const char* filename)
 	}
 }
 
-void ConCommand_reload_mods(const CCommand& args)
-{
-	g_pModManager->LoadMods();
-}
-
 fs::path GetModFolderPath()
 {
 	return fs::path(g_svProfileDir + MOD_FOLDER_SUFFIX);
@@ -1062,6 +1055,4 @@ fs::path GetCompiledAssetsPath()
 ON_DLL_LOAD_RELIESON("engine.dll", ModManager, (ConCommand, MasterServer), (CModule module))
 {
 	g_pModManager = new ModManager;
-
-	RegisterConCommand("reload_mods", ConCommand_reload_mods, "reloads mods", FCVAR_NONE);
 }
