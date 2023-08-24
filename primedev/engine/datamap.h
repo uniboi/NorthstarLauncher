@@ -108,8 +108,6 @@ struct datamap_t
 	typedescription_t* dataDesc;
 	int dataNumFields;
 	char const* dataClassName;
-	datamap_t* baseMap;
-
-	int m_nPackedSize;
-	void* m_pOptimizedDataMap;
+	char pad[12];
+	datamap_t* pBaseMap;
 };

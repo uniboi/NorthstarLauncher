@@ -18,6 +18,7 @@
 #include "client/r2client.h"
 #include "shared/playlist.h"
 #include "util/printcommands.h"
+#include "engine/datamap.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -44,6 +45,24 @@ void NS_ServerDesc_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 void NS_ServerPass_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
 	g_pServerPresence->SetPassword(Cvar_ns_server_password->GetString());
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CC_dump_datamap(const CCommand& args)
+{
+	HMODULE hServer = GetModuleHandleA("server.dll");
+	if (!hServer)
+	{
+		Error(eLog::ENGINE, NO_ERROR, "server.dll not loaded!\n");
+	}
+
+	CModule mServer(hServer);
+
+	datamap_t* pMap = mServer.Offset(0xAF10F0).RCast<datamap_t*>();
+
+	DataMap_Dump(pMap);
 }
 
 //-----------------------------------------------------------------------------

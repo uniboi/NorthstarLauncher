@@ -50,6 +50,8 @@ void CVar_InitModule(std::string svModule)
 		Cvar_ns_exploitfixes_log = ConVar::StaticCreate("ns_exploitfixes_log", "1", FCVAR_GAMEDLL, "Whether to log whenever ExploitFixes.cpp blocks/corrects something");
 		Cvar_ns_should_log_all_clientcommands = ConVar::StaticCreate("ns_should_log_all_clientcommands", "0", FCVAR_NONE, "Whether to log all clientcommands");
 
+		ConCommand::StaticCreate("dump_datamap", "", FCVAR_NONE, CC_dump_datamap, nullptr);
+
 		// FCVAR_CHEAT and FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS allows clients to execute this, but since it's unsafe we only allow it when cheats
 		// are enabled for script_client and script_ui, we don't use cheats, so clients can execute them on themselves all they want
 		ConCommand::StaticCreate("script", "Executes script code on the server vm", FCVAR_GAMEDLL | FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS | FCVAR_CHEAT, CC_script_sv_f, nullptr);

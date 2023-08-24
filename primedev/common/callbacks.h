@@ -4,6 +4,8 @@ void NS_ServerName_f(ConVar* cvar, const char* pOldValue, float flOldValue);
 void NS_ServerDesc_f(ConVar* cvar, const char* pOldValue, float flOldValue);
 void NS_ServerPass_f(ConVar* cvar, const char* pOldValue, float flOldValue);
 
+void CC_dump_datamap(const CCommand& args);
+
 void CC_Say_f(const CCommand& args);
 void CC_SayTeam_f(const CCommand& args);
 void CC_Log_f(const CCommand& args);
