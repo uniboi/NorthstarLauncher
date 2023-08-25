@@ -86,7 +86,7 @@ void Launcher_PrintEmblem()
 //-----------------------------------------------------------------------------
 CNorthstarLauncher::CNorthstarLauncher()
 {
-	m_svProfile = Launcher_GetProfile();
+	g_svProfileDir = Launcher_GetProfile();
 	m_wsvExePath = Launcher_GetExePath();
 
 	SetCurrentDirectoryW(m_wsvExePath.c_str());
@@ -135,9 +135,9 @@ void CNorthstarLauncher::InitCoreSubsystems()
 	// TODO: Verify install dir
 
 	// Verify profile
-	if (m_svProfile.empty() || !CreateDirectories(m_svProfile))
+	if (g_svProfileDir.empty() || !CreateDirectories(g_svProfileDir))
 	{
-		std::string svErrorMsg = FormatA("Profile: '%s' is invalid. Make sure you used valid characters!", m_svProfile.c_str());
+		std::string svErrorMsg = FormatA("Profile: '%s' is invalid. Make sure you used valid characters!", g_svProfileDir.c_str());
 		MessageBoxA(NULL, svErrorMsg.c_str(), "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
@@ -171,7 +171,7 @@ void CNorthstarLauncher::InitCoreSubsystems()
 //-----------------------------------------------------------------------------
 void CNorthstarLauncher::InitNorthstarSubsystems()
 {
-	g_svLogDirectory = fmt::format("{:s}\\logs\\{:s}", m_svProfile, CreateTimeStamp());
+	g_svLogDirectory = fmt::format("{:s}\\logs\\{:s}", g_svProfileDir, CreateTimeStamp());
 
 	// Check if install dir is writable
 	SpdLog_PreInit();
@@ -232,7 +232,7 @@ void CNorthstarLauncher::InjectNorthstar()
 	//------------------------------------------------------
 	DevMsg(eLog::NONE, "CommandLine      : %s\n", GetCommandLineA());
 
-	DevMsg(eLog::NONE, "Profile          : %s\n", m_svProfile.c_str());
+	DevMsg(eLog::NONE, "Profile          : %s\n", g_svProfileDir.c_str());
 
 	// Get 'NorthstarPrime_GetVersion'
 	const char* (*NorthstarPrime_GetVersion)();
@@ -290,7 +290,7 @@ void CNorthstarLauncher::InjectNorthstar()
 	//------------------------------------------------------
 	// Initilase northstar
 	//------------------------------------------------------
-	NorthstarPrime_Initilase(reinterpret_cast<LogMsgFn>(LogMsg), m_svProfile.c_str());
+	NorthstarPrime_Initilase(reinterpret_cast<LogMsgFn>(LogMsg), g_svProfileDir.c_str());
 
 #ifdef LAUNCHER
 	//------------------------------------------------------

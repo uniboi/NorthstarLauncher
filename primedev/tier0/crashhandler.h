@@ -35,16 +35,6 @@ class CCrashHandler
 		return m_bState;
 	}
 
-	void SetAllFatal(bool bState)
-	{
-		m_bAllExceptionsFatal = bState;
-	}
-
-	bool GetAllFatal() const
-	{
-		return m_bAllExceptionsFatal;
-	}
-
 	//-----------------------------------------------------------------------------
 	// Exception helpers
 	//-----------------------------------------------------------------------------
@@ -83,7 +73,6 @@ class CCrashHandler
 	PVOID m_hExceptionFilter;
 	EXCEPTION_POINTERS* m_pExceptionInfos;
 
-	bool m_bAllExceptionsFatal;
 	bool m_bHasShownCrashMsg;
 	bool m_bState;
 

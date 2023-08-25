@@ -23,9 +23,9 @@
 // Get around version gate
 #define NORTHSTAR_USERAGENT "R2Northstar/0.0.0+dev"
 
-#ifdef NORTHSTAR
 inline std::string g_svProfileDir;
 
+#ifdef NORTHSTAR
 typedef void (*callable)();
 typedef void (*callable_v)(void* v);
 
@@ -101,7 +101,6 @@ inline void LogPtrAdr(const char* szName, void* pVar)
     DevMsg(eLog::NONE, "Ptr '%s' is at: %s + %#x\n", szName, pszModuleFileName, (void*)pRelativeAddress);
 }
 
-#ifdef NORTHSTAR
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -110,7 +109,6 @@ inline bool IsDedicatedServer()
 	static bool result = strstr(GetCommandLineA(), "-dedicated");
 	return result;
 }
-#endif
 
 //-----------------------------------------------------------------------------
 // 

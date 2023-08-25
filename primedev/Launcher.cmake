@@ -15,6 +15,8 @@ add_executable(PrimeLauncher
                "tier0/crashhandler.h"
 			   "tier0/dbg.cpp"
 			   "tier0/dbg.h"
+               "tier0/filestream.cpp"
+               "tier0/filestream.h"
 			   "windows/wconsole.cpp"
 			   "windows/wconsole.h"
 )

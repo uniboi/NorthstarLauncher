@@ -20,7 +20,6 @@ class CNorthstarLauncher
 	void InjectNorthstar();
 
   private:
-	std::string m_svProfile;
 	std::wstring m_wsvExePath;
 };
 

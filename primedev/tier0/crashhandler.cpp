@@ -1,14 +1,14 @@
 #include "crashhandler.h"
-#include <fstream>
 #include <minidumpapiset.h>
 #include <Psapi.h>
 #include <util/utils.h>
 #include <util/filesystem.h>
 #include "logging/logging.h"
 #include "tier0/dbg.h"
+#include "tier0/filestream.h"
 
 #define CRASHHANDLER_MAX_FRAMES 32
-#define CRASHHANDLER_GETMODULEHANDLE_FAIL "GetModuleHandleExA failed!"
+#define CRASHHANDLER_GETMODULEHANDLE_FAIL "GetModuleHandleExA_failed!"
 
 //-----------------------------------------------------------------------------
 // Purpose: Vectored exception callback
@@ -20,11 +20,7 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionInfo)
 	g_pCrashHandler->SetExceptionInfos(pExceptionInfo);
 
 	// Check if we should handle this
-	// NOTE [Fifty]: This gets called before even a try{} catch() {} can handle
-	// an exception
-	//               we don't handle these unless "-crash_handle_all" is passed
-	//               as a launch arg
-	if (!g_pCrashHandler->IsExceptionFatal() && !g_pCrashHandler->GetAllFatal())
+	if (!g_pCrashHandler->IsExceptionFatal())
 	{
 		g_pCrashHandler->Unlock();
 		return EXCEPTION_CONTINUE_SEARCH;
@@ -68,18 +64,13 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionInfo)
 
 	g_pCrashHandler->Unlock();
 
-	// We showed the "Northstar has crashed" message box
-	// make sure we terminate
-	if (!g_pCrashHandler->IsExceptionFatal())
-		ExitProcess(1);
-
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CCrashHandler::CCrashHandler() : m_hExceptionFilter(nullptr), m_pExceptionInfos(nullptr), m_bAllExceptionsFatal(false), m_bHasShownCrashMsg(false), m_bState(false)
+CCrashHandler::CCrashHandler() : m_hExceptionFilter(nullptr), m_pExceptionInfos(nullptr), m_bHasShownCrashMsg(false), m_bState(false)
 {
 	Init();
 }
@@ -259,14 +250,23 @@ void CCrashHandler::ShowPopUpMessage()
 
 	m_bHasShownCrashMsg = true;
 
-	if (true) // todo: isdedi
+	if (!IsDedicatedServer())
 	{
-		std::string svMessage = FormatA("Northstar has crashed! Crash info can be found at "
-										"%s/logs!\n\n%s\n%s + %s",
-										"", // todo: profile
-										GetExceptionString(), m_svCrashedModule.c_str(), m_svCrashedOffset.c_str());
+		// Create Crash Message dialog
+		STARTUPINFOA si;
+		PROCESS_INFORMATION pi;
 
-		MessageBoxA(GetForegroundWindow(), svMessage.c_str(), "Northstar has crashed!", MB_ICONERROR | MB_OK);
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		ZeroMemory(&pi, sizeof(pi));
+
+		std::string svCmdLine = fmt::format("bin\\CrashMsg.exe {} {} {} {}", GetExceptionString(), m_svCrashedModule, m_svCrashedOffset, g_svProfileDir);
+
+		if (CreateProcessA(NULL, (LPSTR)svCmdLine.c_str(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+		{
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
 	}
 }
 
@@ -281,7 +281,7 @@ void CCrashHandler::FormatException()
 		m_svLog += "\tEncountered an error when gathering crash information!";
 		m_svLog += FormatA("\tWinApi Error: %s\n", m_svError.c_str());
 	}
-	m_svLog += FormatA("\t%s\n", GetExceptionString());
+	m_svLog += FormatA("\t%s", GetExceptionString());
 
 	DWORD dwExceptionCode = m_pExceptionInfos->ExceptionRecord->ExceptionCode;
 	if (dwExceptionCode == EXCEPTION_ACCESS_VIOLATION || dwExceptionCode == EXCEPTION_IN_PAGE_ERROR)
@@ -290,17 +290,16 @@ void CCrashHandler::FormatException()
 		ULONG_PTR uExceptionInfo1 = m_pExceptionInfos->ExceptionRecord->ExceptionInformation[1];
 
 		if (!uExceptionInfo0)
-			m_svLog += FormatA("\tAttempted to read from: 0x%x\n", uExceptionInfo1);
+			m_svLog += FormatA("\t(read): 0x%x", uExceptionInfo1);
 		else if (uExceptionInfo0 == 1)
-			m_svLog += FormatA("\tAttempted to write to: 0x%x\n", uExceptionInfo1);
+			m_svLog += FormatA("\t(write): 0x%x", uExceptionInfo1);
 		else if (uExceptionInfo0 == 8)
-			m_svLog += FormatA("\tData Execution Prevention (DEP) at: 0x%x\n", uExceptionInfo1);
+			m_svLog += FormatA("\t(dep): 0x%x\n", uExceptionInfo1);
 		else
-			m_svLog += FormatA("\tUnknown access violation at: 0x%x\n", uExceptionInfo1);
+			m_svLog += FormatA("\t(unk): 0x%x\n", uExceptionInfo1);
 	}
 
-	m_svLog += FormatA("\tAt: %s + %s\n", m_svCrashedModule.c_str(), m_svCrashedOffset.c_str());
-	m_svLog += "}\n";
+	m_svLog += "\n}\n";
 }
 
 //-----------------------------------------------------------------------------
@@ -487,14 +486,11 @@ void CCrashHandler::WriteLogToDisk()
 	CreateDirectories(g_svLogDirectory);
 
 	// Write the file
-	std::fstream fs;
-
-	fs.open(FormatA("%s\\crash_log.txt", g_svLogDirectory.c_str()), std::fstream::out);
-
-	if (fs.good())
+	CFileStream fStream;
+	if (fStream.Open(FormatA("%s\\crash_log.txt", g_svLogDirectory.c_str()).c_str(), CFileStream::WRITE))
 	{
-		fs << m_svLog;
-		fs.close();
+		fStream.WriteString(m_svLog);
+		fStream.Close();
 	}
 }
 

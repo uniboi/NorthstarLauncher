@@ -15,6 +15,8 @@ add_library(loader_wsock32_proxy SHARED
 			"tier0/crashhandler.h"
 			"tier0/dbg.cpp"
 			"tier0/dbg.h"
+            "tier0/filestream.cpp"
+            "tier0/filestream.h"
             "wsockproxy/dllmain.cpp"
             "wsockproxy/proxy.cpp"
 			"windows/wconsole.cpp"
