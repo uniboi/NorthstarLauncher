@@ -35,6 +35,8 @@ target_link_libraries(CrashMsg PRIVATE
                       WS2_32.lib
 )
 
+target_include_directories(CrashMsg PRIVATE utils/crashmsg)
+
 set_target_properties(CrashMsg PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}/bin
 					  OUTPUT_NAME crashmsg

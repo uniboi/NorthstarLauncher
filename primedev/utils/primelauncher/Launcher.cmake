@@ -7,10 +7,10 @@ add_executable(PrimeLauncher
 			   "util/filesystem.h"
 			   "util/utils.cpp"
 			   "util/utils.h"
-			   "primelauncher/launcher.cpp"
-			   "primelauncher/launcher.h"
-               "primelauncher/main.cpp"
-               "primelauncher/resources.rc"
+			   "utils/primelauncher/launcher.cpp"
+			   "utils/primelauncher/launcher.h"
+               "utils/primelauncher/main.cpp"
+               "utils/primelauncher/resources.rc"
                "tier0/crashhandler.cpp"
                "tier0/crashhandler.h"
 			   "tier0/dbg.cpp"
@@ -46,6 +46,8 @@ target_link_libraries(PrimeLauncher PRIVATE
                       odbccp32.lib
                       WS2_32.lib
 )
+
+target_include_directories(PrimeLauncher PRIVATE utils/primelauncher)
 
 set_target_properties(PrimeLauncher PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
