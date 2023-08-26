@@ -119,6 +119,7 @@ void CVar_InitModule(std::string svModule)
 		ConCommand::StaticCreate("setplaylistvaroverrides", "sets a playlist var override", FCVAR_NONE, CC_setplaylistvaroverride_f, nullptr);
 
 		ConCommand::StaticCreate("find", "Find concommands with the specified string in their name/help text.", FCVAR_NONE, CC_find_f, nullptr);
+		ConCommand::StaticCreate("cvar_printaddr", "Prints relative address of a cvar.", FCVAR_NONE, CC_printcvaraddr_f, nullptr);
 
 		if (!IsDedicatedServer()) // CLIENT
 		{

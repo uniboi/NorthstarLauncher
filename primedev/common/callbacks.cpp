@@ -424,3 +424,25 @@ void CC_help_f(const CCommand& arg)
 
 	g_pCVar->PrintHelpString(arg.Arg(1));
 }
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CC_printcvaraddr_f(const CCommand& arg)
+{
+	if (arg.ArgC() < 2)
+	{
+		DevMsg(eLog::NS, "Usage: cvar_printaddr <string>\n");
+		return;
+	}
+
+	const ConCommandBase* pCmdBase = g_pCVar->FindCommandBase(arg.Arg(1));
+
+	if (!pCmdBase)
+	{
+		Error(eLog::NS, NO_ERROR, "'%s' doesn't exist!\n", arg.Arg(1));
+		return;
+	}
+
+	LogPtrAdr(pCmdBase->m_pszName, (void*)pCmdBase);
+}
