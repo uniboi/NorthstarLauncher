@@ -17,7 +17,6 @@
 #include "engine/hoststate.h"
 #include "client/r2client.h"
 #include "shared/playlist.h"
-#include "util/printcommands.h"
 #include "engine/datamap.h"
 
 //-----------------------------------------------------------------------------
@@ -375,74 +374,53 @@ void CC_find_f(const CCommand& arg)
 		return;
 	}
 
-	char pTempName[256];
-	char pTempSearchTerm[256];
+	CCVarIteratorInternal* pIter = g_pCVar->FactoryInternalIterator();
 
-	for (auto& map : g_pCVar->DumpToMap())
+	char szLowerName[256];
+	char szLowerTerm[256];
+
+	// Loop through all commandbases
+	for (pIter->SetFirst(); pIter->IsValid(); pIter->Next())
 	{
-		bool bPrintCommand = true;
+		ConCommandBase* pCmdBase = pIter->Get();
+		bool bFound = false;
+
+		// Loop through all passed arguments
 		for (int i = 0; i < arg.ArgC() - 1; i++)
 		{
-			// make lowercase to avoid case sensitivity
-			strncpy_s(pTempName, sizeof(pTempName), map.second->m_pszName, sizeof(pTempName) - 1);
-			strncpy_s(pTempSearchTerm, sizeof(pTempSearchTerm), arg.Arg(i + 1), sizeof(pTempSearchTerm) - 1);
+			strncpy_s(szLowerName, sizeof(szLowerName), pCmdBase->m_pszName, sizeof(szLowerName) - 1);
+			strncpy_s(szLowerTerm, sizeof(szLowerTerm), arg.Arg(i + 1), sizeof(szLowerTerm) - 1);
 
-			for (int i = 0; pTempName[i]; i++)
-				pTempName[i] = tolower(pTempName[i]);
+			for (int i = 0; szLowerName[i]; i++)
+				szLowerName[i] = tolower(szLowerName[i]);
 
-			for (int i = 0; pTempSearchTerm[i]; i++)
-				pTempSearchTerm[i] = tolower(pTempSearchTerm[i]);
+			for (int i = 0; szLowerTerm[i]; i++)
+				szLowerTerm[i] = tolower(szLowerTerm[i]);
 
-			if (!strstr(pTempName, pTempSearchTerm))
+			if (strstr(szLowerName, szLowerTerm))
 			{
-				bPrintCommand = false;
+				bFound = true;
 				break;
 			}
 		}
 
-		if (bPrintCommand)
-			PrintCommandHelpDialogue(map.second, map.second->m_pszName);
+		if (bFound)
+		{
+			g_pCVar->PrintHelpString(pCmdBase->m_pszName);
+		}
 	}
 }
 
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void CC_findflags_f(const CCommand& arg)
+void CC_help_f(const CCommand& arg)
 {
 	if (arg.ArgC() < 2)
 	{
-		DevMsg(eLog::NS, "Usage: findflags <string>\n");
-		for (auto& flagPair : g_PrintCommandFlags)
-			DevMsg(eLog::NS, "   - %i\n", flagPair.second);
-
+		DevMsg(eLog::NS, "Usage: help <string>\n");
 		return;
 	}
 
-	// convert input flag to uppercase
-	char* upperFlag = new char[strlen(arg.Arg(1))];
-	strcpy(upperFlag, arg.Arg(1));
-
-	for (int i = 0; upperFlag[i]; i++)
-		upperFlag[i] = toupper(upperFlag[i]);
-
-	// resolve flag name => int flags
-	int resolvedFlag = FCVAR_NONE;
-	for (auto& flagPair : g_PrintCommandFlags)
-	{
-		if (!strcmp(flagPair.second, upperFlag))
-		{
-			resolvedFlag |= flagPair.first;
-			break;
-		}
-	}
-
-	// print cvars
-	for (auto& map : g_pCVar->DumpToMap())
-	{
-		if (map.second->m_nFlags & resolvedFlag)
-			PrintCommandHelpDialogue(map.second, map.second->m_pszName);
-	}
-
-	delete[] upperFlag;
+	g_pCVar->PrintHelpString(arg.Arg(1));
 }

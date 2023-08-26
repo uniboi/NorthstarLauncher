@@ -119,7 +119,6 @@ void CVar_InitModule(std::string svModule)
 		ConCommand::StaticCreate("setplaylistvaroverrides", "sets a playlist var override", FCVAR_NONE, CC_setplaylistvaroverride_f, nullptr);
 
 		ConCommand::StaticCreate("find", "Find concommands with the specified string in their name/help text.", FCVAR_NONE, CC_find_f, nullptr);
-		ConCommand::StaticCreate("findflags", "Find concommands by flags.", FCVAR_NONE, CC_findflags_f, nullptr);
 
 		if (!IsDedicatedServer()) // CLIENT
 		{
@@ -143,6 +142,9 @@ void CVar_InitShipped(std::string svModule)
 {
 	// Some convars may be initilased in different modules based on whether we're dedi or not
 	// due to this we init them the first time they're registered regardless of module
+
+	//-----------------------------------------------------------------------------
+	// ConVar
 
 	// demo_enableDemos
 	if (!Cvar_demo_enableDemos && (Cvar_demo_enableDemos = g_pCVar->FindVar("demo_enabledemos")))
@@ -213,6 +215,17 @@ void CVar_InitShipped(std::string svModule)
 	if (!Cvar_hostport && (Cvar_hostport = g_pCVar->FindVar("hostport")))
 	{
 		//
+	}
+
+	//-----------------------------------------------------------------------------
+	// ConCommands
+
+	// help
+	static ConCommand* CCmd_help = nullptr;
+	if (!CCmd_help && (CCmd_help = g_pCVar->FindCommand("help")))
+	{
+		CCmd_help->m_nFlags = FCVAR_NONE;
+		CCmd_help->m_pCommandCallback = CC_help_f;
 	}
 
 	DevMsg(eLog::NS, "Finished initilasing shipped cvars for '%s'\n", svModule.c_str());

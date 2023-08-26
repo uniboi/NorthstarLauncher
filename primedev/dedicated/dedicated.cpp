@@ -5,7 +5,6 @@
 #include "engine/hoststate.h"
 #include "server/auth/serverauthentication.h"
 #include "networksystem/masterserver.h"
-#include "util/printcommands.h"
 #include "engine/sys_engine.h"
 
 AUTOHOOK_INIT()
@@ -88,7 +87,6 @@ DWORD WINAPI ConsoleInputThread(PVOID pThreadParameter)
 		{
 			input += "\n";
 			Cbuf_AddText(Cbuf_GetCurrentPlayer(), input.c_str(), cmd_source_t::kCommandSrcCode);
-			TryPrintCvarHelpForCommand(input.c_str()); // this needs to be done on main thread, unstable in this one
 		}
 	}
 

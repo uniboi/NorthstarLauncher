@@ -1,7 +1,6 @@
 #include "tier1/convar.h"
 #include "GameConsole.h"
 #include "tier1/cmd.h"
-#include "util/printcommands.h"
 
 AUTOHOOK_INIT()
 
@@ -16,9 +15,6 @@ AUTOHOOK(CGameConsole_OnCommandSubmitted, client.dll + 0x4A2550, void, __fastcal
 // clang-format on
 {
 	DevMsg(eLog::NONE, "] %s\n", pszCommand);
-
-	TryPrintCvarHelpForCommand(pszCommand);
-
 	CGameConsole_OnCommandSubmitted(pConsoleDialog, pszCommand);
 }
 

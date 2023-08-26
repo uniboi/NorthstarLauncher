@@ -40,4 +40,5 @@ void CC_script_cl_f(const CCommand& args);
 void CC_script_sv_f(const CCommand& args);
 
 void CC_find_f(const CCommand& arg);
-void CC_findflags_f(const CCommand& arg);
+
+void CC_help_f(const CCommand& arg);

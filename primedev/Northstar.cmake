@@ -161,8 +161,6 @@ add_library(NorthstarDLL SHARED
             "tier1/utlmemory.h"
 			"util/filesystem.cpp"
 			"util/filesystem.h"
-            "util/printcommands.cpp"
-            "util/printcommands.h"
             "util/printmaps.cpp"
             "util/printmaps.h"
             "util/utils.cpp"
