@@ -446,3 +446,24 @@ void CC_printcvaraddr_f(const CCommand& arg)
 
 	LogPtrAdr(pCmdBase->m_pszName, (void*)pCmdBase);
 }
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CC_maps_f(const CCommand& args)
+{
+	if (args.ArgC() < 2)
+	{
+		DevMsg(eLog::NS, "Usage: maps <substring>\n");
+		DevMsg(eLog::NS, "maps * for full listing\n");
+		return;
+	}
+
+	for (MapVPKInfo_t& map : g_pModManager->m_vMapList)
+	{
+		if ((*args.Arg(1) == '*' && !args.Arg(1)[1]) || strstr(map.svName.c_str(), args.Arg(1)))
+		{
+			DevMsg(eLog::NS, "(%i) %s\n", map.eSource, map.svName.c_str());
+		}
+	}
+}

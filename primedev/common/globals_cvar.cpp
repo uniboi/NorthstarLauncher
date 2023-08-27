@@ -229,6 +229,13 @@ void CVar_InitShipped(std::string svModule)
 		CCmd_help->m_pCommandCallback = CC_help_f;
 	}
 
+	// maps
+	static ConCommand* CCmd_maps = nullptr;
+	if (!CCmd_maps && (CCmd_maps = g_pCVar->FindCommand("maps")))
+	{
+		CCmd_maps->m_pCommandCallback = CC_maps_f;
+	}
+
 	DevMsg(eLog::NS, "Finished initilasing shipped cvars for '%s'\n", svModule.c_str());
 }
 

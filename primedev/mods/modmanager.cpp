@@ -6,6 +6,7 @@
 #include "filesystem/basefilesystem.h"
 #include "rtech/pakapi.h"
 #include "squirrel/squirrel.h"
+#include "engine/r2engine.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/document.h"
@@ -956,11 +957,14 @@ void ModManager::LoadMods()
 	g_pMasterServerManager->m_sOwnModInfoJson = std::string(buffer.GetString());
 
 	m_bHasLoadedMods = true;
+
+	ReloadMapsList();
 }
 
 void ModManager::UnloadMods()
 {
 	// clean up stuff from mods before we unload
+	m_vMapList.clear();
 	m_ModFiles.clear();
 	fs::remove_all(GetCompiledAssetsPath());
 
@@ -1031,6 +1035,77 @@ void ModManager::CompileAssetsForFile(const char* filename)
 				TryBuildKeyValues(filename);
 				return;
 			}
+		}
+	}
+}
+
+void ModManager::ReloadMapsList()
+{
+	for (auto& modFilePair : m_ModFiles)
+	{
+		ModOverrideFile file = modFilePair.second;
+		if (file.m_Path.extension() == ".bsp" && file.m_Path.parent_path().string() == "maps") // only allow mod maps actually in /maps atm
+		{
+			MapVPKInfo_t& map = m_vMapList.emplace_back();
+			map.svName = file.m_Path.stem().string();
+			map.svParent = file.m_pOwningMod->Name;
+			map.eSource = ModManager::MOD;
+		}
+	}
+
+	// get maps in vpk
+	{
+		const int iNumRetailNonMapVpks = 1;
+		static const char* const ppRetailNonMapVpks[] = {"englishclient_frontend.bsp.pak000_dir.vpk"}; // don't include mp_common here as it contains mp_lobby
+
+		// matches directory vpks, and captures their map name in the first group
+		static const std::regex rVpkMapRegex("englishclient_([a-zA-Z0-9_]+)\\.bsp\\.pak000_dir\\.vpk", std::regex::icase);
+
+		for (fs::directory_entry file : fs::directory_iterator("./vpk"))
+		{
+			std::string pathString = file.path().filename().string();
+
+			bool bIsValidMapVpk = true;
+			for (int i = 0; i < iNumRetailNonMapVpks; i++)
+			{
+				if (!pathString.compare(ppRetailNonMapVpks[i]))
+				{
+					bIsValidMapVpk = false;
+					break;
+				}
+			}
+
+			if (!bIsValidMapVpk)
+				continue;
+
+			// run our map vpk regex on the filename
+			std::smatch match;
+			std::regex_match(pathString, match, rVpkMapRegex);
+
+			if (match.length() < 2)
+				continue;
+
+			std::string mapName = match[1].str();
+			// special case: englishclient_mp_common contains mp_lobby, so hardcode the name here
+			if (mapName == "mp_common")
+				mapName = "mp_lobby";
+
+			MapVPKInfo_t& map = m_vMapList.emplace_back();
+			map.svName = mapName;
+			map.svParent = pathString;
+			map.eSource = ModManager::VPK;
+		}
+	}
+
+	// get maps in game dir
+	for (fs::directory_entry file : fs::directory_iterator(fmt::format("{}/maps", "r2"))) // assume mod dir
+	{
+		if (file.path().extension() == ".bsp")
+		{
+			MapVPKInfo_t& map = m_vMapList.emplace_back();
+			map.svName = file.path().stem().string();
+			map.svParent = "R2";
+			map.eSource = ModManager::GAMEDIR;
 		}
 	}
 }

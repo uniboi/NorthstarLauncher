@@ -1,6 +1,5 @@
 #include "tier1/convar.h"
 #include "mods/modmanager.h"
-#include "util/printmaps.h"
 #include "shared/misccommands.h"
 #include "r2engine.h"
 
@@ -14,8 +13,6 @@ void, __fastcall, (bool bDedicated))
 	DevMsg(eLog::ENGINE, "Host_Init(bDedicated: %d)\n", bDedicated);
 	Host_Init(bDedicated);
 	FixupCvarFlags();
-	// need to initialise these after host_init since they do stuff to preexisting concommands/convars without being client/server specific
-	InitialiseMapsPrint();
 
 	// Hardcoded mod functionality, add something to mod.json or just teach users on how to +exec as a replacement ot this
 	Warning(eLog::ENGINE, "'autoexec_ns_*' files are deprecated!\n");

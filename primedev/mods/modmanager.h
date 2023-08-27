@@ -143,8 +143,22 @@ struct ModOverrideFile
 	fs::path m_Path;
 };
 
+struct MapVPKInfo_t
+{
+	std::string svName;
+	std::string svParent;
+	int eSource;
+};
+
 class ModManager
 {
+  public:
+	enum eMapSource : int
+	{
+		VPK,
+		GAMEDIR,
+		MOD
+	};
   private:
 	bool m_bHasLoadedMods = false;
 	bool m_bHasEnabledModsCfg;
@@ -159,6 +173,7 @@ class ModManager
 	std::vector<Mod> m_LoadedMods;
 	std::unordered_map<std::string, ModOverrideFile> m_ModFiles;
 	std::unordered_map<std::string, std::string> m_DependencyConstants;
+	std::vector<MapVPKInfo_t> m_vMapList;
 
   public:
 	ModManager();
@@ -172,6 +187,9 @@ class ModManager
 	void TryBuildKeyValues(const char* filename);
 	void BuildPdef();
 	void BuildKBActionsList();
+
+  private:
+	void ReloadMapsList();
 };
 
 fs::path GetModFolderPath();
