@@ -208,12 +208,12 @@ void CNorthstarLauncher::InjectNorthstar()
 	//------------------------------------------------------
 	// Load northstar
 	//------------------------------------------------------
-	std::wstring wsvNorthstar = FormatW(L"%s\\%s", m_wsvExePath.c_str(), L"Northstar.dll");
+	std::wstring wsvNorthstar = FormatW(L"%s\\bin\\x64_retail\\%s", m_wsvExePath.c_str(), L"Prime.dll");
 	HMODULE hNorthstar = LoadLibraryExW(wsvNorthstar.c_str(), NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 
 	if (!hNorthstar)
 	{
-		MessageBoxA(NULL, "Failed to load Northstar.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+		MessageBoxA(NULL, "Failed to load Prime.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 
@@ -223,7 +223,7 @@ void CNorthstarLauncher::InjectNorthstar()
 
 	if (!NorthstarPrime_Initilase)
 	{
-		MessageBoxA(NULL, "Loaded Northstar.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
+		MessageBoxA(NULL, "Loaded Prime.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
 		TerminateProcess(GetCurrentProcess(), -1);
 	}
 

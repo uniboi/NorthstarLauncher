@@ -1,10 +1,10 @@
-# NorthstarDLL
+# PrimeDLL
 
 find_package(minhook REQUIRED)
 find_package(libcurl REQUIRED)
 find_package(silver-bun REQUIRED)
 
-add_library(NorthstarDLL SHARED
+add_library(PrimeDLL SHARED
             "appframework/IAppSystem.h"
             "client/audio.cpp"
             "client/audio.h"
@@ -179,7 +179,7 @@ add_library(NorthstarDLL SHARED
 			"Northstar.def"
 )
 
-target_link_libraries(NorthstarDLL PRIVATE
+target_link_libraries(PrimeDLL PRIVATE
                       minhook
                       libcurl
                       silver-bun
@@ -193,17 +193,17 @@ target_link_libraries(NorthstarDLL PRIVATE
                       version.lib
 )
 
-target_precompile_headers(NorthstarDLL PRIVATE core/stdafx.h)
+target_precompile_headers(PrimeDLL PRIVATE core/stdafx.h)
 
-target_compile_definitions(NorthstarDLL PRIVATE
+target_compile_definitions(PrimeDLL PRIVATE
                            NORTHSTAR
                            UNICODE
                            _UNICODE
                            CURL_STATICLIB
 )
 
-set_target_properties(NorthstarDLL PROPERTIES
+set_target_properties(PrimeDLL PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
-                      OUTPUT_NAME Northstar
+                      OUTPUT_NAME bin/x64_retail/Prime
                       LINK_FLAGS "/MANIFEST:NO /DEBUG"
 )
