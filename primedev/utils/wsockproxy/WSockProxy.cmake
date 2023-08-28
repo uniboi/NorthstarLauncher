@@ -5,10 +5,8 @@ find_package(minhook REQUIRED)
 add_library(WSockProxy SHARED
             "logging/logging.cpp"
 			"logging/logging.h"
-            "util/filesystem.cpp"
-			"util/filesystem.h"
-			"util/utils.cpp"
-            "util/utils.h"
+			"tier0/utils.cpp"
+            "tier0/utils.h"
 			"utils/primelauncher/launcher.cpp"
 			"utils/primelauncher/launcher.h"
 			"tier0/crashhandler.cpp"

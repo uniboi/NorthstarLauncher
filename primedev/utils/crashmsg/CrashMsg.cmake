@@ -3,10 +3,8 @@
 add_executable(CrashMsg
                "tier0/filestream.cpp"
                "tier0/filestream.h"
-               "util/filesystem.cpp"
-			   "util/filesystem.h"
-			   "util/utils.cpp"
-			   "util/utils.h"
+               "tier0/utils.cpp"
+			   "tier0/utils.h"
                "utils/crashmsg/crashmsg.cpp"
 )
 

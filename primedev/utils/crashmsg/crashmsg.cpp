@@ -1,7 +1,5 @@
 #include <Windows.h>
 
-#include "util/filesystem.h"
-#include "util/utils.h"
 #include "tier0/filestream.h"
 #include <signal.h>
 

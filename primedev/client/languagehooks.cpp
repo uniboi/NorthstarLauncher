@@ -1,6 +1,3 @@
-#include "util/utils.h"
-
-#include <filesystem>
 #include <regex>
 
 AUTOHOOK_INIT()

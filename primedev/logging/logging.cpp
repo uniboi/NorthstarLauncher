@@ -10,7 +10,6 @@
 #include <sstream>
 #include <shellapi.h>
 
-#include "util/utils.h"
 #include "windows/wconsole.h"
 
 //-----------------------------------------------------------------------------

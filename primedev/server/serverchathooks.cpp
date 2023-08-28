@@ -2,7 +2,6 @@
 #include "shared/exploit_fixes/ns_limits.h"
 #include "squirrel/squirrel.h"
 #include "server/r2server.h"
-#include "util/utils.h"
 #include "engine/server/server.h"
 
 #include <rapidjson/document.h>

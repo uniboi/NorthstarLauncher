@@ -2,7 +2,6 @@
 #include <sstream>
 #include <fstream>
 #include "squirrel/squirrel.h"
-#include "util/utils.h"
 #include "mods/modmanager.h"
 #include "modsavefiles.h"
 #include "rapidjson/document.h"

@@ -10,7 +10,6 @@
 
 #include "tier0/commandline.h"
 #include "mathlib/color.h"
-#include "util/utils.h"
 #include "logging/logging.h"
 
 #if defined(LAUNCHER) || defined(WSOCKPROXY)

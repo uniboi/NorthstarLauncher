@@ -3,8 +3,6 @@
 #include <Windows.h>
 #include <Shlwapi.h>
 #include "spdlog/spdlog.h"
-#include "util/filesystem.h"
-#include "util/utils.h"
 #include "logging/logging.h"
 #include "tier0/commandline.h"
 #include "tier0/crashhandler.h"

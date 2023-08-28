@@ -1,5 +1,4 @@
 #include "squirrel/squirrel.h"
-#include "util/utils.h"
 
 #include "server/serverchathooks.h"
 #include "client/localchatwriter.h"

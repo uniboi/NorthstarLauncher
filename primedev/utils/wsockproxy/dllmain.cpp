@@ -1,6 +1,5 @@
 #include <Windows.h>
 
-#include "util/filesystem.h"
 #include "primelauncher/launcher.h"
 
 //-----------------------------------------------------------------------------

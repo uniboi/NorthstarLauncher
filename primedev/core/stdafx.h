@@ -34,7 +34,7 @@ typedef void (*callable_v)(void* v);
 //clang-format on
 #endif
 
-#include "util/filesystem.h"
+#include "tier0/utils.h"
 
 #ifdef NORTHSTAR
 #include "thirdparty/minhook/include/MinHook.h"
