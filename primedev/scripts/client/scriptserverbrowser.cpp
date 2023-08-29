@@ -1,7 +1,6 @@
 #include "squirrel/squirrel.h"
 #include "networksystem/masterserver.h"
 #include "server/auth/serverauthentication.h"
-#include "engine/r2engine.h"
 #include "client/r2client.h"
 
 // functions for viewing server browser

@@ -1,5 +1,4 @@
 #include "squirrel/squirrel.h"
-#include "engine/r2engine.h"
 #include "engine/server/server.h"
 #include "server/r2server.h"
 

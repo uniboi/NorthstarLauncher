@@ -1,6 +1,7 @@
 #pragma once
 #include "tier1/convar.h"
-#include "engine/r2engine.h"
+#include "engine/client/client.h"
+
 #include <unordered_map>
 #include <string>
 

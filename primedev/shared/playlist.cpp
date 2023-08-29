@@ -1,9 +1,9 @@
 #include "playlist.h"
 #include "tier1/cmd.h"
 #include "tier1/convar.h"
+#include "engine/edict.h"
 #include "squirrel/squirrel.h"
 #include "engine/hoststate.h"
-#include "engine/r2engine.h"
 #include "server/serverpresence.h"
 
 AUTOHOOK_INIT()

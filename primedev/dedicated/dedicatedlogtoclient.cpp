@@ -1,8 +1,8 @@
 #include "dedicatedlogtoclient.h"
 
 #include "tier1/convar.h"
-#include "engine/r2engine.h"
 #include "engine/server/server.h"
+#include "engine/edict.h"
 #include "logging/logging.h"
 
 void (*CGameClient__ClientPrintf)(CClient* pClient, const char* fmt, ...);

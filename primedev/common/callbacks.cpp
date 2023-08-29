@@ -10,7 +10,6 @@
 #include "squirrel/squirrel.h"
 #include "scripts/scriptdatatables.h"
 #include "server/auth/bansystem.h"
-#include "engine/r2engine.h"
 #include "engine/client/client.h"
 #include "engine/server/server.h"
 #include "server/auth/serverauthentication.h"

@@ -1,7 +1,7 @@
 #include "tier1/convar.h"
 #include "mods/modmanager.h"
 #include "shared/misccommands.h"
-#include "r2engine.h"
+#include "engine/host.h"
 
 AUTOHOOK_INIT()
 
@@ -13,6 +13,8 @@ void, __fastcall, (bool bDedicated))
 	DevMsg(eLog::ENGINE, "Host_Init(bDedicated: %d)\n", bDedicated);
 	Host_Init(bDedicated);
 	FixupCvarFlags();
+
+	EngineParms_t* ep = g_pEngineParms;
 
 	// Hardcoded mod functionality, add something to mod.json or just teach users on how to +exec as a replacement ot this
 	Warning(eLog::ENGINE, "'autoexec_ns_*' files are deprecated!\n");
@@ -27,4 +29,6 @@ void, __fastcall, (bool bDedicated))
 ON_DLL_LOAD("engine.dll", Host_Init, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
+
+	g_pEngineParms = module.Offset(0x13159310).RCast<EngineParms_t*>();
 }

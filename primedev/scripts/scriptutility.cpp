@@ -1,6 +1,5 @@
 #include "squirrel/squirrel.h"
 #include "client/r2client.h"
-#include "engine/r2engine.h"
 
 // asset function StringToAsset( string assetName )
 ADD_SQFUNC("asset", StringToAsset, "string assetName", "converts a given string to an asset", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)

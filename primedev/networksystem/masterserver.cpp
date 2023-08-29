@@ -2,7 +2,6 @@
 #include "tier1/cmd.h"
 #include "shared/playlist.h"
 #include "server/auth/serverauthentication.h"
-#include "engine/r2engine.h"
 #include "mods/modmanager.h"
 #include "shared/misccommands.h"
 #include "server/auth/bansystem.h"

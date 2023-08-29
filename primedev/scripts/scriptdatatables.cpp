@@ -4,7 +4,8 @@
 #include "dedicated/dedicated.h"
 #include "filesystem/basefilesystem.h"
 #include "mathlib/vector.h"
-#include "engine/r2engine.h"
+#include "engine/host.h"
+
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -769,7 +770,7 @@ void DumpDatatable(const char* pDatatablePath)
 		return;
 	}
 
-	std::string sOutputPath(fmt::format("{}/scripts/datatable/{}.csv", g_pModName, fs::path(pDatatablePath).stem().string()));
+	std::string sOutputPath(fmt::format("{}/scripts/datatable/{}.csv", g_pEngineParms->szModName, fs::path(pDatatablePath).stem().string()));
 	std::string sDatatableContents(DataTableToString(pDatatable));
 
 	fs::create_directories(fs::path(sOutputPath).remove_filename());

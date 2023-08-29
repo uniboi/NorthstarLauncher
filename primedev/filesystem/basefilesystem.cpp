@@ -32,7 +32,7 @@ std::string ReadVPKFile(const char* path)
 
 std::string ReadVPKOriginalFile(const char* path)
 {
-	// todo: should probably set search path to be g_pModName here also
+	// todo: should probably set search path to be g_pEngineParms->szModName here also
 
 	bReadingOriginalFile = true;
 	std::string ret = ReadVPKFile(path);

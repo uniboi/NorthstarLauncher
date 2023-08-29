@@ -30,3 +30,6 @@ class CGlobalVars : public CGlobalVarsBase
 	__int64 m_Unk2;
 };
 static_assert(sizeof(CGlobalVars) == 0xA8);
+
+inline CGlobalVars* g_pServerGlobalVariables;
+inline CGlobalVarsBase* g_pClientGlobalVariables;

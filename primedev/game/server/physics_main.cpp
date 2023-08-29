@@ -1,9 +1,9 @@
 AUTOHOOK_INIT()
 
-#include "engine/r2engine.h"
 #include "server/r2server.h"
 #include "engine/server/server.h"
 #include "engine/client/client.h"
+#include "engine/edict.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: Runs null commands on fake players

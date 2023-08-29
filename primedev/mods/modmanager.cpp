@@ -6,7 +6,6 @@
 #include "filesystem/basefilesystem.h"
 #include "rtech/pakapi.h"
 #include "squirrel/squirrel.h"
-#include "engine/r2engine.h"
 
 #include "rapidjson/error/en.h"
 #include "rapidjson/document.h"

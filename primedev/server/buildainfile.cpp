@@ -1,6 +1,7 @@
 #include "tier1/convar.h"
 #include "engine/hoststate.h"
-#include "engine/r2engine.h"
+#include "engine/host.h"
+#include "engine/edict.h"
 
 #include <fstream>
 #include <filesystem>
@@ -175,7 +176,7 @@ struct CAI_Network
 
 void DumpAINInfo(CAI_Network* aiNetwork)
 {
-	fs::path writePath(fmt::format("{}/maps/graphs", g_pModName));
+	fs::path writePath(fmt::format("{}/maps/graphs", g_pEngineParms->szModName));
 	writePath /= g_pServerGlobalVariables->m_pMapName;
 	writePath += ".ain";
 

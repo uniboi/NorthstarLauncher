@@ -6,8 +6,8 @@
 #include "bansystem.h"
 #include "tier1/cmd.h"
 #include "dedicated/dedicated.h"
-#include "engine/r2engine.h"
 #include "engine/server/server.h"
+#include "engine/edict.h"
 #include "client/r2client.h"
 #include "server/r2server.h"
 

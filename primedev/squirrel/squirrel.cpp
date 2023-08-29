@@ -4,7 +4,6 @@
 #include "tier1/cmd.h"
 #include "mods/modmanager.h"
 #include "dedicated/dedicated.h"
-#include "engine/r2engine.h"
 
 #include <any>
 

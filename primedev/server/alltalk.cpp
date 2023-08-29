@@ -1,5 +1,5 @@
 #include "tier1/convar.h"
-#include "engine/r2engine.h"
+#include "engine/edict.h"
 
 size_t __fastcall ShouldAllowAlltalk()
 {
