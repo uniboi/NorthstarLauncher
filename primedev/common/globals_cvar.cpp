@@ -49,12 +49,23 @@ void CVar_InitModule(std::string svModule)
 		Cvar_ns_ai_dumpAINfileFromLoad = ConVar::StaticCreate("ns_ai_dumpAINfileFromLoad", "0", FCVAR_NONE, "For debugging: whether we should dump ain data for ains loaded from disk");
 		Cvar_ns_exploitfixes_log = ConVar::StaticCreate("ns_exploitfixes_log", "1", FCVAR_GAMEDLL, "Whether to log whenever ExploitFixes.cpp blocks/corrects something");
 		Cvar_ns_should_log_all_clientcommands = ConVar::StaticCreate("ns_should_log_all_clientcommands", "0", FCVAR_NONE, "Whether to log all clientcommands");
+		CVar_bot_pilot_settings = ConVar::StaticCreate("bot_pilot_settings", "", FCVAR_NONE, "");
+		CVar_bot_force_pilot_primary = ConVar::StaticCreate("bot_force_pilot_primary", "", FCVAR_NONE, "");
+		CVar_bot_force_pilot_secondary = ConVar::StaticCreate("bot_force_pilot_secondary", "", FCVAR_NONE, "");
+		CVar_bot_force_pilot_weapon3 = ConVar::StaticCreate("bot_force_pilot_weapon3", "", FCVAR_NONE, "");
+		CVar_bot_force_pilot_ordnance = ConVar::StaticCreate("bot_force_pilot_ordnance", "", FCVAR_NONE, "");
+		CVar_bot_force_pilot_ability = ConVar::StaticCreate("bot_force_pilot_ability", "", FCVAR_NONE, "");
+		CVar_bot_titan_settings = ConVar::StaticCreate("bot_titan_settings", "", FCVAR_NONE, "");
+		CVar_bot_force_titan_ordnance = ConVar::StaticCreate("bot_force_titan_ordnance", "", FCVAR_NONE, "");
+		Cvar_bot_force_titan_ability = ConVar::StaticCreate("bot_force_titan_ability", "", FCVAR_NONE, "");
 
 		ConCommand::StaticCreate("dump_datamap", "", FCVAR_NONE, CC_dump_datamap, nullptr);
 
 		// FCVAR_CHEAT and FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS allows clients to execute this, but since it's unsafe we only allow it when cheats
 		// are enabled for script_client and script_ui, we don't use cheats, so clients can execute them on themselves all they want
 		ConCommand::StaticCreate("script", "Executes script code on the server vm", FCVAR_GAMEDLL | FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS | FCVAR_CHEAT, CC_script_sv_f, nullptr);
+
+		ConCommand::StaticCreate("sv_addbot", "", FCVAR_CHEAT, CC_CreateFakePlayer_f, nullptr);
 
 		DevMsg(eLog::NS, "Finished initilasing new cvars for '%s'\n", "server.dll");
 		return;
@@ -255,6 +266,15 @@ ConVar* Cvar_mp_gamemode = nullptr;
 ConVar* Cvar_ns_ai_dumpAINfileFromLoad = nullptr;
 ConVar* Cvar_ns_exploitfixes_log = nullptr;
 ConVar* Cvar_ns_should_log_all_clientcommands = nullptr;
+ConVar* CVar_bot_pilot_settings;
+ConVar* CVar_bot_force_pilot_primary;
+ConVar* CVar_bot_force_pilot_secondary;
+ConVar* CVar_bot_force_pilot_weapon3;
+ConVar* CVar_bot_force_pilot_ordnance;
+ConVar* CVar_bot_force_pilot_ability;
+ConVar* CVar_bot_titan_settings;
+ConVar* CVar_bot_force_titan_ordnance;
+ConVar* Cvar_bot_force_titan_ability;
 
 ConVar* Cvar_sv_cheats = nullptr;
 ConVar* Cvar_fatal_script_errors = nullptr;

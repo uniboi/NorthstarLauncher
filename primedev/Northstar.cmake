@@ -67,6 +67,7 @@ add_library(PrimeDLL SHARED
 			"filesystem/basefilesystem.h"
             "game/server/gameinterface.cpp"
             "game/server/gameinterface.h"
+			"game/server/physics_main.cpp"
             "gameui/GameConsole.cpp"
 			"gameui/GameConsole.h"
             "launcher/launcher.cpp"

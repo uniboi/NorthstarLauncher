@@ -18,6 +18,8 @@
 #include "client/r2client.h"
 #include "shared/playlist.h"
 #include "engine/datamap.h"
+#include "game/server/gameinterface.h"
+#include "engine/vengineserver_impl.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -466,4 +468,27 @@ void CC_maps_f(const CCommand& args)
 			DevMsg(eLog::NS, "(%i) %s\n", map.eSource, map.svName.c_str());
 		}
 	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CC_CreateFakePlayer_f(const CCommand& args) {
+	if (args.ArgC() < 3)
+	{
+		DevMsg(eLog::NS, "Usage: sv_addbot <name> <team>\n");
+		return;
+	}
+
+	// TODO [Fifty]: Check teams to not script error
+
+	const char* szName = args.Arg(1);
+	int nTeam = std::atoi(args.Arg(2));
+
+	g_pEngineServer->LockNetworkStringTables(true);
+
+	edict_t nHandle = g_pEngineServer->CreateFakeClient(szName, "", "", nTeam);
+	g_pServerGameClients->ClientFullyConnect(nHandle, false);
+
+	g_pEngineServer->LockNetworkStringTables(false);
 }

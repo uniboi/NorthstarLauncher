@@ -260,9 +260,16 @@ bool,, (CClient* self, char* pName, void* pNetChannel, char bFakePlayer, void* a
 		return false;
 	}
 
+	
+
 	// try to actually connect the player
 	if (!CClient__Connect(self, pVerifiedName, pNetChannel, bFakePlayer, a5, pDisconnectReason, a7))
 		return false;
+
+	if (bFakePlayer)
+	{
+		strncpy_s(self->m_szClanTag, "BOT", 4);
+	}
 
 	// we already know this player's authentication data is legit, actually write it to them now
 	g_pServerAuthentication->AuthenticatePlayer(self, iNextPlayerUid, pNextPlayerToken);

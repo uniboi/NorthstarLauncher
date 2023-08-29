@@ -4,7 +4,7 @@
 
 // server entity stuff
 class CBaseEntity;
-extern CBaseEntity* (*Server_GetEntityByIndex)(int index);
+inline CBaseEntity* (*Server_GetEntityByIndex)(int index);
 
 // clang-format off
 OFFSET_STRUCT(CBasePlayer)
@@ -103,4 +103,5 @@ OFFSET_STRUCT(CBasePlayer)
 };
 // clang-format on
 
-extern CBasePlayer*(__fastcall* UTIL_PlayerByIndex)(int playerIndex);
+inline CBasePlayer*(__fastcall* UTIL_PlayerByIndex)(int playerIndex);
+inline void (*__fastcall CBasePlayer__RunNullCommand)(CBasePlayer* self);

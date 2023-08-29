@@ -26,6 +26,15 @@ extern ConVar* Cvar_mp_gamemode;
 extern ConVar* Cvar_ns_ai_dumpAINfileFromLoad;
 extern ConVar* Cvar_ns_exploitfixes_log;
 extern ConVar* Cvar_ns_should_log_all_clientcommands;
+extern ConVar* CVar_bot_pilot_settings;
+extern ConVar* CVar_bot_force_pilot_primary;
+extern ConVar* CVar_bot_force_pilot_secondary;
+extern ConVar* CVar_bot_force_pilot_weapon3;
+extern ConVar* CVar_bot_force_pilot_ordnance;
+extern ConVar* CVar_bot_force_pilot_ability;
+extern ConVar* CVar_bot_titan_settings;
+extern ConVar* CVar_bot_force_titan_ordnance;
+extern ConVar* Cvar_bot_force_titan_ability;
 
 extern ConVar* Cvar_sv_cheats;
 extern ConVar* Cvar_fatal_script_errors;
