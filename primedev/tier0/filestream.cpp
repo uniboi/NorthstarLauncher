@@ -80,33 +80,6 @@ void CFileStream::Flush()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Write to the stream
-// Input  : tValue - Value to write
-//-----------------------------------------------------------------------------
-template <typename T>
-void CFileStream::Write(T tValue)
-{
-	if (!IsWritable())
-		return;
-
-	m_Stream.write(reinterpret_cast<const char*>(&tValue), sizeof(tValue));
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Write to the stream
-// Input  : tValue - Value to write
-//          nSize - Size of tValue
-//-----------------------------------------------------------------------------
-template <typename T>
-void CFileStream::Write(T tValue, int nSize)
-{
-	if (!IsWritable())
-		return;
-
-	m_Stream.write(reinterpret_cast<const char*>(&tValue), nSize);
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: Write string to stream
 // Input  : svString - String to write
 //-----------------------------------------------------------------------------
@@ -116,50 +89,6 @@ void CFileStream::WriteString(std::string svString)
 		return;
 
 	m_Stream.write(svString.c_str(), svString.size());
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Read to buffer
-// Input  : &tBuffer - Buffer to write to
-//-----------------------------------------------------------------------------
-template <typename T>
-void CFileStream::Read(T& tBuffer)
-{
-	if (!IsReadable())
-		return;
-
-	m_Stream.read(reinterpret_cast<char*>(&tBuffer), sizeof(tBuffer));
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Read to buffer
-// Input  : &tBuffer - Buffer to write to
-//          nSize - Size of buffer
-//-----------------------------------------------------------------------------
-template <typename T>
-void CFileStream::Read(T& tBuffer, int nSize)
-{
-	if (!IsReadable())
-		return;
-
-	m_Stream.read(reinterpret_cast<char*>(&tBuffer), nSize);
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Read value
-// Output : Value we read
-//-----------------------------------------------------------------------------
-template <typename T>
-T CFileStream::Read()
-{
-	T tValue {};
-
-	if (!IsReadable())
-		return tValue;
-
-	m_Stream.read(reinterpret_cast<char*>(&tValue), sizeof(tValue));
-
-	return tValue;
 }
 
 //-----------------------------------------------------------------------------
