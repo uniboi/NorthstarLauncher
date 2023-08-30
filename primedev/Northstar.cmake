@@ -32,7 +32,6 @@ add_library(PrimeDLL SHARED
             "core/macros.h"
             "core/memalloc.cpp"
             "core/memalloc.h"
-            "core/structs.h"
             "dedicated/dedicated.cpp"
             "dedicated/dedicated.h"
             "dedicated/dedicatedlogtoclient.cpp"

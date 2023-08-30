@@ -46,7 +46,6 @@ inline std::string g_svProfileDir;
 #include "tier0/threadtools.h"
 
 #include "core/macros.h"
-#include "core/structs.h"
 
 #include "tier1/interface.h"
 #include "tier1/cvar.h"
