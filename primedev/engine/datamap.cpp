@@ -1,5 +1,8 @@
 #include "engine/datamap.h"
 
+#include "tier0/filestream.h"
+#include "engine/host.h"
+
 #include <sstream>
 
 //-----------------------------------------------------------------------------
@@ -17,7 +20,7 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type)
 	case FIELD_STRING:
 		return "__int64";
 	case FIELD_VECTOR:
-		return "Vector";
+		return "Vector3";
 	case FIELD_QUATERNION:
 		return "Quaternion";
 	case FIELD_INTEGER:
@@ -29,7 +32,7 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type)
 	case FIELD_CHARACTER:
 		return "char";
 	case FIELD_COLOR32:
-		return "color32";
+		return "Color32";
 	case FIELD_EMBEDDED:
 		return "embedded";
 	case FIELD_CUSTOM:
@@ -99,25 +102,20 @@ const char* DataMap_GetSizeTypeStr(int iBytes)
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: Dumps a datamap_t pointer by logging its contents
+// Purpose: Dumps a datamap_t pointer to a std::string passed by ref
 // Input  : *pMap -
+//          &svBuffer -
 //-----------------------------------------------------------------------------
-void DataMap_Dump(datamap_t* pMap)
+void DataMap_DumpStr(datamap_t* pMap, std::string &svBuffer)
 {
-	// TODO [Fifty]: Dump to file instead of directly logging the thing
+	svBuffer += FormatA("class %s", pMap->dataClassName);
 
-	if (!pMap)
+	if (pMap->pBaseMap)
 	{
-		Error(eLog::ENGINE, NO_ERROR, "Datamap is null!");
-		return;
+		svBuffer += FormatA(" : public %s", pMap->pBaseMap->dataClassName);
 	}
 
-	DevMsg(eLog::NONE, "Dumping datamap\n");
-
-	std::stringstream ss;
-
-	// Create class structure as a stringstream
-	ss << "class " << pMap->dataClassName << "\n{\n";
+	svBuffer += "\n{\n";
 
 	int nFields = pMap->dataNumFields;
 	for (int i = 0; i < nFields; i++)
@@ -125,13 +123,21 @@ void DataMap_Dump(datamap_t* pMap)
 		typedescription_t* pCurDesc = &pMap->dataDesc[i];
 
 		// var
-		ss << "\t" << DataMap_GetSizeTypeStr(pCurDesc->fieldSizeInBytes / pCurDesc->fieldSize) << " "; // Print type
-		ss << pCurDesc->fieldName; // Print name
+		if (pCurDesc->td) // Print Type
+		{
+			svBuffer += FormatA("\t%s ", pCurDesc->td->dataClassName);
+		}
+		else
+		{
+			svBuffer += FormatA("\t%s ", DataMap_GetFieldTypeStr(pCurDesc->fieldType));
+		}
+
+		svBuffer += pCurDesc->fieldName; // Print name
 		if (pCurDesc->fieldSize != 1)
 		{
-			ss << " [" << pCurDesc->fieldSize << "]"; // Print array size
+			svBuffer += FormatA(" [%d]", pCurDesc->fieldSize); // Print array size
 		}
-		ss << "; // " << pCurDesc->fieldOffset << "\n"; // Print offset
+		svBuffer += FormatA("; // 0x%x ( Size: %d )\n", pCurDesc->fieldOffset, pCurDesc->fieldSizeInBytes); // Print offset
 
 		// pad
 		if (i - 1 == nFields)
@@ -141,12 +147,55 @@ void DataMap_Dump(datamap_t* pMap)
 
 		if (pCurDesc->fieldOffset + pCurDesc->fieldSizeInBytes != pNextDesc->fieldOffset)
 		{
-			ss << "\tchar gap_" << pCurDesc->fieldOffset + pCurDesc->fieldSizeInBytes << "[" << pNextDesc->fieldOffset - pCurDesc->fieldOffset - pCurDesc->fieldSizeInBytes << "];\n";
+			svBuffer += FormatA("\tchar gap_%x[%i];\n", pCurDesc->fieldOffset + pCurDesc->fieldSizeInBytes, pNextDesc->fieldOffset - pCurDesc->fieldOffset - pCurDesc->fieldSizeInBytes);
 		}
 	}
 
-	ss << "};\n";
+	svBuffer += "};\n\n";
+}
 
-	// Log it
-	DevMsg(eLog::NONE, "\n%s\n", ss.str().c_str());
+//-----------------------------------------------------------------------------
+// Purpose: Dumps a datamap_t pointer to disk
+// Input  : *pMap -
+//-----------------------------------------------------------------------------
+void DataMap_Dump(datamap_t* pMap)
+{
+	if (!pMap)
+	{
+		Error(eLog::ENGINE, NO_ERROR, "Datamap is null!");
+		return;
+	}
+
+	DevMsg(eLog::NS, "Dumping datamap\n");
+
+	std::string svAddTypes; // Additional types used in this map
+	std::string svMapFile; // This map
+
+	// dump our map
+	DataMap_DumpStr(pMap, svMapFile);
+
+	int nFields = pMap->dataNumFields;
+	for (int i = 0; i < nFields; i++)
+	{
+		typedescription_t* pCurDesc = &pMap->dataDesc[i];
+
+		if (pCurDesc->td)
+		{
+			DataMap_DumpStr(pCurDesc->td, svAddTypes);
+		}
+	}
+
+	// Write it to disk
+	CFileStream fStream;
+	fStream.Open(FormatA("%s\\Map_%s.txt", g_pEngineParms->szModName, pMap->dataClassName).c_str(), CFileStream::WRITE);
+	fStream.WriteString(svAddTypes);
+	fStream.WriteString(svMapFile);
+	fStream.Close();
+
+	DevMsg(eLog::NS, "Succesfully dumped %s\n", pMap->dataClassName);
+
+	if (pMap->pBaseMap)
+	{
+		DataMap_Dump(pMap->pBaseMap);
+	}
 }
