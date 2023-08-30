@@ -10,7 +10,7 @@
 
 ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", ScriptContext::SERVER)
 {
-	const CBasePlayer* pPlayer = g_pSquirrel<context>->template getentity<CBasePlayer>(sqvm, 1);
+	const CPlayer* pPlayer = g_pSquirrel<context>->template getentity<CPlayer>(sqvm, 1);
 	if (!pPlayer)
 	{
 		Warning(eLog::NS, "NSEarlyWritePlayerPersistenceForLeave got null player\n");
@@ -19,7 +19,7 @@ ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", S
 		return SQRESULT_NOTNULL;
 	}
 
-	CClient* pClient = g_pServer->GetClient(pPlayer->m_nPlayerIndex - 1);
+	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
 	if (g_pServerAuthentication->m_PlayerAuthenticationData.find(pClient) == g_pServerAuthentication->m_PlayerAuthenticationData.end())
 	{
 		g_pSquirrel<context>->pushbool(sqvm, false);
@@ -39,7 +39,7 @@ ADD_SQFUNC("bool", NSIsWritingPlayerPersistence, "", "", ScriptContext::SERVER)
 
 ADD_SQFUNC("bool", NSIsPlayerLocalPlayer, "entity player", "", ScriptContext::SERVER)
 {
-	const CBasePlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->template getentity<CBasePlayer>(sqvm, 1);
+	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->template getentity<CPlayer>(sqvm, 1);
 	if (!pPlayer)
 	{
 		Warning(eLog::NS, "NSIsPlayerLocalPlayer got null player\n");
@@ -48,7 +48,7 @@ ADD_SQFUNC("bool", NSIsPlayerLocalPlayer, "entity player", "", ScriptContext::SE
 		return SQRESULT_NOTNULL;
 	}
 
-	CClient* pClient = g_pServer->GetClient(pPlayer->m_nPlayerIndex - 1);
+	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
 	g_pSquirrel<context>->pushbool(sqvm, !strcmp(g_pLocalPlayerUserID, pClient->m_UID));
 	return SQRESULT_NOTNULL;
 }
@@ -61,7 +61,7 @@ ADD_SQFUNC("bool", NSIsDedicated, "", "", ScriptContext::SERVER)
 
 ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconnects the player from the server with the given reason", ScriptContext::SERVER)
 {
-	const CBasePlayer* pPlayer = g_pSquirrel<context>->template getentity<CBasePlayer>(sqvm, 1);
+	const CPlayer* pPlayer = g_pSquirrel<context>->template getentity<CPlayer>(sqvm, 1);
 	const char* reason = g_pSquirrel<context>->getstring(sqvm, 2);
 
 	if (!pPlayer)
@@ -73,7 +73,7 @@ ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconne
 	}
 
 	// Shouldn't happen but I like sanity checks.
-	CClient* pClient = g_pServer->GetClient(pPlayer->m_nPlayerIndex - 1);
+	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
 	if (!pClient)
 	{
 		Warning(eLog::NS, "NSDisconnectPlayer(): player entity has null CClient!\n");

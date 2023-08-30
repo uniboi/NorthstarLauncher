@@ -19,10 +19,10 @@ void Physics_RunBotThinkFunctions(bool bSimulate)
 
 		if (pClient->m_nSignonState == eSignonState::FULL && pClient->m_bFakePlayer)
 		{
-			CBasePlayer* pPlayer = UTIL_PlayerByIndex(pClient->m_nHandle);
+			CPlayer* pPlayer = UTIL_PlayerByIndex(pClient->m_nHandle);
 			if (pPlayer)
 			{
-				CBasePlayer__RunNullCommand(pPlayer);
+				CPlayer__RunNullCommand(pPlayer);
 			}
 		}
 	}
