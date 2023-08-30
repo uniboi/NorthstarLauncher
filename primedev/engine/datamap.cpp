@@ -40,11 +40,11 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type)
 	case FIELD_CLASSPTR:
 		return "CBaseEntity*";
 	case FIELD_EHANDLE:
-		return "ehandle";
+		return "EHANDLE";
 	case FIELD_EDICT:
 		return "edict_t*";
 	case FIELD_POSITION_VECTOR:
-		return "PosVec";
+		return "Vector3";
 	case FIELD_TIME:
 		return "time";
 	case FIELD_TICK:
@@ -62,7 +62,7 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type)
 	case FIELD_VMATRIX_WORLDSPACE:
 		return "MatrixWrld";
 	case FIELD_MATRIX3X4_WORLDSPACE:
-		return "Matrix3x4Wrld";
+		return "matrix3x4_t";
 	case FIELD_INTERVAL:
 		return "Interval";
 	case FIELD_MODELINDEX:
@@ -152,6 +152,16 @@ void DataMap_DumpStr(datamap_t* pMap, std::string &svBuffer)
 	}
 
 	svBuffer += "};\n\n";
+
+	for (int i = 0; i < nFields; i++)
+	{
+		typedescription_t* pCurDesc = &pMap->dataDesc[i];
+
+		if (pCurDesc->td)
+		{
+			DataMap_DumpStr(pCurDesc->td, svBuffer);
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -173,17 +183,6 @@ void DataMap_Dump(datamap_t* pMap)
 
 	// dump our map
 	DataMap_DumpStr(pMap, svMapFile);
-
-	int nFields = pMap->dataNumFields;
-	for (int i = 0; i < nFields; i++)
-	{
-		typedescription_t* pCurDesc = &pMap->dataDesc[i];
-
-		if (pCurDesc->td)
-		{
-			DataMap_DumpStr(pCurDesc->td, svAddTypes);
-		}
-	}
 
 	// Write it to disk
 	CFileStream fStream;
