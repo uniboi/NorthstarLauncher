@@ -243,7 +243,7 @@ void CC_ban_f(const CCommand& args)
 
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CClient* player = &g_pServer->m_Clients[i];
+		CClient* player = g_pServer->GetClient(i);
 
 		if (!strcmp(player->m_szServerName, args.Arg(1)) || !strcmp(player->m_UID, args.Arg(1)))
 		{
@@ -279,7 +279,7 @@ void CC_clearbanlist_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_ns_resetpersistence_f(const CCommand& args)
 {
-	if (g_pServer->m_State == server_state_t::ss_active)
+	if (g_pServer->IsActive())
 	{
 		Error(eLog::NS, NO_ERROR, "ns_resetpersistence must be entered from the main menu\n");
 		return;

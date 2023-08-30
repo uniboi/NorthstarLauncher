@@ -13,7 +13,7 @@ void Physics_RunBotThinkFunctions(bool bSimulate)
 	// NOTE [Fifty]: running null commands on bots fixes bots being stuck in the air
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CClient* pClient = &g_pServer->m_Clients[i];
+		CClient* pClient = g_pServer->GetClient(i);
 		if (!pClient)
 			continue;
 

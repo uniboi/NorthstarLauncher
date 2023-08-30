@@ -92,7 +92,7 @@ bool ServerAuthenticationManager::IsDuplicateAccount(CClient* pPlayer, const cha
 
 	bool bHasUidPlayer = false;
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
-		if (&g_pServer->m_Clients[i] != pPlayer && !strcmp(pPlayerUid, g_pServer->m_Clients[i].m_UID))
+		if (g_pServer->GetClient(i) != pPlayer && !strcmp(pPlayerUid, g_pServer->GetClient(i)->m_UID))
 			return true;
 
 	return false;

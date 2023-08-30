@@ -93,6 +93,7 @@ add_library(PrimeDLL SHARED
             "mods/modsavefiles.h"
             "networksystem/bcrypt.cpp"
             "networksystem/bcrypt.h"
+            "networksystem/inetmsghandler.h"
 			"networksystem/masterserver.cpp"
 		    "networksystem/masterserver.h"
             "networksystem/netchannel.h"

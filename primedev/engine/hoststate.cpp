@@ -150,7 +150,7 @@ void, __fastcall, (CHostState* self, double flCurrentTime, float flFrameTime))
 {
 	CHostState__FrameUpdate(self, flCurrentTime, flFrameTime);
 
-	if (g_pServer->m_State == server_state_t::ss_active)
+	if (g_pServer->IsActive())
 	{
 		// update server presence
 		g_pServerPresence->RunFrame(flCurrentTime);

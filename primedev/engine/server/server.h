@@ -5,19 +5,38 @@
 
 #include "engine/client/client.h"
 #include "engine/baseserver.h"
+#include "networksystem/inetmsghandler.h"
 
 //
-class CServer
+class CServer : public IConnectionlessPacketHandler
 {
-	void* vftable;// IConnectionlessPacketHandler
   public:
+	// clang-format off
+	int GetNumHumanPlayers(void) const;
+	int GetNumFakeClients(void) const;
+	int GetNumClients(void) const;
+
+	inline bool IsActive() const { return m_State == server_state_t::ss_active; }
+	inline bool IsLoading() const { return m_State == server_state_t::ss_loading; }
+	inline bool IsPaused() const { return m_State == server_state_t::ss_paused; }
+	inline bool IsDead() const { return m_State == server_state_t::ss_dead; }
+
+	inline const char* GetMapName() const { return m_szMapName; }
+	inline const char* GetMapGroupName() const { return m_szMapGroupName; }
+
+	inline const char* GetPassword() const { return m_szPassword; }
+
+	inline CClient* GetClient( int nIdx ) { return &m_Clients[nIdx]; }
+	// clang-format on
+
+  private:
 	server_state_t m_State;
 	int m_Socket;
 	int m_nTickCount;
 	bool m_bResetMaxTeams;
-	char m_szMapname[64];
+	char m_szMapName[64];
 	char m_szMapGroupName[64];
-	char m_Password[32];
+	char m_szPassword[32];
 	uint32_t worldmapCRC;
 	uint32_t clientDllCRC;
 	void* unkData;
@@ -42,6 +61,5 @@ class CServer
 
 	// TODO [Fifty]: Finish this class
 };
-static_assert(offsetof(CServer, m_Clients) == 0x250);
 
 inline CServer* g_pServer;

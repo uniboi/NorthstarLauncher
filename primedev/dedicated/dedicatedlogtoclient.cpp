@@ -12,7 +12,7 @@ void DediClientMsg(const char* pszMessage)
 	if (g_pServer == NULL || g_pCVar == NULL)
 		return;
 
-	if (g_pServer->m_State == server_state_t::ss_dead)
+	if (g_pServer->IsDead())
 		return;
 
 	enum class eSendPrintsToClient
@@ -29,7 +29,7 @@ void DediClientMsg(const char* pszMessage)
 	std::string sLogMessage = fmt::format("{}", pszMessage);
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
-		CClient* pClient = &g_pServer->m_Clients[i];
+		CClient* pClient = g_pServer->GetClient(i);
 
 		if (pClient->m_nSignonState >= eSignonState::CONNECTED)
 		{

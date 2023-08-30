@@ -82,7 +82,7 @@ static void ProcessAtlasConnectionlessPacket(netpacket_t* packet)
 	return;
 }
 
-AUTOHOOK(ProcessConnectionlessPacket, engine.dll + 0x117800, bool, , (void* a1, netpacket_t* packet))
+AUTOHOOK(CServer__ProcessConnectionlessPacket, engine.dll + 0x117800, bool, , (void* a1, netpacket_t* packet))
 {
 	// packet->data consists of 0xFFFFFFFF (int32 -1) to indicate packets aren't split, followed by a header consisting of a single
 	// character, which is used to uniquely identify the packet kind. Most kinds follow this with a null-terminated string payload
@@ -100,7 +100,7 @@ AUTOHOOK(ProcessConnectionlessPacket, engine.dll + 0x117800, bool, , (void* a1, 
 		return false;
 
 	// A, H, I, N
-	return ProcessConnectionlessPacket(a1, packet);
+	return CServer__ProcessConnectionlessPacket(a1, packet);
 }
 
 ON_DLL_LOAD_RELIESON("engine.dll", ServerNetHooks, ConVar, (CModule module))

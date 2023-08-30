@@ -19,7 +19,7 @@ ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", S
 		return SQRESULT_NOTNULL;
 	}
 
-	CClient* pClient = &g_pServer->m_Clients[pPlayer->m_nPlayerIndex - 1];
+	CClient* pClient = g_pServer->GetClient(pPlayer->m_nPlayerIndex - 1);
 	if (g_pServerAuthentication->m_PlayerAuthenticationData.find(pClient) == g_pServerAuthentication->m_PlayerAuthenticationData.end())
 	{
 		g_pSquirrel<context>->pushbool(sqvm, false);
@@ -48,7 +48,7 @@ ADD_SQFUNC("bool", NSIsPlayerLocalPlayer, "entity player", "", ScriptContext::SE
 		return SQRESULT_NOTNULL;
 	}
 
-	CClient* pClient = &g_pServer->m_Clients[pPlayer->m_nPlayerIndex - 1];
+	CClient* pClient = g_pServer->GetClient(pPlayer->m_nPlayerIndex - 1);
 	g_pSquirrel<context>->pushbool(sqvm, !strcmp(g_pLocalPlayerUserID, pClient->m_UID));
 	return SQRESULT_NOTNULL;
 }
@@ -73,7 +73,7 @@ ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconne
 	}
 
 	// Shouldn't happen but I like sanity checks.
-	CClient* pClient = &g_pServer->m_Clients[pPlayer->m_nPlayerIndex - 1];
+	CClient* pClient = g_pServer->GetClient(pPlayer->m_nPlayerIndex - 1);
 	if (!pClient)
 	{
 		Warning(eLog::NS, "NSDisconnectPlayer(): player entity has null CClient!\n");
