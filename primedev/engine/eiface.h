@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/edict.h"
-#include "shared/keyvalues.h"
+#include "tier1/keyvalues.h"
 
 class IVEngineServer
 {

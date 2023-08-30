@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shared/keyvalues.h"
+#include "tier1/keyvalues.h"
 
 inline void (*CClient__Disconnect)(void* self, uint32_t unknownButAlways1, const char* reason, ...);
 
