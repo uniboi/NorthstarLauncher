@@ -238,7 +238,6 @@ class IVEngineServer
 	virtual void sub_18011CE80() = 0;
 };
 
-
 class IServerGameClients
 {
   public:

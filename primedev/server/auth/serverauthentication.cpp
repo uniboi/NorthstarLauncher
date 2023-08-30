@@ -260,8 +260,6 @@ bool,, (CClient* self, char* pName, void* pNetChannel, char bFakePlayer, void* a
 		return false;
 	}
 
-	
-
 	// try to actually connect the player
 	if (!CClient__Connect(self, pVerifiedName, pNetChannel, bFakePlayer, a5, pDisconnectReason, a7))
 		return false;

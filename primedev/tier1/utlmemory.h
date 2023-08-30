@@ -1,8 +1,6 @@
 #pragma once
 
-
-
-template<class T>
+template <class T>
 class CUtlMemory
 {
   private:

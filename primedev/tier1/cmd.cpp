@@ -7,7 +7,7 @@ typedef void (*ConCommandConstructorType)(ConCommand* newCommand, const char* na
 ConCommandConstructorType ConCommandConstructor;
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 ConCommand* ConCommand::StaticCreate(const char* szName, const char* szHelpString, int nFlags, FnCommandCallback pCallback, FnCommandCompletionCallback pCommandCompletionCallback)
 {

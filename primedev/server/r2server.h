@@ -5,6 +5,5 @@
 
 inline CBaseEntity* (*Server_GetEntityByIndex)(int index);
 
-
 inline CPlayer*(__fastcall* UTIL_PlayerByIndex)(int playerIndex);
 inline void (*__fastcall CPlayer__RunNullCommand)(CPlayer* self);

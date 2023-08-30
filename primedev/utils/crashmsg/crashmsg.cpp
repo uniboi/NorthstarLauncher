@@ -11,7 +11,7 @@ std::string svOffset;
 //-----------------------------------------------------------------------------
 // Purpose: Gets argument at index
 // Input  : nIdx -
-//          argc - 
+//          argc -
 //          *argv[] -
 // Output : Zero terminated string
 //-----------------------------------------------------------------------------

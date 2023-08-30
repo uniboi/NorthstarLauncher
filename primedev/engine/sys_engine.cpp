@@ -4,7 +4,6 @@
 #include "hoststate.h"
 #include "server/serverpresence.h"
 
-
 AUTOHOOK_INIT()
 
 // clang-format off
