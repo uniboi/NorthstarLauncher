@@ -4,7 +4,7 @@
 
 class CServerGameClients : public IServerGameClients
 {
-	  //
+	//
 };
 
 inline CServerGameClients* g_pServerGameClients;

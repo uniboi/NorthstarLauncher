@@ -14,7 +14,7 @@ IFileSystem* g_pFilesystem;
 std::string ReadVPKFile(const char* path)
 {
 	// read scripts.rson file, todo: check if this can be overwritten
-	FileHandle_t fileHandle= g_pFilesystem->m_vtable2->Open(&g_pFilesystem->m_vtable2, path, "rb", "GAME", 0);
+	FileHandle_t fileHandle = g_pFilesystem->m_vtable2->Open(&g_pFilesystem->m_vtable2, path, "rb", "GAME", 0);
 
 	std::stringstream fileStream;
 	int bytesRead = 0;

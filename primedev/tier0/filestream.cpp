@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------------
 CFileStream::CFileStream() : m_nFlags(CFileStream::CLOSED)
 {
-	// 
+	//
 }
 
 //-----------------------------------------------------------------------------
@@ -29,7 +29,7 @@ bool CFileStream::Open(fs::path& fsPath, int nFlags)
 
 	// Open a new stream
 	m_nFlags = nFlags;
-	
+
 	m_Stream = std::fstream(fsPath, nFlags);
 	if (!m_Stream.is_open() || !m_Stream.good())
 	{

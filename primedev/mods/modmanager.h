@@ -159,6 +159,7 @@ class ModManager
 		GAMEDIR,
 		MOD
 	};
+
   private:
 	bool m_bHasLoadedMods = false;
 	bool m_bHasEnabledModsCfg;

@@ -32,7 +32,7 @@ void CVar_InitModule(std::string svModule)
 			ConCommand::StaticCreate("toggleconsole", "Show/hide the console.", FCVAR_DONTRECORD, CC_ToggleConsole_f, nullptr);
 			ConCommand::StaticCreate("showconsole", "Show the console.", FCVAR_DONTRECORD, CC_ShowConsole_f, nullptr);
 			ConCommand::StaticCreate("hideconsole", "Hide the console.", FCVAR_DONTRECORD, CC_HideConsole_f, nullptr);
-		
+
 			ConCommand::StaticCreate("ns_script_servertoclientstringcommand", "", FCVAR_CLIENTDLL | FCVAR_SERVER_CAN_EXECUTE, CC_ns_script_servertoclientstringcommand_f, nullptr);
 		}
 

@@ -21,7 +21,7 @@
 #include "engine/vengineserver_impl.h"
 
 //-----------------------------------------------------------------------------
-// Purpose: 
+// Purpose:
 //-----------------------------------------------------------------------------
 void NS_ServerName_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
@@ -100,7 +100,8 @@ void CC_Log_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void CC_ToggleConsole_f(const CCommand& args) {
+void CC_ToggleConsole_f(const CCommand& args)
+{
 	if (g_pGameConsole->IsConsoleVisible())
 		g_pGameConsole->Hide();
 	else
@@ -475,7 +476,8 @@ void CC_maps_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void CC_CreateFakePlayer_f(const CCommand& args) {
+void CC_CreateFakePlayer_f(const CCommand& args)
+{
 	if (args.ArgC() < 3)
 	{
 		DevMsg(eLog::NS, "Usage: sv_addbot <name> <team>\n");

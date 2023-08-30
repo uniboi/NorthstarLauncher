@@ -106,7 +106,7 @@ const char* DataMap_GetSizeTypeStr(int iBytes)
 // Input  : *pMap -
 //          &svBuffer -
 //-----------------------------------------------------------------------------
-void DataMap_DumpStr(datamap_t* pMap, std::string &svBuffer)
+void DataMap_DumpStr(datamap_t* pMap, std::string& svBuffer)
 {
 	svBuffer += FormatA("class %s", pMap->dataClassName);
 
