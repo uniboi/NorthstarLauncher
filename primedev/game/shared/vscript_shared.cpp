@@ -1,104 +1,542 @@
+#include "squirrel/squirrelautobind.h"
+#include "squirrel/squirrelclasstypes.h"
+#include "squirrel/squirreldatatypes.h"
 #include "squirrel/squirrel.h"
+
+#include "mods/modsavefiles.h"
+#include "mods/modmanager.h"
+#include "scripts/scriptjson.h"
+#include "client/r2client.h"
+#include "rtech/datatable.h"
 #include "rtech/pakapi.h"
-#include "tier1/convar.h"
-#include "dedicated/dedicated.h"
 #include "filesystem/basefilesystem.h"
-#include "mathlib/vector.h"
-#include "engine/host.h"
 
-#include <iostream>
-#include <sstream>
-#include <map>
-#include <fstream>
-#include <filesystem>
-
-#include "scripts/scriptdatatables.h"
-
-const uint64_t USERDATA_TYPE_DATATABLE = 0xFFF7FFF700000004;
-const uint64_t USERDATA_TYPE_DATATABLE_CUSTOM = 0xFFFCFFFC12345678;
-
-enum class DatatableType : int
+// void NSSaveFile( string file, string data )
+ADD_SQFUNC("void", NSSaveFile, "string file, string data", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
 {
-	BOOL = 0,
-	INT,
-	FLOAT,
-	VECTOR,
-	STRING,
-	ASSET,
-	UNK_STRING // unknown but deffo a string type
-};
-
-struct ColumnInfo
-{
-	char* name;
-	DatatableType type;
-	int offset;
-};
-
-struct Datatable
-{
-	int numColumns;
-	int numRows;
-	ColumnInfo* columnInfo;
-	char* data; // actually data pointer
-	int rowInfo;
-};
-
-template <ScriptContext context>
-Datatable* (*SQ_GetDatatableInternal)(HSquirrelVM* sqvm);
-
-struct CSVData
-{
-	std::string m_sAssetName;
-	std::string m_sCSVString;
-	char* m_pDataBuf;
-	size_t m_nDataBufSize;
-
-	std::vector<char*> columns;
-	std::vector<std::vector<char*>> dataPointers;
-};
-
-std::unordered_map<std::string, CSVData> CSVCache;
-
-Vector3 StringToVector(char* pString)
-{
-	Vector3 vRet;
-
-	int length = 0;
-	while (pString[length])
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+	if (mod == nullptr)
 	{
-		if ((pString[length] == '<') || (pString[length] == '>'))
-			pString[length] = '\0';
-		length++;
+		g_pSquirrel<context>->raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
 	}
 
-	int startOfFloat = 1;
-	int currentIndex = 1;
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
+	if (!IsPathSafe(fileName, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
 
-	while (pString[currentIndex] && (pString[currentIndex] != ','))
-		currentIndex++;
-	pString[currentIndex] = '\0';
-	vRet.x = std::stof(&pString[startOfFloat]);
-	startOfFloat = ++currentIndex;
+	std::string content = g_pSquirrel<context>->getstring(sqvm, 2);
+	if (ContainsInvalidChars(content))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
+		return SQRESULT_ERROR;
+	}
 
-	while (pString[currentIndex] && (pString[currentIndex] != ','))
-		currentIndex++;
-	pString[currentIndex] = '\0';
-	vRet.y = std::stof(&pString[startOfFloat]);
-	startOfFloat = ++currentIndex;
+	fs::create_directories(dir);
+	// this actually allows mods to go over the limit, but not by much
+	// the limit is to prevent mods from taking gigabytes of space,
+	// this ain't a cloud service.
+	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + content.length() > MAX_FOLDER_SIZE)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
+														   "or increase the maximum folder size using the -maxfoldersize launch parameter.",
+														   mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
 
-	while (pString[currentIndex] && (pString[currentIndex] != ','))
-		currentIndex++;
-	pString[currentIndex] = '\0';
-	vRet.z = std::stof(&pString[startOfFloat]);
-	startOfFloat = ++currentIndex;
+	g_pSaveFileManager->SaveFileAsync<context>(dir / fileName, content);
 
-	return vRet;
+	return SQRESULT_NULL;
+}
+
+// void NSSaveJSONFile(string file, table data)
+ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+	if (mod == nullptr)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
+
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
+	if (!IsPathSafe(fileName, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+
+	// Note - this cannot be done in the async func since the table may get garbage collected.
+	// This means that especially large tables may still clog up the system.
+	std::string content = EncodeJSON<context>(sqvm);
+	if (ContainsInvalidChars(content))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
+		return SQRESULT_ERROR;
+	}
+
+	fs::create_directories(dir);
+	// this actually allows mods to go over the limit, but not by much
+	// the limit is to prevent mods from taking gigabytes of space,
+	// this ain't a cloud service.
+	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + content.length() > MAX_FOLDER_SIZE)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
+														   "or increase the maximum folder size using the -maxfoldersize launch parameter.",
+														   mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+
+	g_pSaveFileManager->SaveFileAsync<context>(dir / fileName, content);
+
+	return SQRESULT_NULL;
+}
+
+// int NS_InternalLoadFile(string file)
+ADD_SQFUNC("int", NS_InternalLoadFile, "string file", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm, 1); // the function that called NSLoadFile :)
+	if (mod == nullptr)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
+
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
+	if (!IsPathSafe(fileName, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+
+	g_pSquirrel<context>->pushinteger(sqvm, g_pSaveFileManager->LoadFileAsync<context>(dir / fileName));
+
+	return SQRESULT_NOTNULL;
+}
+
+// bool NSDoesFileExist(string file)
+ADD_SQFUNC("bool", NSDoesFileExist, "string file", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
+	if (!IsPathSafe(fileName, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+
+	g_pSquirrel<context>->pushbool(sqvm, FileExists(dir / (fileName)));
+	return SQRESULT_NOTNULL;
+}
+
+// int NSGetFileSize(string file)
+ADD_SQFUNC("int", NSGetFileSize, "string file", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
+	if (!IsPathSafe(fileName, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+	try
+	{
+		// throws if file does not exist
+		// we don't want stuff such as "file does not exist, file is unavailable" to be lethal, so we just try/catch fs errors
+		g_pSquirrel<context>->pushinteger(sqvm, (int)(fs::file_size(dir / fileName) / 1024));
+	}
+	catch (fs::filesystem_error const& ex)
+	{
+		Error(eLog::MODSYS, NO_ERROR, "GET FILE SIZE FAILED! Is the path valid?\n");
+		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
+		return SQRESULT_ERROR;
+	}
+	return SQRESULT_NOTNULL;
+}
+
+// void NSDeleteFile(string file)
+ADD_SQFUNC("void", NSDeleteFile, "string file", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string fileName = g_pSquirrel<context>->getstring(sqvm, 1);
+	if (!IsPathSafe(fileName, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   fileName, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+
+	g_pSaveFileManager->DeleteFileAsync<context>(dir / fileName);
+	return SQRESULT_NOTNULL;
+}
+
+// The param is not optional because that causes issues :)
+ADD_SQFUNC("array<string>", NS_InternalGetAllFiles, "string path", "", ScriptContext::CLIENT | ScriptContext::UI | ScriptContext::SERVER)
+{
+	// depth 1 because this should always get called from Northstar.Custom
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm, 1);
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string pathStr = g_pSquirrel<context>->getstring(sqvm, 1);
+	fs::path path = dir;
+	if (pathStr != "")
+		path = dir / pathStr;
+	if (!IsPathSafe(pathStr, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   pathStr, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+	try
+	{
+		g_pSquirrel<context>->newarray(sqvm, 0);
+		for (const auto& entry : fs::directory_iterator(path))
+		{
+			g_pSquirrel<context>->pushstring(sqvm, entry.path().filename().string().c_str());
+			g_pSquirrel<context>->arrayappend(sqvm, -2);
+		}
+		return SQRESULT_NOTNULL;
+	}
+	catch (std::exception ex)
+	{
+		Error(eLog::MODSYS, NO_ERROR, "DIR ITERATE FAILED! Is the path valid?\n");
+		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
+		return SQRESULT_ERROR;
+	}
+}
+
+ADD_SQFUNC("bool", NSIsFolder, "string path", "", ScriptContext::CLIENT | ScriptContext::UI | ScriptContext::SERVER)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	std::string pathStr = g_pSquirrel<context>->getstring(sqvm, 1);
+	fs::path path = dir;
+	if (pathStr != "")
+		path = dir / pathStr;
+	if (!IsPathSafe(pathStr, dir))
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
+														   "save folder.",
+														   pathStr, mod->Name)
+												   .c_str());
+		return SQRESULT_ERROR;
+	}
+	try
+	{
+		g_pSquirrel<context>->pushbool(sqvm, fs::is_directory(path));
+		return SQRESULT_NOTNULL;
+	}
+	catch (std::exception ex)
+	{
+		Error(eLog::MODSYS, NO_ERROR, "DIR READ FAILED! Is the path valid?\n");
+		DevMsg(eLog::MODSYS, "%s\n", path.string().c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, ex.what());
+		return SQRESULT_ERROR;
+	}
+}
+
+// side note, expensive.
+ADD_SQFUNC("int", NSGetTotalSpaceRemaining, "", "", ScriptContext::CLIENT | ScriptContext::UI | ScriptContext::SERVER)
+{
+	Mod* mod = g_pSquirrel<context>->getcallingmod(sqvm);
+	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
+	g_pSquirrel<context>->pushinteger(sqvm, (MAX_FOLDER_SIZE - GetSizeOfFolder(dir)) / 1024);
+	return SQRESULT_NOTNULL;
+}
+
+ADD_SQFUNC("array<string>", NSGetModNames, "", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	g_pSquirrel<context>->newarray(sqvm, 0);
+
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		g_pSquirrel<context>->pushstring(sqvm, mod.Name.c_str());
+		g_pSquirrel<context>->arrayappend(sqvm, -2);
+	}
+
+	return SQRESULT_NOTNULL;
+}
+
+ADD_SQFUNC("bool", NSIsModEnabled, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			g_pSquirrel<context>->pushbool(sqvm, mod.m_bEnabled);
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("void", NSSetModEnabled, "string modName, bool enabled", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+	const SQBool enabled = g_pSquirrel<context>->getbool(sqvm, 2);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			mod.m_bEnabled = enabled;
+			return SQRESULT_NULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("string", NSGetModDescriptionByModName, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			g_pSquirrel<context>->pushstring(sqvm, mod.Description.c_str());
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("string", NSGetModVersionByModName, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			g_pSquirrel<context>->pushstring(sqvm, mod.Version.c_str());
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("string", NSGetModDownloadLinkByModName, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			g_pSquirrel<context>->pushstring(sqvm, mod.DownloadLink.c_str());
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("int", NSGetModLoadPriority, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			g_pSquirrel<context>->pushinteger(sqvm, mod.LoadPriority);
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("bool", NSIsModRequiredOnClient, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			g_pSquirrel<context>->pushbool(sqvm, mod.RequiredOnClient);
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("array<string>", NSGetModConvarsByModName, "string modName", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	const SQChar* modName = g_pSquirrel<context>->getstring(sqvm, 1);
+	g_pSquirrel<context>->newarray(sqvm, 0);
+
+	// manual lookup, not super performant but eh not a big deal
+	for (Mod& mod : g_pModManager->m_LoadedMods)
+	{
+		if (!mod.Name.compare(modName))
+		{
+			for (ModConVar* cvar : mod.ConVars)
+			{
+				g_pSquirrel<context>->pushstring(sqvm, cvar->Name.c_str());
+				g_pSquirrel<context>->arrayappend(sqvm, -2);
+			}
+
+			return SQRESULT_NOTNULL;
+		}
+	}
+
+	return SQRESULT_NOTNULL; // return empty array
+}
+
+ADD_SQFUNC("void", NSReloadMods, "", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)
+{
+	g_pModManager->LoadMods();
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("table", DecodeJSON, "string json, bool fatalParseErrors = false", "converts a json string to a squirrel table", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	const char* pJson = g_pSquirrel<context>->getstring(sqvm, 1);
+	const bool bFatalParseErrors = g_pSquirrel<context>->getbool(sqvm, 2);
+
+	rapidjson_document doc;
+	doc.Parse(pJson);
+	if (doc.HasParseError())
+	{
+		g_pSquirrel<context>->newtable(sqvm);
+
+		std::string sErrorString = fmt::format("Failed parsing json file: encountered parse error \"{}\" at offset {}", GetParseError_En(doc.GetParseError()), doc.GetErrorOffset());
+
+		if (bFatalParseErrors)
+		{
+			g_pSquirrel<context>->raiseerror(sqvm, sErrorString.c_str());
+			return SQRESULT_ERROR;
+		}
+
+		Warning(eLog::NS, "%s\n", sErrorString.c_str());
+		return SQRESULT_NOTNULL;
+	}
+
+	DecodeJsonTable<context>(sqvm, (rapidjson::GenericValue<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<SourceAllocator>>*)&doc);
+	return SQRESULT_NOTNULL;
+}
+
+ADD_SQFUNC("string", EncodeJSON, "table data", "converts a squirrel table to a json string", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	rapidjson_document doc;
+	doc.SetObject();
+
+	// temp until this is just the func parameter type
+	HSquirrelVM* vm = (HSquirrelVM*)sqvm;
+	SQTable* table = vm->_stackOfCurrentFunction[1]._VAL.asTable;
+	EncodeJSONTable<context>(table, &doc, doc.GetAllocator());
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	doc.Accept(writer);
+	const char* pJsonString = buffer.GetString();
+
+	g_pSquirrel<context>->pushstring(sqvm, pJsonString, -1);
+	return SQRESULT_NOTNULL;
+}
+
+// asset function StringToAsset( string assetName )
+ADD_SQFUNC("asset", StringToAsset, "string assetName", "converts a given string to an asset", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	g_pSquirrel<context>->pushasset(sqvm, g_pSquirrel<context>->getstring(sqvm, 1), -1);
+	return SQRESULT_NOTNULL;
+}
+
+// string function NSGetLocalPlayerUID()
+ADD_SQFUNC("string", NSGetLocalPlayerUID, "", "Returns the local player's uid.", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	if (g_pLocalPlayerUserID)
+	{
+		g_pSquirrel<context>->pushstring(sqvm, g_pLocalPlayerUserID);
+		return SQRESULT_NOTNULL;
+	}
+
+	return SQRESULT_NULL;
+}
+
+ADD_SQFUNC("string", NSGetCurrentModName, "", "Returns the mod name of the script running this function", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	int depth = g_pSquirrel<context>->getinteger(sqvm, 1);
+	if (auto mod = g_pSquirrel<context>->getcallingmod(sqvm, depth); mod == nullptr)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, "NSGetModName was called from a non-mod script. This shouldn't be possible");
+		return SQRESULT_ERROR;
+	}
+	else
+	{
+		g_pSquirrel<context>->pushstring(sqvm, mod->Name.c_str());
+	}
+	return SQRESULT_NOTNULL;
+}
+
+ADD_SQFUNC("string", NSGetCallingModName, "int depth = 0", "Returns the mod name of the script running this function", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
+{
+	int depth = g_pSquirrel<context>->getinteger(sqvm, 1);
+	if (auto mod = g_pSquirrel<context>->getcallingmod(sqvm, depth); mod == nullptr)
+	{
+		g_pSquirrel<context>->pushstring(sqvm, "Unknown");
+	}
+	else
+	{
+		g_pSquirrel<context>->pushstring(sqvm, mod->Name.c_str());
+	}
+	return SQRESULT_NOTNULL;
 }
 
 // var function GetDataTable( asset path )
 REPLACE_SQFUNC(GetDataTable, (ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER))
 {
+	static std::unordered_map<std::string, CSVData> CSVCache;
+
 	const char* pAssetName;
 	g_pSquirrel<context>->getasset(sqvm, 2, &pAssetName);
 
@@ -686,108 +1124,4 @@ REPLACE_SQFUNC(GetDataTableRowLessThanOrEqualToFloatValue, (ScriptContext::UI | 
 
 	g_pSquirrel<context>->pushinteger(sqvm, -1);
 	return SQRESULT_NOTNULL;
-}
-
-std::string DataTableToString(Datatable* datatable)
-{
-	std::string sCSVString;
-
-	// write columns
-	bool bShouldComma = false;
-	for (int i = 0; i < datatable->numColumns; i++)
-	{
-		if (bShouldComma)
-			sCSVString += ',';
-		else
-			bShouldComma = true;
-
-		sCSVString += datatable->columnInfo[i].name;
-	}
-
-	// write rows
-	for (int row = 0; row < datatable->numRows; row++)
-	{
-		sCSVString += '\n';
-
-		bool bShouldComma = false;
-		for (int col = 0; col < datatable->numColumns; col++)
-		{
-			if (bShouldComma)
-				sCSVString += ',';
-			else
-				bShouldComma = true;
-
-			// output typed data
-			ColumnInfo column = datatable->columnInfo[col];
-			const void* pUntypedVal = datatable->data + column.offset + row * datatable->rowInfo;
-			switch (column.type)
-			{
-			case DatatableType::BOOL:
-			{
-				sCSVString += *(bool*)pUntypedVal ? '1' : '0';
-				break;
-			}
-
-			case DatatableType::INT:
-			{
-				sCSVString += std::to_string(*(int*)pUntypedVal);
-				break;
-			}
-
-			case DatatableType::FLOAT:
-			{
-				sCSVString += std::to_string(*(float*)pUntypedVal);
-				break;
-			}
-
-			case DatatableType::VECTOR:
-			{
-				Vector3* pVector = (Vector3*)(pUntypedVal);
-				sCSVString += fmt::format("<{},{},{}>", pVector->x, pVector->y, pVector->z);
-				break;
-			}
-
-			case DatatableType::STRING:
-			case DatatableType::ASSET:
-			case DatatableType::UNK_STRING:
-			{
-				sCSVString += fmt::format("\"{}\"", *(char**)pUntypedVal);
-				break;
-			}
-			}
-		}
-	}
-
-	return sCSVString;
-}
-
-void DumpDatatable(const char* pDatatablePath)
-{
-	Datatable* pDatatable = (Datatable*)g_pPakLoadManager->LoadFile(pDatatablePath);
-	if (!pDatatable)
-	{
-		Error(eLog::NS, NO_ERROR, "couldn't load datatable {} (rpak containing it may not be loaded?)\n", pDatatablePath);
-		return;
-	}
-
-	std::string sOutputPath(fmt::format("{}/scripts/datatable/{}.csv", g_pEngineParms->szModName, fs::path(pDatatablePath).stem().string()));
-	std::string sDatatableContents(DataTableToString(pDatatable));
-
-	fs::create_directories(fs::path(sOutputPath).remove_filename());
-	std::ofstream outputStream(sOutputPath);
-	outputStream.write(sDatatableContents.c_str(), sDatatableContents.size());
-	outputStream.close();
-
-	DevMsg(eLog::NS, "dumped datatable %s %p to %s\n", pDatatablePath, (void*)pDatatable, sOutputPath.c_str());
-}
-
-ON_DLL_LOAD_RELIESON("server.dll", ServerScriptDatatables, ServerSquirrel, (CModule module))
-{
-	SQ_GetDatatableInternal<ScriptContext::SERVER> = module.Offset(0x1250f0).RCast<Datatable* (*)(HSquirrelVM*)>();
-}
-
-ON_DLL_LOAD_RELIESON("client.dll", ClientScriptDatatables, ClientSquirrel, (CModule module))
-{
-	SQ_GetDatatableInternal<ScriptContext::CLIENT> = module.Offset(0x1C9070).RCast<Datatable* (*)(HSquirrelVM*)>();
-	SQ_GetDatatableInternal<ScriptContext::UI> = SQ_GetDatatableInternal<ScriptContext::CLIENT>;
 }

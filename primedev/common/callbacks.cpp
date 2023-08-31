@@ -8,7 +8,6 @@
 #include "mods/modmanager.h"
 #include "networksystem/masterserver.h"
 #include "squirrel/squirrel.h"
-#include "scripts/scriptdatatables.h"
 #include "server/auth/bansystem.h"
 #include "engine/client/client.h"
 #include "engine/server/server.h"
@@ -19,6 +18,7 @@
 #include "engine/datamap.h"
 #include "game/server/gameinterface.h"
 #include "engine/vengineserver_impl.h"
+#include "rtech/datatable.h"
 
 //-----------------------------------------------------------------------------
 // Purpose:

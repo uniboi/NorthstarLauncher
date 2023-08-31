@@ -614,35 +614,6 @@ void SquirrelManager<context>::ProcessMessageBuffer()
 	}
 }
 
-ADD_SQFUNC("string", NSGetCurrentModName, "", "Returns the mod name of the script running this function", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
-{
-	int depth = g_pSquirrel<context>->getinteger(sqvm, 1);
-	if (auto mod = g_pSquirrel<context>->getcallingmod(sqvm, depth); mod == nullptr)
-	{
-		g_pSquirrel<context>->raiseerror(sqvm, "NSGetModName was called from a non-mod script. This shouldn't be possible");
-		return SQRESULT_ERROR;
-	}
-	else
-	{
-		g_pSquirrel<context>->pushstring(sqvm, mod->Name.c_str());
-	}
-	return SQRESULT_NOTNULL;
-}
-
-ADD_SQFUNC("string", NSGetCallingModName, "int depth = 0", "Returns the mod name of the script running this function", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
-{
-	int depth = g_pSquirrel<context>->getinteger(sqvm, 1);
-	if (auto mod = g_pSquirrel<context>->getcallingmod(sqvm, depth); mod == nullptr)
-	{
-		g_pSquirrel<context>->pushstring(sqvm, "Unknown");
-	}
-	else
-	{
-		g_pSquirrel<context>->pushstring(sqvm, mod->Name.c_str());
-	}
-	return SQRESULT_NOTNULL;
-}
-
 ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(client.dll)
