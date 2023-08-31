@@ -6,9 +6,9 @@
 #include "client/localchatwriter.h"
 #include "windows/window.h"
 #include "networksystem/masterserver.h"
-#include "client/r2client.h"
 #include "server/auth/serverauthentication.h"
 #include "shared/gamepresence.h"
+#include "originsdk/origin.h"
 
 ADD_SQFUNC("void", NSChatWrite, "int context, string text", "", ScriptContext::CLIENT)
 {

@@ -1,6 +1,5 @@
 #include "engine/sys_engine.h"
 
-#include "server/r2server.h"
 #include "hoststate.h"
 #include "server/serverpresence.h"
 

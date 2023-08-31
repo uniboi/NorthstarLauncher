@@ -1,6 +1,6 @@
 AUTOHOOK_INIT()
 
-#include "server/r2server.h"
+#include "game/server/util_server.h"
 #include "engine/server/server.h"
 #include "engine/client/client.h"
 #include "engine/edict.h"

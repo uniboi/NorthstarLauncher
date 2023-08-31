@@ -1,6 +1,6 @@
 #include "networksystem/masterserver.h"
 #include "tier1/convar.h"
-#include "client/r2client.h"
+#include "originsdk/origin.h"
 
 AUTOHOOK_INIT()
 

@@ -8,8 +8,7 @@
 #include "dedicated/dedicated.h"
 #include "engine/server/server.h"
 #include "engine/edict.h"
-#include "client/r2client.h"
-#include "server/r2server.h"
+#include "originsdk/origin.h"
 
 #include <fstream>
 #include <filesystem>

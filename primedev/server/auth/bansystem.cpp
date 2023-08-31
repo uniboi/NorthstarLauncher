@@ -1,7 +1,6 @@
 #include "bansystem.h"
 #include "serverauthentication.h"
 #include "tier1/cmd.h"
-#include "server/r2server.h"
 #include "engine/server/server.h"
 
 #include <filesystem>

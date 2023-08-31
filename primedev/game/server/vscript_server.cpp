@@ -6,10 +6,10 @@
 #include "game/server/player.h"
 #include "engine/server/server.h"
 #include "engine/client/client.h"
-#include "client/r2client.h"
 #include "server/auth/serverauthentication.h"
 #include "networksystem/masterserver.h"
 #include "game/server/gameinterface.h"
+#include "originsdk/origin.h"
 
 ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", ScriptContext::SERVER)
 {

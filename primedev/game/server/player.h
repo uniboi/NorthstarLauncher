@@ -1024,3 +1024,5 @@ class CPlayer : public CBaseCombatCharacter
 	int /*EHANDLE*/ m_playerScriptNetDataExclusive; // 0x3460 ( Size: 4 )
 };
 static_assert(sizeof(CPlayer) == 0x3468);
+
+inline void (*__fastcall CPlayer__RunNullCommand)(CPlayer* self);

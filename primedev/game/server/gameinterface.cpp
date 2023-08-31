@@ -5,7 +5,7 @@
 #include "squirrel/squirrel.h"
 #include "shared/exploit_fixes/ns_limits.h"
 #include "engine/server/server.h"
-#include "server/r2server.h"
+#include "game/server/util_server.h"
 
 AUTOHOOK_INIT()
 

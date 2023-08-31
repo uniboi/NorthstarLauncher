@@ -6,10 +6,10 @@
 #include "mods/modsavefiles.h"
 #include "mods/modmanager.h"
 #include "scripts/scriptjson.h"
-#include "client/r2client.h"
 #include "rtech/datatable.h"
 #include "rtech/pakapi.h"
 #include "filesystem/basefilesystem.h"
+#include "originsdk/origin.h"
 
 // void NSSaveFile( string file, string data )
 ADD_SQFUNC("void", NSSaveFile, "string file, string data", "", ScriptContext::SERVER | ScriptContext::CLIENT | ScriptContext::UI)

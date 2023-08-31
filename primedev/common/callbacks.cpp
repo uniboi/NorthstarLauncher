@@ -13,7 +13,7 @@
 #include "engine/server/server.h"
 #include "server/auth/serverauthentication.h"
 #include "engine/hoststate.h"
-#include "client/r2client.h"
+#include "originsdk/origin.h"
 #include "shared/playlist.h"
 #include "engine/datamap.h"
 #include "game/server/gameinterface.h"

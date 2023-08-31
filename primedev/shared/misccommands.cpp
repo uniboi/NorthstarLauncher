@@ -1,7 +1,6 @@
 #include "misccommands.h"
 #include "tier1/cmd.h"
 #include "shared/playlist.h"
-#include "client/r2client.h"
 #include "engine/hoststate.h"
 #include "networksystem/masterserver.h"
 #include "mods/modmanager.h"
