@@ -1,6 +1,5 @@
-#include "tier1/convar.h"
 
-ON_DLL_LOAD_CLIENT("engine.dll", EngineDemoFixes, (CModule module))
+ON_DLL_LOAD_CLIENT("engine.dll", EngineCLDemo, (CModule module))
 {
 	// allow demo recording on loopback
 	module.Offset(0x8E1B1).NOP(2);
