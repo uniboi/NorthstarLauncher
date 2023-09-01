@@ -1,8 +1,11 @@
-[submodule "thirdparty/libcurl"]
+[submodule "primedev/thirdparty/libcurl"]
 	path = primedev/thirdparty/libcurl
 	url = https://github.com/curl/curl
 	ignore = untracked
-[submodule "thirdparty/minhook"]
+[submodule "primedev/thirdparty/minhook"]
 	path = primedev/thirdparty/minhook
 	url = https://github.com/TsudaKageyu/minhook
 	ignore = untracked
+[submodule "primedev/thirdparty/nlohmann"]
+	path = primedev/thirdparty/nlohmann
+	url = https://github.com/nlohmann/json
