@@ -1,17 +1,13 @@
 #include "common/callbacks.h"
 
-#include "server/serverpresence.h"
-
 #include "engine/cdll_engine_int.h"
 #include "client/localchatwriter.h"
 #include "gameui/GameConsole.h"
 #include "mods/modmanager.h"
-#include "networksystem/masterserver.h"
 #include "squirrel/squirrel.h"
 #include "server/auth/bansystem.h"
 #include "engine/client/client.h"
 #include "engine/server/server.h"
-#include "server/auth/serverauthentication.h"
 #include "engine/hoststate.h"
 #include "originsdk/origin.h"
 #include "shared/playlist.h"
@@ -19,14 +15,13 @@
 #include "game/server/gameinterface.h"
 #include "engine/vengineserver_impl.h"
 #include "rtech/datatable.h"
+#include "networksystem/atlas.h"
 
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
 void NS_ServerName_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
-	g_pServerPresence->SetName(UnescapeUnicode(Cvar_ns_server_name->GetString()));
-
 	// update engine hostname cvar
 	Cvar_hostname->SetValue(Cvar_ns_server_name->GetString());
 }
@@ -36,7 +31,7 @@ void NS_ServerName_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 //-----------------------------------------------------------------------------
 void NS_ServerDesc_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
-	g_pServerPresence->SetDescription(UnescapeUnicode(Cvar_ns_server_desc->GetString()));
+	//
 }
 
 //-----------------------------------------------------------------------------
@@ -44,7 +39,7 @@ void NS_ServerDesc_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 //-----------------------------------------------------------------------------
 void NS_ServerPass_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
-	g_pServerPresence->SetPassword(Cvar_ns_server_password->GetString());
+	//
 }
 
 //-----------------------------------------------------------------------------
@@ -136,7 +131,7 @@ void CC_reload_mods_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_ns_fetchservers_f(const CCommand& args)
 {
-	g_pMasterServerManager->RequestServerList();
+	//
 }
 
 //-----------------------------------------------------------------------------
@@ -273,52 +268,6 @@ void CC_unban_f(const CCommand& args)
 void CC_clearbanlist_f(const CCommand& args)
 {
 	g_pBanSystem->ClearBanlist();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CC_ns_resetpersistence_f(const CCommand& args)
-{
-	if (g_pServer->IsActive())
-	{
-		Error(eLog::NS, NO_ERROR, "ns_resetpersistence must be entered from the main menu\n");
-		return;
-	}
-
-	Warning(eLog::NS, "resetting persistence on next lobby load...\n");
-	g_pServerAuthentication->m_bForceResetLocalPlayerPersistence = true;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CC_ns_start_reauth_and_leave_to_lobby_f(const CCommand& arg)
-{
-	// hack for special case where we're on a local server, so we erase our own newly created auth data on disconnect
-	g_pMasterServerManager->m_bNewgameAfterSelfAuth = true;
-	g_pMasterServerManager->AuthenticateWithOwnServer(g_pLocalPlayerUserID, g_pMasterServerManager->m_sOwnClientAuthToken);
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
-void CC_ns_end_reauth_and_leave_to_lobby_f(const CCommand& arg)
-{
-	if (g_pServerAuthentication->m_RemoteAuthenticationData.size())
-		g_pCVar->FindVar("serverfilter")->SetValue(g_pServerAuthentication->m_RemoteAuthenticationData.begin()->first.c_str());
-
-	// weird way of checking, but check if client script vm is initialised, mainly just to allow players to cancel this
-	if (g_pSquirrel<ScriptContext::CLIENT>->m_pSQVM)
-	{
-		g_pServerAuthentication->m_bNeedLocalAuthForNewgame = true;
-
-		// this won't set playlist correctly on remote clients, don't think they can set playlist until they've left which sorta
-		// fucks things should maybe set this in HostState_NewGame?
-		R2::SetCurrentPlaylist("tdm");
-		strcpy(g_pHostState->m_levelName, "mp_lobby");
-		g_pHostState->m_iNextState = HostState_t::HS_NEW_GAME;
-	}
 }
 
 //-----------------------------------------------------------------------------

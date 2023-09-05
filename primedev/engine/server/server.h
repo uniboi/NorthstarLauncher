@@ -29,7 +29,7 @@ class CServer : public IConnectionlessPacketHandler
 	inline CClient* GetClient( int nIdx ) { return &m_Clients[nIdx]; }
 	// clang-format on
 
-  private:
+  public: // TODO: make private
 	server_state_t m_State;
 	int m_Socket;
 	int m_nTickCount;
@@ -63,3 +63,5 @@ class CServer : public IConnectionlessPacketHandler
 };
 
 inline CServer* g_pServer;
+
+inline void (*CServer__RejectConnection)(CServer* self, int iSocket, void* unk, const char* fmt, ...);

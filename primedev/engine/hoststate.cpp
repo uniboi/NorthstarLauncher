@@ -1,11 +1,11 @@
 #include "engine/hoststate.h"
-#include "networksystem/masterserver.h"
-#include "server/auth/serverauthentication.h"
-#include "server/serverpresence.h"
 #include "shared/playlist.h"
 #include "engine/server/server.h"
 #include "shared/exploit_fixes/ns_limits.h"
 #include "squirrel/squirrel.h"
+#include "networksystem/atlas.h"
+#include "engine/edict.h"
+#include "originsdk/origin.h"
 
 AUTOHOOK_INIT()
 
@@ -38,10 +38,7 @@ void ServerStartingOrChangingMap()
 	if (!strncmp(g_pHostState->m_levelName, "sp_", 3))
 	{
 		g_pCVar->FindVar("net_data_block_enabled")->SetValue(true);
-		g_pServerAuthentication->m_bStartingLocalSPGame = true;
 	}
-	else
-		g_pServerAuthentication->m_bStartingLocalSPGame = false;
 }
 
 // clang-format off
@@ -55,22 +52,14 @@ void, __fastcall, (CHostState* self))
 	Cbuf_Execute();
 
 	// need to do this to ensure we don't go to private match
-	if (g_pServerAuthentication->m_bNeedLocalAuthForNewgame)
-		R2::SetCurrentPlaylist("tdm");
+	//if (g_pServerAuthentication->m_bNeedLocalAuthForNewgame)
+	//	R2::SetCurrentPlaylist("tdm");
 
 	ServerStartingOrChangingMap();
 
 	double dStartTime = Plat_FloatTime();
 	CHostState__State_NewGame(self);
 	DevMsg(eLog::ENGINE, "loading took %f sec\n", Plat_FloatTime() - dStartTime);
-
-	// setup server presence
-	g_pServerPresence->CreatePresence();
-	g_pServerPresence->SetMap(g_pHostState->m_levelName, true);
-	g_pServerPresence->SetPlaylist(R2::GetCurrentPlaylistName());
-	g_pServerPresence->SetPort(Cvar_hostport->GetInt());
-
-	g_pServerAuthentication->m_bNeedLocalAuthForNewgame = false;
 }
 
 // clang-format off
@@ -88,7 +77,7 @@ void, __fastcall, (CHostState* self))
 
 	// this is normally done in ServerStartingOrChangingMap(), but seemingly the map name isn't set at this point
 	g_pCVar->FindVar("net_data_block_enabled")->SetValue(true);
-	g_pServerAuthentication->m_bStartingLocalSPGame = true;
+	//g_pServerAuthentication->m_bStartingLocalSPGame = true;
 
 	double dStartTime = Plat_FloatTime();
 	CHostState__State_LoadGame(self);
@@ -97,7 +86,7 @@ void, __fastcall, (CHostState* self))
 	// no server presence, can't do it because no map name in hoststate
 	// and also not super important for sp saves really
 
-	g_pServerAuthentication->m_bNeedLocalAuthForNewgame = false;
+	// g_pServerAuthentication->m_bNeedLocalAuthForNewgame = false;
 }
 
 // clang-format off
@@ -113,7 +102,7 @@ void, __fastcall, (CHostState* self))
 	CHostState__State_ChangeLevelMP(self);
 	DevMsg(eLog::ENGINE, "loading took %f sec\n", Plat_FloatTime() - dStartTime);
 
-	g_pServerPresence->SetMap(g_pHostState->m_levelName);
+	//g_pServerPresence->SetMap(g_pHostState->m_levelName);
 }
 
 // clang-format off
@@ -123,7 +112,7 @@ void, __fastcall, (CHostState* self))
 {
 	DevMsg(eLog::ENGINE, "HostState: GameShutdown\n");
 
-	g_pServerPresence->DestroyPresence();
+	//g_pServerPresence->DestroyPresence();
 
 	CHostState__State_GameShutdown(self);
 
@@ -152,11 +141,19 @@ void, __fastcall, (CHostState* self, double flCurrentTime, float flFrameTime))
 
 	if (g_pServer->IsActive())
 	{
-		// update server presence
-		g_pServerPresence->RunFrame(flCurrentTime);
+		// Only bother with reporting to atas in MP
+		if (g_pServerGlobalVariables->m_nGameMode == MP_MODE)
+		{
+			g_pAtlasServer->HeartBeat(flCurrentTime);
+		}
 
 		// update limits for frame
 		g_pServerLimits->RunFrame(flCurrentTime, flFrameTime);
+	}
+	else
+	{
+		// This checks if we're registered so calling each frame is fine
+		g_pAtlasServer->UnregisterSelf();
 	}
 
 	// Run Squirrel message buffer
@@ -170,7 +167,24 @@ void, __fastcall, (CHostState* self, double flCurrentTime, float flFrameTime))
 		g_pSquirrel<ScriptContext::SERVER>->ProcessMessageBuffer();
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", HostState, ConVar, (CModule module))
+//-----------------------------------------------------------------------------
+// Purpose: Gets called when loading a map from the main menu
+//-----------------------------------------------------------------------------
+AUTOHOOK(HostState_NewGame, engine.dll + 0x16DF90, void, __fastcall, (char const* pMapName, bool bBackground, bool bSplitScreenConnect))
+{
+	// Make sure auth data is cleared before first map load
+	g_pAtlasServer->ClearAuthInfo();
+
+	// Get auth data for self only on listen server, in mp when loading from main menu
+	if (!IsDedicatedServer() && !strncmp(pMapName, "mp_", 3))
+	{
+		g_pAtlasServer->AuthenticateLocalClient(g_pLocalPlayerUserID);
+	}
+
+	HostState_NewGame(pMapName, bBackground, bSplitScreenConnect);
+}
+
+ON_DLL_LOAD("engine.dll", HostState, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 

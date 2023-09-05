@@ -1,7 +1,6 @@
 #include "engine/sys_engine.h"
 
 #include "hoststate.h"
-#include "server/serverpresence.h"
 
 AUTOHOOK_INIT()
 

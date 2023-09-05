@@ -27,11 +27,6 @@ void CC_ban_f(const CCommand& args);
 void CC_unban_f(const CCommand& args);
 void CC_clearbanlist_f(const CCommand& args);
 
-void CC_ns_resetpersistence_f(const CCommand& args);
-
-void CC_ns_start_reauth_and_leave_to_lobby_f(const CCommand& arg);
-void CC_ns_end_reauth_and_leave_to_lobby_f(const CCommand& arg);
-
 void CC_playlist_f(const CCommand& args);
 void CC_setplaylistvaroverride_f(const CCommand& args);
 

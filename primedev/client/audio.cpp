@@ -484,7 +484,7 @@ void, __fastcall, (int level, const char* string))
 	DevMsg(eLog::AUDIO, "%i - %s\n", level, string);
 }
 
-ON_DLL_LOAD_CLIENT_RELIESON("client.dll", AudioHooks, ConVar, (CModule module))
+ON_DLL_LOAD_CLIENT("client.dll", AudioHooks, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 

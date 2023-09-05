@@ -614,7 +614,7 @@ void SquirrelManager<context>::ProcessMessageBuffer()
 	}
 }
 
-ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
+ON_DLL_LOAD("client.dll", ClientSquirrel, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(client.dll)
 
@@ -728,7 +728,7 @@ ON_DLL_LOAD_RELIESON("client.dll", ClientSquirrel, ConCommand, (CModule module))
 	g_pSquirrel<ScriptContext::UI>->__sq_getfunction = g_pSquirrel<ScriptContext::CLIENT>->__sq_getfunction;
 }
 
-ON_DLL_LOAD_RELIESON("server.dll", ServerSquirrel, ConCommand, (CModule module))
+ON_DLL_LOAD("server.dll", ServerSquirrel, (CModule module))
 {
 	AUTOHOOK_DISPATCH_MODULE(server.dll)
 

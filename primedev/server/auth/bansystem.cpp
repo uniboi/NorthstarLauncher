@@ -1,5 +1,4 @@
 #include "bansystem.h"
-#include "serverauthentication.h"
 #include "tier1/cmd.h"
 #include "engine/server/server.h"
 
@@ -174,7 +173,7 @@ bool ServerBanSystem::IsUIDAllowed(uint64_t uid)
 	return std::find(m_vBannedUids.begin(), m_vBannedUids.end(), uid) == m_vBannedUids.end();
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", BanSystem, ConCommand, (CModule module))
+ON_DLL_LOAD("engine.dll", BanSystem, (CModule module))
 {
 	g_pBanSystem = new ServerBanSystem;
 	g_pBanSystem->OpenBanlist();

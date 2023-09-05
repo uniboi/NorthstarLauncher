@@ -12,7 +12,7 @@ bool, __fastcall, (void* a1, float* a2))
 	return RUI_Draw(a1, a2);
 }
 
-ON_DLL_LOAD_CLIENT_RELIESON("engine.dll", RTechRUIRUI, ConVar, (CModule module))
+ON_DLL_LOAD_CLIENT("engine.dll", RTechRUIRUI, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 }

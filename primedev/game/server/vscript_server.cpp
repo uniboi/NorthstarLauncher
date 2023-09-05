@@ -6,37 +6,19 @@
 #include "game/server/player.h"
 #include "engine/server/server.h"
 #include "engine/client/client.h"
-#include "server/auth/serverauthentication.h"
-#include "networksystem/masterserver.h"
 #include "game/server/gameinterface.h"
 #include "originsdk/origin.h"
 
 ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", ScriptContext::SERVER)
 {
 	const CPlayer* pPlayer = g_pSquirrel<context>->template getentity<CPlayer>(sqvm, 1);
-	if (!pPlayer)
-	{
-		Warning(eLog::NS, "NSEarlyWritePlayerPersistenceForLeave got null player\n");
-
-		g_pSquirrel<context>->pushbool(sqvm, false);
-		return SQRESULT_NOTNULL;
-	}
-
-	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
-	if (g_pServerAuthentication->m_PlayerAuthenticationData.find(pClient) == g_pServerAuthentication->m_PlayerAuthenticationData.end())
-	{
-		g_pSquirrel<context>->pushbool(sqvm, false);
-		return SQRESULT_NOTNULL;
-	}
-
-	g_pServerAuthentication->m_PlayerAuthenticationData[pClient].needPersistenceWriteOnLeave = false;
-	g_pServerAuthentication->WritePersistentData(pClient);
+	
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("bool", NSIsWritingPlayerPersistence, "", "", ScriptContext::SERVER)
 {
-	g_pSquirrel<context>->pushbool(sqvm, g_pMasterServerManager->m_bSavingPersistentData);
+	g_pSquirrel<context>->pushbool(sqvm, false /*g_pMasterServerManager->m_bSavingPersistentData*/);
 	return SQRESULT_NOTNULL;
 }
 

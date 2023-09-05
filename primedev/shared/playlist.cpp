@@ -4,7 +4,6 @@
 #include "engine/edict.h"
 #include "squirrel/squirrel.h"
 #include "engine/hoststate.h"
-#include "server/serverpresence.h"
 
 AUTOHOOK_INIT()
 
@@ -39,7 +38,6 @@ bool, __fastcall, (const char* pPlaylistName))
 	if (bSuccess)
 	{
 		DevMsg(eLog::NS, "Set playlist to %s\n", R2::GetCurrentPlaylistName());
-		g_pServerPresence->SetPlaylist(R2::GetCurrentPlaylistName());
 	}
 
 	return bSuccess;
@@ -80,7 +78,7 @@ int, __fastcall, ())
 	return iMaxPlayers;
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", PlaylistHooks, (ConCommand, ConVar), (CModule module))
+ON_DLL_LOAD("engine.dll", PlaylistHooks, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 

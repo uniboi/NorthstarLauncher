@@ -1,4 +1,3 @@
-#include "tier1/convar.h"
 #include "mods/modmanager.h"
 #include "shared/misccommands.h"
 #include "engine/host.h"
@@ -14,8 +13,6 @@ void, __fastcall, (bool bDedicated))
 	Host_Init(bDedicated);
 	FixupCvarFlags();
 
-	EngineParms_t* ep = g_pEngineParms;
-
 	// Hardcoded mod functionality, add something to mod.json or just teach users on how to +exec as a replacement ot this
 	Warning(eLog::ENGINE, "'autoexec_ns_*' files are deprecated!\n");
 	// client/server autoexecs on necessary platforms
@@ -24,6 +21,11 @@ void, __fastcall, (bool bDedicated))
 		Cbuf_AddText(Cbuf_GetCurrentPlayer(), "exec autoexec_ns_server", cmd_source_t::kCommandSrcCode);
 	else
 		Cbuf_AddText(Cbuf_GetCurrentPlayer(), "exec autoexec_ns_client", cmd_source_t::kCommandSrcCode);
+}
+
+AUTOHOOK(Host_NewGame, engine.dll + 0x156B10, bool, __fastcall, (char* pszMapName, bool bLoadGame, bool bBackgroundLevel, bool bSplitScreenConnect, const char* pszOldMap, const char* pszLandmark))
+{
+	return Host_NewGame(pszMapName, bLoadGame, bBackgroundLevel, bSplitScreenConnect, pszOldMap, pszLandmark);
 }
 
 ON_DLL_LOAD("engine.dll", Host_Init, (CModule module))

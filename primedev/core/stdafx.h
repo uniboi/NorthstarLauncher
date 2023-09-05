@@ -40,6 +40,8 @@ inline std::string g_svProfileDir;
 #include "thirdparty/silver-bun/module.h"
 #include "thirdparty/silver-bun/memaddr.h"
 
+#include "thirdparty/nlohmann/include/nlohmann/json.hpp"
+
 #include "tier0/memstd.h"
 #include "core/memalloc.h"
 #include "tier0/platform.h"

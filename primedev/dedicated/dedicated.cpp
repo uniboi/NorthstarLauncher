@@ -3,8 +3,6 @@
 #include "shared/playlist.h"
 #include "engine/hoststate.h"
 #include "engine/edict.h"
-#include "server/auth/serverauthentication.h"
-#include "networksystem/masterserver.h"
 #include "engine/sys_engine.h"
 
 AUTOHOOK_INIT()
@@ -59,15 +57,6 @@ void RunServer(CDedicatedExports* dedicated)
 	}
 }
 
-// use server presence to update window title
-class DedicatedConsoleServerPresence : public ServerPresenceReporter
-{
-	void ReportPresence(const ServerPresence* pServerPresence) override
-	{
-		SetConsoleTitleA(fmt::format("{} - {} {}/{} players ({})", pServerPresence->m_sServerName, pServerPresence->m_MapName, pServerPresence->m_iPlayerCount, pServerPresence->m_iMaxPlayers, pServerPresence->m_PlaylistName).c_str());
-	}
-};
-
 HANDLE consoleInputThreadHandle = NULL;
 DWORD WINAPI ConsoleInputThread(PVOID pThreadParameter)
 {
@@ -101,7 +90,7 @@ bool,, ())
 	return true;
 }
 
-ON_DLL_LOAD_DEDI_RELIESON("engine.dll", DedicatedServer, ServerPresence, (CModule module))
+ON_DLL_LOAD_DEDI("engine.dll", DedicatedServer, (CModule module))
 {
 	DevMsg(eLog::NS, "InitialiseDedicated\n");
 
@@ -204,10 +193,6 @@ ON_DLL_LOAD_DEDI_RELIESON("engine.dll", DedicatedServer, ServerPresence, (CModul
 	CommandLine()->AppendParm("+host_preload_shaders", "0");
 	CommandLine()->AppendParm("+net_usesocketsforloopback", "1");
 	CommandLine()->AppendParm("+community_frame_run", "0");
-
-	// use presence reporter for console title
-	DedicatedConsoleServerPresence* presenceReporter = new DedicatedConsoleServerPresence;
-	g_pServerPresence->AddPresenceReporter(presenceReporter);
 
 	// Disable Quick Edit mode to reduce chance of user unintentionally hanging their server by selecting something.
 	if (!CommandLine()->CheckParm("-bringbackquickedit"))

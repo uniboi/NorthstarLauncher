@@ -11,7 +11,7 @@ size_t __fastcall ShouldAllowAlltalk()
 	return strcmp(g_pServerGlobalVariables->m_pMapName, "mp_lobby");
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", ServerAllTalk, ConVar, (CModule module))
+ON_DLL_LOAD("engine.dll", ServerAllTalk, (CModule module))
 {
 	// replace strcmp function called in CClient::ProcessVoiceData with our own code that calls ShouldAllowAllTalk
 	CMemory base = module.Offset(0x1085FA);

@@ -108,7 +108,7 @@ void, __fastcall, (OverlayBase_t * pOverlay))
 	LeaveCriticalSection((LPCRITICAL_SECTION)((char*)sEngineModule + 0x10DB0A38));
 }
 
-ON_DLL_LOAD_CLIENT_RELIESON("engine.dll", DebugOverlay, ConVar, (CModule module))
+ON_DLL_LOAD_CLIENT("engine.dll", DebugOverlay, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 

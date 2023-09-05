@@ -3,6 +3,7 @@
 find_package(minhook REQUIRED)
 find_package(libcurl REQUIRED)
 find_package(silver-bun REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 add_library(PrimeDLL SHARED
             "appframework/IAppSystem.h"
@@ -57,6 +58,7 @@ add_library(PrimeDLL SHARED
             "engine/host_listmaps.cpp"
             "engine/hoststate.cpp"
             "engine/hoststate.h"
+            "engine/sv_main.cpp"
             "engine/sys_engine.cpp"
 			"engine/vengineserver_impl.cpp"
 			"engine/vengineserver_impl.h"
@@ -109,9 +111,9 @@ add_library(PrimeDLL SHARED
             "networksystem/bcrypt.cpp"
             "networksystem/bcrypt.h"
             "networksystem/inetmsghandler.h"
-			"networksystem/masterserver.cpp"
-		    "networksystem/masterserver.h"
             "networksystem/netchannel.h"
+            "networksystem/atlas.cpp"
+            "networksystem/atlas.h"
             "originsdk/origin.cpp"
             "originsdk/origin.h"
             "originsdk/overlay.cpp"
@@ -126,20 +128,13 @@ add_library(PrimeDLL SHARED
             "scripts/scriptjson.h"
             "server/auth/bansystem.cpp"
             "server/auth/bansystem.h"
-            "server/auth/serverauthentication.cpp"
-            "server/auth/serverauthentication.h"
             "server/alltalk.cpp"
             "server/buildainfile.cpp"
-            "server/servernethooks.cpp"
-            "server/serverpresence.cpp"
-            "server/serverpresence.h"
             "shared/exploit_fixes/exploitfixes.cpp"
             "shared/exploit_fixes/exploitfixes_lzss.cpp"
             "shared/exploit_fixes/exploitfixes_utf8parser.cpp"
             "shared/exploit_fixes/ns_limits.cpp"
             "shared/exploit_fixes/ns_limits.h"
-            "shared/gamepresence.cpp"
-            "shared/gamepresence.h"
             "shared/maxplayers.cpp"
             "shared/maxplayers.h"
             "shared/misccommands.cpp"
@@ -174,6 +169,8 @@ add_library(PrimeDLL SHARED
             "tier1/keyvalues.cpp"
             "tier1/keyvalues.h"
             "tier1/utlmemory.h"
+            "tier2/curlutils.cpp"
+            "tier2/curlutils.h"
             "vgui/vgui_baseui_interface.cpp"
 			"vgui/vgui_baseui_interface.h"
             "windows/libsys.cpp"
@@ -189,6 +186,7 @@ target_link_libraries(PrimeDLL PRIVATE
                       minhook
                       libcurl
                       silver-bun
+					  nlohmann_json
                       WS2_32.lib
                       Crypt32.lib
                       Cryptui.lib

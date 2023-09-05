@@ -2,7 +2,6 @@
 #include "tier1/convar.h"
 #include "tier1/cmd.h"
 #include "client/audio.h"
-#include "networksystem/masterserver.h"
 #include "filesystem/basefilesystem.h"
 #include "rtech/pakapi.h"
 #include "squirrel/squirrel.h"
@@ -953,7 +952,6 @@ void ModManager::LoadMods()
 	buffer.Clear();
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	modinfoDoc.Accept(writer);
-	g_pMasterServerManager->m_sOwnModInfoJson = std::string(buffer.GetString());
 
 	m_bHasLoadedMods = true;
 
@@ -1126,7 +1124,7 @@ fs::path GetCompiledAssetsPath()
 	return fs::path(g_svProfileDir + COMPILED_ASSETS_SUFFIX);
 }
 
-ON_DLL_LOAD_RELIESON("engine.dll", ModManager, (ConCommand, MasterServer), (CModule module))
+ON_DLL_LOAD_RELIESON("engine.dll", ModManager, ConVar, (CModule module))
 {
 	g_pModManager = new ModManager;
 }

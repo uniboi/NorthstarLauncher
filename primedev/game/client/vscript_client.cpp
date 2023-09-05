@@ -5,10 +5,11 @@
 
 #include "client/localchatwriter.h"
 #include "windows/window.h"
-#include "networksystem/masterserver.h"
-#include "server/auth/serverauthentication.h"
-#include "shared/gamepresence.h"
 #include "originsdk/origin.h"
+#include "networksystem/atlas.h"
+#include "engine/cl_splitscreen.h"
+#include "engine/edict.h"
+#include "engine/server/server.h"
 
 ADD_SQFUNC("void", NSChatWrite, "int context, string text", "", ScriptContext::CLIENT)
 {
@@ -75,138 +76,90 @@ enum eMainMenuPromoDataProperty
 
 ADD_SQFUNC("void", NSRequestCustomMainMenuPromos, "", "", ScriptContext::UI)
 {
-	g_pMasterServerManager->RequestMainMenuPromos();
+	// g_pMasterServerManager->RequestMainMenuPromos();
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("bool", NSHasCustomMainMenuPromoData, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<ScriptContext::UI>->pushbool(sqvm, g_pMasterServerManager->m_bHasMainMenuPromoData);
+	g_pSquirrel<ScriptContext::UI>->pushbool(sqvm, true /*g_pMasterServerManager->m_bHasMainMenuPromoData*/);
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("var", NSGetCustomMainMenuPromoData, "int promoDataKey", "", ScriptContext::UI)
 {
-	if (!g_pMasterServerManager->m_bHasMainMenuPromoData)
-		return SQRESULT_NULL;
-
+	int nPromoDataKey = g_pSquirrel<ScriptContext::UI>->getinteger(sqvm, 1);
 	switch (g_pSquirrel<ScriptContext::UI>->getinteger(sqvm, 1))
 	{
 	case eMainMenuPromoDataProperty::newInfoTitle1:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.newInfoTitle1.c_str());
-		break;
-	}
-
 	case eMainMenuPromoDataProperty::newInfoTitle2:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.newInfoTitle2.c_str());
-		break;
-	}
-
 	case eMainMenuPromoDataProperty::newInfoTitle3:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.newInfoTitle3.c_str());
-		break;
-	}
-
 	case eMainMenuPromoDataProperty::largeButtonTitle:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.largeButtonTitle.c_str());
-		break;
-	}
-
 	case eMainMenuPromoDataProperty::largeButtonText:
+	case eMainMenuPromoDataProperty::largeButtonUrl:
+	case eMainMenuPromoDataProperty::smallButton1Title:
+	case eMainMenuPromoDataProperty::smallButton1Url:
+	case eMainMenuPromoDataProperty::smallButton2Title:
+	case eMainMenuPromoDataProperty::smallButton2Url:
 	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.largeButtonText.c_str());
+		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, "STUB");
 		break;
 	}
-
-	case eMainMenuPromoDataProperty::largeButtonUrl:
+	case eMainMenuPromoDataProperty::smallButton1ImageIndex:
 	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.largeButtonUrl.c_str());
+		g_pSquirrel<ScriptContext::UI>->pushinteger(sqvm, 0);
+		break;
+	}
+	case eMainMenuPromoDataProperty::smallButton2ImageIndex:
+	{
+		g_pSquirrel<ScriptContext::UI>->pushinteger(sqvm, 1);
 		break;
 	}
 
 	case eMainMenuPromoDataProperty::largeButtonImageIndex:
 	{
-		g_pSquirrel<ScriptContext::UI>->pushinteger(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.largeButtonImageIndex);
-		break;
-	}
-
-	case eMainMenuPromoDataProperty::smallButton1Title:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.smallButton1Title.c_str());
-		break;
-	}
-
-	case eMainMenuPromoDataProperty::smallButton1Url:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.smallButton1Url.c_str());
-		break;
-	}
-
-	case eMainMenuPromoDataProperty::smallButton1ImageIndex:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushinteger(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.smallButton1ImageIndex);
-		break;
-	}
-
-	case eMainMenuPromoDataProperty::smallButton2Title:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.smallButton2Title.c_str());
-		break;
-	}
-
-	case eMainMenuPromoDataProperty::smallButton2Url:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushstring(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.smallButton2Url.c_str());
-		break;
-	}
-
-	case eMainMenuPromoDataProperty::smallButton2ImageIndex:
-	{
-		g_pSquirrel<ScriptContext::UI>->pushinteger(sqvm, g_pMasterServerManager->m_sMainMenuPromoData.smallButton2ImageIndex);
+		g_pSquirrel<ScriptContext::UI>->pushinteger(sqvm, 2);
 		break;
 	}
 	}
 
+	return SQRESULT_NOTNULL;
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("bool", NSIsMasterServerAuthenticated, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushbool(sqvm, g_pMasterServerManager->m_bOriginAuthWithMasterServerDone);
+	g_pSquirrel<context>->pushbool(sqvm, g_pAtlasClient->GetOriginAuthSuccessful());
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("void", NSRequestServerList, "", "", ScriptContext::UI)
 {
-	g_pMasterServerManager->RequestServerList();
+	g_pAtlasClient->FetchRemoteGameServerList();
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("bool", NSIsRequestingServerList, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushbool(sqvm, g_pMasterServerManager->m_bScriptRequestingServerList);
+	g_pSquirrel<context>->pushbool(sqvm, g_pAtlasClient->GetFetchingRemoteGameServers());
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("bool", NSMasterServerConnectionSuccessful, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushbool(sqvm, g_pMasterServerManager->m_bSuccessfullyConnected);
+	g_pSquirrel<context>->pushbool(sqvm, true /*g_pMasterServerManager->m_bSuccessfullyConnected*/);
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("int", NSGetServerCount, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushinteger(sqvm, g_pMasterServerManager->m_vRemoteServers.size());
+	g_pSquirrel<context>->pushinteger(sqvm, g_pAtlasClient->GetRemoteGameServerList().size());
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("void", NSClearRecievedServerList, "", "", ScriptContext::UI)
 {
-	g_pMasterServerManager->ClearServerList();
+	g_pAtlasClient->ClearRemoteGameServerList();
 	return SQRESULT_NULL;
 }
 
@@ -217,139 +170,128 @@ ADD_SQFUNC("void", NSTryAuthWithServer, "int serverIndex, string password = ''",
 	SQInteger serverIndex = g_pSquirrel<context>->getinteger(sqvm, 1);
 	const SQChar* password = g_pSquirrel<context>->getstring(sqvm, 2);
 
-	if (serverIndex >= g_pMasterServerManager->m_vRemoteServers.size())
+	if (strncmp(g_pServerGlobalVariables->m_pMapName, "mp_lobby", 9))
 	{
-		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("Tried to auth with server index {} when only {} servers are available", serverIndex, g_pMasterServerManager->m_vRemoteServers.size()).c_str());
+		g_pSquirrel<context>->raiseerror(sqvm, "Can only run NSTryAuthWithServer while in mp_lobby");
 		return SQRESULT_ERROR;
 	}
 
-	// send off persistent data first, don't worry about server/client stuff, since m_additionalPlayerData should only have entries when
-	// we're a local server note: this seems like it could create a race condition, test later
-	for (auto& pair : g_pServerAuthentication->m_PlayerAuthenticationData)
-		g_pServerAuthentication->WritePersistentData(pair.first);
+	int nNumServers = g_pAtlasClient->GetRemoteGameServerList().size();
 
-	// do auth
-	g_pMasterServerManager->AuthenticateWithServer(g_pLocalPlayerUserID, g_pMasterServerManager->m_sOwnClientAuthToken, g_pMasterServerManager->m_vRemoteServers[serverIndex], (char*)password);
+	if (serverIndex >= nNumServers || serverIndex < 0)
+	{
+		g_pSquirrel<context>->raiseerror(sqvm, FormatA("Tried to auth with server index %i when only %i servers are available", serverIndex, nNumServers).c_str());
+		return SQRESULT_ERROR;
+	}
+
+	for (int i = 0; i < g_pServer->GetNumClients(); i++)
+	{
+		CClient* pClient = g_pServer->GetClient(i);
+
+		if (pClient->m_bFakePlayer)
+			continue;
+
+		g_pAtlasServer->PushPersistence(pClient);
+	}
+
+	g_pAtlasClient->AuthenticateRemoteGameServer(g_pLocalPlayerUserID, password, g_pAtlasClient->GetRemoteGameServerList().at(serverIndex));
 
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("bool", NSIsAuthenticatingWithServer, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushbool(sqvm, g_pMasterServerManager->m_bScriptAuthenticatingWithGameServer);
+	g_pSquirrel<context>->pushbool(sqvm, false /*g_pMasterServerManager->m_bScriptAuthenticatingWithGameServer*/);
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("bool", NSWasAuthSuccessful, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushbool(sqvm, g_pMasterServerManager->m_bSuccessfullyAuthenticatedWithGameServer);
+	g_pSquirrel<context>->pushbool(sqvm, true /*g_pMasterServerManager->m_bSuccessfullyAuthenticatedWithGameServer*/);
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("void", NSConnectToAuthedServer, "", "", ScriptContext::UI)
 {
-	if (!g_pMasterServerManager->m_bHasPendingConnectionInfo)
-	{
-		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("Tried to connect to authed server before any pending connection info was available").c_str());
-		return SQRESULT_ERROR;
-	}
-
-	RemoteServerConnectionInfo& info = g_pMasterServerManager->m_pendingConnectionInfo;
-
-	// set auth token, then try to connect
-	// i'm honestly not entirely sure how silentconnect works regarding ports and encryption so using connect for now
-	g_pCVar->FindVar("serverfilter")->SetValue(info.authToken);
-	Cbuf_AddText(Cbuf_GetCurrentPlayer(), fmt::format("connect {}.{}.{}.{}:{}", info.ip.S_un.S_un_b.s_b1, info.ip.S_un.S_un_b.s_b2, info.ip.S_un.S_un_b.s_b3, info.ip.S_un.S_un_b.s_b4, info.port).c_str(), cmd_source_t::kCommandSrcCode);
-
-	g_pMasterServerManager->m_bHasPendingConnectionInfo = false;
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("void", NSTryAuthWithLocalServer, "", "", ScriptContext::UI)
 {
-	// do auth request
-	g_pMasterServerManager->AuthenticateWithOwnServer(g_pLocalPlayerUserID, g_pMasterServerManager->m_sOwnClientAuthToken);
-
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("void", NSCompleteAuthWithLocalServer, "", "", ScriptContext::UI)
 {
-	// literally just set serverfilter
-	// note: this assumes we have no authdata other than our own
-	if (g_pServerAuthentication->m_RemoteAuthenticationData.size())
-		g_pCVar->FindVar("serverfilter")->SetValue(g_pServerAuthentication->m_RemoteAuthenticationData.begin()->first.c_str());
-
 	return SQRESULT_NULL;
 }
 
 ADD_SQFUNC("string", NSGetAuthFailReason, "", "", ScriptContext::UI)
 {
-	g_pSquirrel<context>->pushstring(sqvm, g_pMasterServerManager->m_sAuthFailureReason.c_str(), -1);
+	g_pSquirrel<context>->pushstring(sqvm, "STUB", -1);
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("array<ServerInfo>", NSGetGameServers, "", "", ScriptContext::UI)
 {
 	g_pSquirrel<context>->newarray(sqvm, 0);
-	for (size_t i = 0; i < g_pMasterServerManager->m_vRemoteServers.size(); i++)
+	size_t nIdx = 0;
+	for (const RemoteGameServer_t& remoteServer : g_pAtlasClient->GetRemoteGameServerList())
 	{
-		const RemoteServerInfo& remoteServer = g_pMasterServerManager->m_vRemoteServers[i];
-
 		g_pSquirrel<context>->pushnewstructinstance(sqvm, 11);
 
 		// index
-		g_pSquirrel<context>->pushinteger(sqvm, i);
+		g_pSquirrel<context>->pushinteger(sqvm, nIdx++);
 		g_pSquirrel<context>->sealstructslot(sqvm, 0);
 
 		// id
-		g_pSquirrel<context>->pushstring(sqvm, remoteServer.id, -1);
+		g_pSquirrel<context>->pushstring(sqvm, remoteServer.m_svID.c_str(), -1);
 		g_pSquirrel<context>->sealstructslot(sqvm, 1);
 
 		// name
-		g_pSquirrel<context>->pushstring(sqvm, remoteServer.name, -1);
+		g_pSquirrel<context>->pushstring(sqvm, remoteServer.m_svName.c_str(), -1);
 		g_pSquirrel<context>->sealstructslot(sqvm, 2);
 
 		// description
-		g_pSquirrel<context>->pushstring(sqvm, remoteServer.description.c_str(), -1);
+		g_pSquirrel<context>->pushstring(sqvm, remoteServer.m_svDescription.c_str(), -1);
 		g_pSquirrel<context>->sealstructslot(sqvm, 3);
 
 		// map
-		g_pSquirrel<context>->pushstring(sqvm, remoteServer.map, -1);
+		g_pSquirrel<context>->pushstring(sqvm, remoteServer.m_svMap.c_str(), -1);
 		g_pSquirrel<context>->sealstructslot(sqvm, 4);
 
 		// playlist
-		g_pSquirrel<context>->pushstring(sqvm, remoteServer.playlist, -1);
+		g_pSquirrel<context>->pushstring(sqvm, remoteServer.m_svPlaylist.c_str(), -1);
 		g_pSquirrel<context>->sealstructslot(sqvm, 5);
 
 		// playerCount
-		g_pSquirrel<context>->pushinteger(sqvm, remoteServer.playerCount);
+		g_pSquirrel<context>->pushinteger(sqvm, remoteServer.m_nPlayerCount);
 		g_pSquirrel<context>->sealstructslot(sqvm, 6);
 
 		// maxPlayerCount
-		g_pSquirrel<context>->pushinteger(sqvm, remoteServer.maxPlayers);
+		g_pSquirrel<context>->pushinteger(sqvm, remoteServer.m_nMaxPlayers);
 		g_pSquirrel<context>->sealstructslot(sqvm, 7);
 
 		// requiresPassword
-		g_pSquirrel<context>->pushbool(sqvm, remoteServer.requiresPassword);
+		g_pSquirrel<context>->pushbool(sqvm, remoteServer.m_bRequiresPassword);
 		g_pSquirrel<context>->sealstructslot(sqvm, 8);
 
 		// region
-		g_pSquirrel<context>->pushstring(sqvm, remoteServer.region, -1);
+		g_pSquirrel<context>->pushstring(sqvm, remoteServer.m_svRegion.c_str(), -1);
 		g_pSquirrel<context>->sealstructslot(sqvm, 9);
 
 		// requiredMods
 		g_pSquirrel<context>->newarray(sqvm);
-		for (const RemoteModInfo& mod : remoteServer.requiredMods)
+		for (const RemoteGameMod_t& mod : remoteServer.m_vRequiredMods)
 		{
 			g_pSquirrel<context>->pushnewstructinstance(sqvm, 2);
 
 			// name
-			g_pSquirrel<context>->pushstring(sqvm, mod.Name.c_str(), -1);
+			g_pSquirrel<context>->pushstring(sqvm, mod.m_svName.c_str(), -1);
 			g_pSquirrel<context>->sealstructslot(sqvm, 0);
 
 			// version
-			g_pSquirrel<context>->pushstring(sqvm, mod.Version.c_str(), -1);
+			g_pSquirrel<context>->pushstring(sqvm, mod.m_svVersion.c_str(), -1);
 			g_pSquirrel<context>->sealstructslot(sqvm, 1);
 
 			g_pSquirrel<context>->arrayappend(sqvm, -2);
@@ -364,25 +306,6 @@ ADD_SQFUNC("array<ServerInfo>", NSGetGameServers, "", "", ScriptContext::UI)
 ADD_SQFUNC("void", NSPushGameStateData, "GameStateStruct gamestate", "", ScriptContext::CLIENT)
 {
 	SQStructInstance* structInst = g_pSquirrel<ScriptContext::CLIENT>->m_pSQVM->sqvm->_stackOfCurrentFunction[1]._VAL.asStructInstance;
-	g_pGameStatePresence->map = structInst->data[0]._VAL.asString->_val;
-	g_pGameStatePresence->mapDisplayname = structInst->data[1]._VAL.asString->_val;
-	g_pGameStatePresence->playlist = structInst->data[2]._VAL.asString->_val;
-	g_pGameStatePresence->playlistDisplayname = structInst->data[3]._VAL.asString->_val;
-
-	g_pGameStatePresence->currentPlayers = structInst->data[4]._VAL.asInteger;
-	g_pGameStatePresence->maxPlayers = structInst->data[5]._VAL.asInteger;
-	g_pGameStatePresence->ownScore = structInst->data[6]._VAL.asInteger;
-	g_pGameStatePresence->otherHighestScore = structInst->data[7]._VAL.asInteger;
-	g_pGameStatePresence->maxScore = structInst->data[8]._VAL.asInteger;
-	g_pGameStatePresence->timestampEnd = ceil(structInst->data[9]._VAL.asFloat);
-
-	if (g_pMasterServerManager->m_currentServer)
-	{
-		g_pGameStatePresence->id = g_pMasterServerManager->m_currentServer->id;
-		g_pGameStatePresence->name = g_pMasterServerManager->m_currentServer->name;
-		g_pGameStatePresence->description = g_pMasterServerManager->m_currentServer->description;
-		g_pGameStatePresence->password = g_pMasterServerManager->m_sCurrentServerPassword;
-	}
 
 	return SQRESULT_NOTNULL;
 }
@@ -390,11 +313,6 @@ ADD_SQFUNC("void", NSPushGameStateData, "GameStateStruct gamestate", "", ScriptC
 ADD_SQFUNC("void", NSPushUIPresence, "UIPresenceStruct presence", "", ScriptContext::UI)
 {
 	SQStructInstance* structInst = g_pSquirrel<ScriptContext::UI>->m_pSQVM->sqvm->_stackOfCurrentFunction[1]._VAL.asStructInstance;
-
-	g_pGameStatePresence->isLoading = structInst->data[0]._VAL.asInteger;
-	g_pGameStatePresence->isLobby = structInst->data[1]._VAL.asInteger;
-	g_pGameStatePresence->loadingLevel = structInst->data[2]._VAL.asString->_val;
-	g_pGameStatePresence->uiMap = structInst->data[3]._VAL.asString->_val;
 
 	return SQRESULT_NOTNULL;
 }

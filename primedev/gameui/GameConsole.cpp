@@ -18,7 +18,7 @@ AUTOHOOK(CGameConsole_OnCommandSubmitted, client.dll + 0x4A2550, void, __fastcal
 	CGameConsole_OnCommandSubmitted(pConsoleDialog, pszCommand);
 }
 
-ON_DLL_LOAD_CLIENT_RELIESON("client.dll", SourceConsole, ConCommand, (CModule module))
+ON_DLL_LOAD_CLIENT("client.dll", SourceConsole, (CModule module))
 {
 	AUTOHOOK_DISPATCH()
 

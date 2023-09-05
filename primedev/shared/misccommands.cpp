@@ -2,9 +2,7 @@
 #include "tier1/cmd.h"
 #include "shared/playlist.h"
 #include "engine/hoststate.h"
-#include "networksystem/masterserver.h"
 #include "mods/modmanager.h"
-#include "server/auth/serverauthentication.h"
 #include "squirrel/squirrel.h"
 
 // fixes up various cvar flags to have more sane values

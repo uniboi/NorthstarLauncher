@@ -59,6 +59,8 @@ void CVar_InitModule(std::string svModule)
 		CVar_bot_force_titan_ordnance = ConVar::StaticCreate("bot_force_titan_ordnance", "", FCVAR_NONE, "");
 		Cvar_bot_force_titan_ability = ConVar::StaticCreate("bot_force_titan_ability", "", FCVAR_NONE, "");
 
+		Cvar_atlas_broadcast_local_server = ConVar::StaticCreate("atlas_broadcast_local_server", "0", FCVAR_RELEASE, "");
+
 		ConCommand::StaticCreate("dump_datamap", "", FCVAR_NONE, CC_dump_datamap, nullptr);
 
 		// FCVAR_CHEAT and FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS allows clients to execute this, but since it's unsafe we only allow it when cheats
@@ -80,20 +82,9 @@ void CVar_InitModule(std::string svModule)
 		Cvar_ns_has_agreed_to_send_token = ConVar::StaticCreate("ns_has_agreed_to_send_token", "1", FCVAR_ARCHIVE_PLAYERPROFILE, "whether the user has agreed to send their origin token to the northstar masterserver");
 		Cvar_rui_drawEnable = ConVar::StaticCreate("rui_drawEnable", "1", FCVAR_CLIENTDLL, "Controls whether RUI should be drawn");
 		Cvar_spewlog_enable = ConVar::StaticCreate("spewlog_enable", "1", FCVAR_NONE, "Enables/disables whether the engine spewfunc should be logged");
-		Cvar_ns_masterserver_hostname = ConVar::StaticCreate("ns_masterserver_hostname", "127.0.0.1", FCVAR_NONE, "");
-		Cvar_ns_curl_log_enable = ConVar::StaticCreate("ns_curl_log_enable", "0", FCVAR_NONE, "Whether curl should log to the console");
+
 		Cvar_ns_prefer_datatable_from_disk = ConVar::StaticCreate("ns_prefer_datatable_from_disk", IsDedicatedServer() && CommandLine()->CheckParm("-nopakdedi") ? "1" : "0", FCVAR_NONE, "whether to prefer loading datatables from disk, rather than rpak");
-		Cvar_ns_erase_auth_info = ConVar::StaticCreate("ns_erase_auth_info", "1", FCVAR_GAMEDLL, "Whether auth info should be erased from this server on disconnect or crash");
-		Cvar_ns_auth_allow_insecure = ConVar::StaticCreate("ns_auth_allow_insecure", "0", FCVAR_GAMEDLL, "Whether this server will allow unauthenicated players to connect");
-		Cvar_ns_auth_allow_insecure_write = ConVar::StaticCreate("ns_auth_allow_insecure_write", "0", FCVAR_GAMEDLL, "Whether the pdata of unauthenticated clients will be written to disk when changed");
-		Cvar_net_debug_atlas_packet = ConVar::StaticCreate("net_debug_atlas_packet", "0", FCVAR_NONE, "Whether to log detailed debugging information for Atlas connectionless packets (warning: this allows unlimited amounts of arbitrary data to be logged)");
-		Cvar_net_debug_atlas_packet_insecure = ConVar::StaticCreate("net_debug_atlas_packet_insecure", "0", FCVAR_NONE, "Whether to disable signature verification for Atlas connectionless packets (DANGEROUS: this allows anyone to impersonate Atlas)");
-		Cvar_ns_server_name = ConVar::StaticCreate("ns_server_name", "Unnamed Northstar Server", FCVAR_GAMEDLL, "This server's description", false, 0.0, false, 0.0, &NS_ServerName_f);
-		Cvar_ns_server_presence_update_rate = ConVar::StaticCreate("ns_server_presence_update_rate", "5000", FCVAR_GAMEDLL, "How often we update our server's presence on server lists in ms");
-		Cvar_ns_server_desc = ConVar::StaticCreate("ns_server_desc", "Default server description", FCVAR_GAMEDLL, "This server's name", false, 0, false, 0, &NS_ServerDesc_f);
-		Cvar_ns_server_password = ConVar::StaticCreate("ns_server_password", "", FCVAR_GAMEDLL, "This server's password", false, 0, false, 0, &NS_ServerPass_f);
-		Cvar_ns_report_server_to_masterserver = ConVar::StaticCreate("ns_report_server_to_masterserver", "1", FCVAR_GAMEDLL, "Whether we should report this server to the masterserver");
-		Cvar_ns_report_sp_server_to_masterserver = ConVar::StaticCreate("ns_report_sp_server_to_masterserver", "0", FCVAR_GAMEDLL, "Whether we should report this server to the masterserver, when started in singleplayer");
+
 		CVar_sv_quota_stringcmdspersecond = ConVar::StaticCreate("sv_quota_stringcmdspersecond", "60", FCVAR_GAMEDLL, "How many string commands per second clients are allowed to submit, 0 to disallow all string commands, -1 to disable");
 		Cvar_net_chan_limit_mode = ConVar::StaticCreate("net_chan_limit_mode", "0", FCVAR_GAMEDLL, "The mode for netchan processing limits: 0 = warn, 1 = kick");
 		Cvar_net_chan_limit_msec_per_sec = ConVar::StaticCreate("net_chan_limit_msec_per_sec", "100", FCVAR_GAMEDLL, "Netchannel processing is limited to so many milliseconds, abort connection if exceeding budget");
@@ -103,11 +94,31 @@ void CVar_InitModule(std::string svModule)
 		Cvar_sv_antispeedhack_maxtickbudget = ConVar::StaticCreate("sv_antispeedhack_maxtickbudget", "64", FCVAR_GAMEDLL, "Maximum number of client-issued usercmd ticks that can be replayed in packet loss conditions");
 		Cvar_sv_antispeedhack_budgetincreasemultiplier = ConVar::StaticCreate("sv_antispeedhack_budgetincreasemultiplier", "1", FCVAR_GAMEDLL, "Increase usercmd processing budget by tickinterval * value per tick");
 
+		Cvar_atlas_hostname = ConVar::StaticCreate("atlas_hostname", "https://northstar.tf", FCVAR_GAMEDLL, "");
 		// note: clc_SetPlaylistVarOverride is pretty insecure, since it allows for entirely arbitrary playlist var overrides to be sent to the
 		// server, this is somewhat restricted on custom servers to prevent it being done outside of private matches, but ideally it should be
 		// disabled altogether, since the custom menus won't use it anyway this should only really be accepted if you want vanilla client
 		// compatibility
 		Cvar_ns_use_clc_SetPlaylistVarOverride = ConVar::StaticCreate("ns_use_clc_SetPlaylistVarOverride", "0", FCVAR_GAMEDLL, "Whether the server should accept clc_SetPlaylistVarOverride messages");
+
+		// Deprecated
+		Cvar_ns_masterserver_hostname = ConVar::StaticCreate("ns_masterserver_hostname", "Deprecated", FCVAR_NONE, "Deprecated");
+		Cvar_ns_curl_log_enable = ConVar::StaticCreate("ns_curl_log_enable", "Deprecated", FCVAR_NONE, "Deprecated");
+		Cvar_ns_erase_auth_info = ConVar::StaticCreate("ns_erase_auth_info", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_auth_allow_insecure = ConVar::StaticCreate("ns_auth_allow_insecure", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_auth_allow_insecure_write = ConVar::StaticCreate("ns_auth_allow_insecure_write", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_net_debug_atlas_packet = ConVar::StaticCreate("net_debug_atlas_packet", "Deprecated", FCVAR_NONE, "Deprecated");
+		Cvar_net_debug_atlas_packet_insecure = ConVar::StaticCreate("net_debug_atlas_packet_insecure", "Deprecated", FCVAR_NONE, "Deprecated");
+		Cvar_ns_server_name = ConVar::StaticCreate("ns_server_name", "Unnamed Northstar Server", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_server_presence_update_rate = ConVar::StaticCreate("ns_server_presence_update_rate", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_server_desc = ConVar::StaticCreate("ns_server_desc", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_server_password = ConVar::StaticCreate("ns_server_password", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_report_server_to_masterserver = ConVar::StaticCreate("ns_report_server_to_masterserver", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+		Cvar_ns_report_sp_server_to_masterserver = ConVar::StaticCreate("ns_report_sp_server_to_masterserver", "Deprecated", FCVAR_GAMEDLL, "Deprecated");
+
+		// New host* convars to keep consistency in naming
+		Cvar_hostdescription = ConVar::StaticCreate("hostdescription", "Desc", FCVAR_RELEASE, "Descripiton of local server");
+		Cvar_hostpassword = ConVar::StaticCreate("hostpassword", "", FCVAR_RELEASE, "Password of local server");
 
 		ConCommand::StaticCreate("reload_mods", "reloads mods", FCVAR_NONE, CC_reload_mods_f, nullptr);
 		ConCommand::StaticCreate("ns_fetchservers", "Fetch all servers from the masterserver", FCVAR_CLIENTDLL, CC_ns_fetchservers_f, nullptr);
@@ -118,11 +129,6 @@ void CVar_InitModule(std::string svModule)
 		ConCommand::StaticCreate("ban", "bans a given player by uid or name", FCVAR_GAMEDLL, CC_ban_f, nullptr);
 		ConCommand::StaticCreate("unban", "unbans a given player by uid", FCVAR_GAMEDLL, CC_unban_f, nullptr);
 		ConCommand::StaticCreate("clearbanlist", "clears all uids on the banlist", FCVAR_GAMEDLL, CC_clearbanlist_f, nullptr);
-
-		ConCommand::StaticCreate("ns_resetpersistence", "resets your pdata when you next enter the lobby", FCVAR_NONE, CC_ns_resetpersistence_f, nullptr);
-
-		ConCommand::StaticCreate("ns_start_reauth_and_leave_to_lobby", "called by the server, used to reauth and return the player to lobby when leaving a game", FCVAR_SERVER_CAN_EXECUTE, CC_ns_start_reauth_and_leave_to_lobby_f, nullptr);
-		ConCommand::StaticCreate("ns_end_reauth_and_leave_to_lobby", "", FCVAR_NONE, CC_ns_end_reauth_and_leave_to_lobby_f, nullptr);
 
 		// playlist is the name of the command on respawn servers, but we already use setplaylist so can't get rid of it
 		ConCommand::StaticCreate("playlist", "Sets the current playlist", FCVAR_NONE, CC_playlist_f, nullptr);
@@ -206,7 +212,13 @@ void CVar_InitShipped(std::string svModule)
 	// hostname
 	if (!Cvar_hostname && (Cvar_hostname = g_pCVar->FindVar("hostname")))
 	{
-		//
+		Cvar_hostname->m_pszDefaultValue = "Unnamed Prime Server";
+	}
+
+	// hostport
+	if (!Cvar_hostport && (Cvar_hostport = g_pCVar->FindVar("hostport")))
+	{
+		Cvar_hostport->m_pszDefaultValue = "37015";
 	}
 
 	// enable_debug_overlays
@@ -219,12 +231,6 @@ void CVar_InitShipped(std::string svModule)
 
 	// dedi_sendPrintsToClient
 	if (!Cvar_dedi_sendPrintsToClient && (Cvar_dedi_sendPrintsToClient = g_pCVar->FindVar("dedi_sendPrintsToClient")))
-	{
-		//
-	}
-
-	// hostport
-	if (!Cvar_hostport && (Cvar_hostport = g_pCVar->FindVar("hostport")))
 	{
 		//
 	}
@@ -276,6 +282,8 @@ ConVar* CVar_bot_titan_settings;
 ConVar* CVar_bot_force_titan_ordnance;
 ConVar* Cvar_bot_force_titan_ability;
 
+ConVar* Cvar_atlas_broadcast_local_server = nullptr;
+
 ConVar* Cvar_sv_cheats = nullptr;
 ConVar* Cvar_fatal_script_errors = nullptr;
 ConVar* Cvar_sv_alltalk = nullptr;
@@ -308,8 +316,13 @@ ConVar* Cvar_sv_antispeedhack_enable = nullptr;
 ConVar* Cvar_sv_antispeedhack_maxtickbudget = nullptr;
 ConVar* Cvar_sv_antispeedhack_budgetincreasemultiplier = nullptr;
 ConVar* Cvar_ns_use_clc_SetPlaylistVarOverride = nullptr;
+ConVar* Cvar_hostdescription = nullptr;
+ConVar* Cvar_hostpassword = nullptr;
+
+ConVar* Cvar_atlas_hostname = nullptr;
 
 ConVar* Cvar_hostname = nullptr;
+ConVar* Cvar_hostport = nullptr;
+
 ConVar* Cvar_enable_debug_overlays = nullptr;
 ConVar* Cvar_dedi_sendPrintsToClient = nullptr;
-ConVar* Cvar_hostport = nullptr;

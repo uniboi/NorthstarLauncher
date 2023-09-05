@@ -36,6 +36,8 @@ extern ConVar* CVar_bot_titan_settings;
 extern ConVar* CVar_bot_force_titan_ordnance;
 extern ConVar* Cvar_bot_force_titan_ability;
 
+extern ConVar* Cvar_atlas_broadcast_local_server;
+
 extern ConVar* Cvar_sv_cheats;
 extern ConVar* Cvar_fatal_script_errors;
 extern ConVar* Cvar_sv_alltalk;
@@ -68,8 +70,13 @@ extern ConVar* Cvar_sv_antispeedhack_enable;
 extern ConVar* Cvar_sv_antispeedhack_maxtickbudget;
 extern ConVar* Cvar_sv_antispeedhack_budgetincreasemultiplier;
 extern ConVar* Cvar_ns_use_clc_SetPlaylistVarOverride;
+extern ConVar* Cvar_hostdescription;
+extern ConVar* Cvar_hostpassword;
+
+extern ConVar* Cvar_atlas_hostname;
 
 extern ConVar* Cvar_hostname;
+extern ConVar* Cvar_hostport;
+
 extern ConVar* Cvar_enable_debug_overlays;
 extern ConVar* Cvar_dedi_sendPrintsToClient;
-extern ConVar* Cvar_hostport;

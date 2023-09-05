@@ -3,16 +3,10 @@
 #include "logging/logging.h"
 #include "core/memalloc.h"
 #include "squirrel/squirrel.h"
-#include "shared/gamepresence.h"
-#include "server/serverpresence.h"
 #include "networksystem/bcrypt.h"
 
 #include "windows/libsys.h"
-
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/error/en.h"
+#include "networksystem/atlas.h"
 
 #include <string>
 
@@ -61,14 +55,18 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	// Init loadlibrary callbacks
 	LibSys_Init();
 
-	// presence
-	g_pServerPresence = new ServerPresenceManager();
-	g_pGameStatePresence = new GameStatePresence();
-
 	// sq
 	g_pSquirrel<ScriptContext::CLIENT> = new SquirrelManager<ScriptContext::CLIENT>;
 	g_pSquirrel<ScriptContext::UI> = new SquirrelManager<ScriptContext::UI>;
 	g_pSquirrel<ScriptContext::SERVER> = new SquirrelManager<ScriptContext::SERVER>;
+
+	// Only run atlas client on client
+	if (!CommandLine()->CheckParm("-dedicated"))
+	{
+		g_pAtlasClient = new CAtlasClient();
+	}
+
+	g_pAtlasServer = new CAtlasServer();
 
 	// Fix some users' failure to connect to respawn datacenters
 	SetEnvironmentVariableA("OPENSSL_ia32cap", "~0x200000200000000");
