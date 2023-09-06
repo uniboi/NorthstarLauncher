@@ -17,6 +17,8 @@
 #include <vector>
 #include <regex>
 
+#include "tier0/filestream.h"
+
 ModManager* g_pModManager;
 
 Mod::Mod(fs::path modDir, char* jsonBuf)
@@ -580,18 +582,27 @@ void ModManager::LoadMods()
 	m_DependencyConstants.clear();
 
 	// read enabled mods cfg
-	std::ifstream enabledModsStream(g_svProfileDir + "/enabledmods.json");
-	std::stringstream enabledModsStringStream;
+	nlohmann::json jsEnabledModsCfg;
+	bool bHasEnabledModsCfg = false;
 
-	if (!enabledModsStream.fail())
+	try
 	{
-		while (enabledModsStream.peek() != EOF)
-			enabledModsStringStream << (char)enabledModsStream.get();
+		std::string svEnabledModsCfg;
+		CFileStream fStream;
 
-		enabledModsStream.close();
-		m_EnabledModsCfg.Parse<rapidjson::ParseFlag::kParseCommentsFlag | rapidjson::ParseFlag::kParseTrailingCommasFlag>(enabledModsStringStream.str().c_str());
+		if (fStream.Open(FormatA("%s/enabledmods.json", g_svProfileDir.c_str()).c_str(), CFileStream::READ))
+		{
+			fStream.ReadString(svEnabledModsCfg);
+			fStream.Close();
 
-		m_bHasEnabledModsCfg = m_EnabledModsCfg.IsObject();
+			jsEnabledModsCfg = nlohmann::json::parse(svEnabledModsCfg);
+
+			bHasEnabledModsCfg = true;
+		}
+	}
+	catch (const std::exception& ex)
+	{
+		Error(eLog::MODSYS, NO_ERROR, "Failed to parse enabledmods.json\n");
 	}
 
 	// get mod directories
@@ -663,10 +674,22 @@ void ModManager::LoadMods()
 				m_DependencyConstants.emplace(pair);
 		}
 
-		if (m_bHasEnabledModsCfg && m_EnabledModsCfg.HasMember(mod.Name.c_str()))
-			mod.m_bEnabled = m_EnabledModsCfg[mod.Name.c_str()].IsTrue();
+		if (bHasEnabledModsCfg)
+		{
+			try
+			{
+				mod.m_bEnabled = jsEnabledModsCfg.value(mod.Name, true);
+			}
+			catch (const std::exception& ex)
+			{
+				mod.m_bEnabled = true;
+				Error(eLog::MODSYS, NO_ERROR, "enabledmods.json: '%s' has incorrect type ( expected bool )\n", mod.Name.c_str());
+			}
+		}
 		else
+		{
 			mod.m_bEnabled = true;
+		}
 
 		if (mod.m_bWasReadSuccessfully)
 		{
@@ -967,8 +990,7 @@ void ModManager::UnloadMods()
 
 	g_CustomAudioManager.ClearAudioOverrides();
 
-	if (!m_bHasEnabledModsCfg)
-		m_EnabledModsCfg.SetObject();
+	nlohmann::json jsEnabledModsCfg;
 
 	for (Mod& mod : m_LoadedMods)
 	{
@@ -979,19 +1001,16 @@ void ModManager::UnloadMods()
 		mod.KeyValues.clear();
 
 		// write to m_enabledModsCfg
-		// should we be doing this here or should scripts be doing this manually?
-		// main issue with doing this here is when we reload mods for connecting to a server, we write enabled mods, which isn't necessarily
-		// what we wanna do
-		if (!m_EnabledModsCfg.HasMember(mod.Name.c_str()))
-			m_EnabledModsCfg.AddMember(rapidjson_document::StringRefType(mod.Name.c_str()), false, m_EnabledModsCfg.GetAllocator());
-
-		m_EnabledModsCfg[mod.Name.c_str()].SetBool(mod.m_bEnabled);
+		// FIXME [Fifty]: Should only be written when the user changes this, not when connecting to a server w/ remote mods
+		jsEnabledModsCfg[mod.Name] = mod.m_bEnabled;
 	}
 
-	std::ofstream writeStream(g_svProfileDir + "/enabledmods.json");
-	rapidjson::OStreamWrapper writeStreamWrapper(writeStream);
-	rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(writeStreamWrapper);
-	m_EnabledModsCfg.Accept(writer);
+	CFileStream fStream;
+	if (fStream.Open(FormatA("%s/enabledmods.json", g_svProfileDir.c_str()).c_str(), CFileStream::WRITE))
+	{
+		fStream.WriteString(jsEnabledModsCfg.dump(4));
+		fStream.Close();
+	}
 
 	// do we need to dealloc individual entries in m_loadedMods? idk, rework
 	m_LoadedMods.clear();
