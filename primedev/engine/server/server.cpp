@@ -74,23 +74,42 @@ AUTOHOOK(CServer__ConnectClient, engine.dll + 0x114430, CClient*, ,
 	// We use serverfilter to correlate client with auth data ( like pdata )
 	if (!g_pAtlasServer->HasAuthInfo(pszServerFilter))
 	{
-		CServer__RejectConnection(self, self->m_Socket, a2, "Incorrect serverfilter\nAn error most likely occured when authenticating server-side!");
+		CServer__RejectConnection(self, self->m_Socket, a2, "An error most likely occured when authenticating server-side!\n\nCode: INVALID_SERVERFILTER");
 		return nullptr;
 	}
-
-	// TODO: Verify name here
 
 	if (!g_pBanSystem->IsUIDAllowed(nUID))
 	{
-		CServer__RejectConnection(self, self->m_Socket, a2, "Banned from server");
+		CServer__RejectConnection(self, self->m_Socket, a2, "Banned from server\n\nCode: PLAYER_BANNED");
 		return nullptr;
 	}
 
-	CClient* pClient = CServer__ConnectClient(self, a2, a3, a4, a5, a6, a7, pszPlayerName, pszServerFilter, a10, a11, a12, a13, a14, nUID, a16, a17);
+	// Verify player name
+	AuthInfo_t info = g_pAtlasServer->GetAuthInfo(pszServerFilter);
+	std::string svPlayerName = pszPlayerName;
+	if (!info.m_svName.empty())
+	{
+		svPlayerName = info.m_svName;
+	}
 
+	// Make sure it's only ASCII characters
+	for (int i = 0; i < svPlayerName.size(); i++)
+	{
+		if (svPlayerName[i] < 32 || svPlayerName[i] > 126)
+		{
+			CServer__RejectConnection(self, self->m_Socket, a2, "Playername contains illegal characters!\n\nCode: INVALID_PLAYERNAME");
+			return nullptr;
+		}
+	}
+
+	// Connect the client
+	CClient* pClient = CServer__ConnectClient(self, a2, a3, a4, a5, a6, a7, svPlayerName.c_str(), pszServerFilter, a10, a11, a12, a13, a14, nUID, a16, a17);
+
+	// Set uid
 	std::string svUID = std::to_string(nUID);
 	strncpy(pClient->m_UID, svUID.c_str(), 32);
 
+	// Setup atlas info ( pdata )
 	if (!g_pAtlasServer->SetupClient(pClient, pszServerFilter))
 	{
 		CClient__Disconnect(pClient, 1, "Failed to setup client!");	
