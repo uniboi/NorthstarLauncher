@@ -3,7 +3,7 @@
 #include "engine/edict.h"
 #include "shared/exploit_fixes/ns_limits.h"
 #include "networksystem/atlas.h"
-#include "server/auth/bansystem.h"
+#include "networksystem/bansystem.h"
 
 //-----------------------------------------------------------------------------
 // Purpose: Returns number of connected human players

@@ -5,7 +5,7 @@
 #include "gameui/GameConsole.h"
 #include "mods/modmanager.h"
 #include "squirrel/squirrel.h"
-#include "server/auth/bansystem.h"
+#include "networksystem/bansystem.h"
 #include "engine/client/client.h"
 #include "engine/server/server.h"
 #include "engine/hoststate.h"

@@ -1,6 +1,6 @@
 #include "engine/client/client.h"
 
-#include "server/auth/bansystem.h"
+#include "networksystem/bansystem.h"
 #include "networksystem/atlas.h"
 #include "shared/exploit_fixes/ns_limits.h"
 

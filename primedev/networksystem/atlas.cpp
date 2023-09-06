@@ -5,7 +5,7 @@
 #include "shared/playlist.h"
 #include "engine/server/server.h"
 #include "networksystem/bcrypt.h"
-#include "server/auth/bansystem.h"
+#include "networksystem/bansystem.h"
 #include "mods/modmanager.h"
 
 //-----------------------------------------------------------------------------
