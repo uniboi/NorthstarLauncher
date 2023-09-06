@@ -22,7 +22,7 @@ CFileStream::~CFileStream()
 //          nFlags - Stream flags
 // Output : true on success
 //-----------------------------------------------------------------------------
-bool CFileStream::Open(fs::path& fsPath, int nFlags)
+bool CFileStream::Open(fs::path fsPath, int nFlags)
 {
 	// Make sure we're closed
 	Close();

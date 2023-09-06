@@ -19,7 +19,7 @@ class CFileStream
 	CFileStream();
 	~CFileStream();
 
-	bool Open(fs::path& fsPath, int nFlags);
+	bool Open(fs::path fsPath, int nFlags);
 	bool Open(const char* szPath, int nFlags);
 	void Close();
 

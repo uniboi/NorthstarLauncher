@@ -6,483 +6,226 @@
 #include "rtech/pakapi.h"
 #include "squirrel/squirrel.h"
 
-#include "rapidjson/error/en.h"
-#include "rapidjson/document.h"
-#include "rapidjson/ostreamwrapper.h"
-#include "rapidjson/prettywriter.h"
-#include <filesystem>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
 #include <regex>
 
 #include "tier0/filestream.h"
 
 ModManager* g_pModManager;
 
-Mod::Mod(fs::path modDir, char* jsonBuf)
+Mod::Mod(fs::path modDir, std::string& svModJson)
 {
 	m_bWasReadSuccessfully = false;
 
 	m_ModDirectory = modDir;
 
-	rapidjson_document modJson;
-	modJson.Parse<rapidjson::ParseFlag::kParseCommentsFlag | rapidjson::ParseFlag::kParseTrailingCommasFlag>(jsonBuf);
-
-	DevMsg(eLog::MODSYS, "Loading mod file at path '%s'\n", modDir.string().c_str());
-
-	// fail if parse error
-	if (modJson.HasParseError())
+	try
 	{
-		Error(eLog::MODSYS, NO_ERROR, "Failed reading mod file %s: encountered parse error \"%s\" at offset %li\n", (modDir / "mod.json").string().c_str(), GetParseError_En(modJson.GetParseError()), modJson.GetErrorOffset());
-		return;
-	}
+		nlohmann::json jsMod = nlohmann::json::parse(svModJson);
 
-	// fail if it's not a json obj (could be an array, string, etc)
-	if (!modJson.IsObject())
-	{
-		Error(eLog::MODSYS, NO_ERROR, "Failed reading mod file %s: file is not a JSON object\n", (modDir / "mod.json").string().c_str());
-		return;
-	}
+		// load name first
+		Name = jsMod["Name"].get<std::string>();
 
-	// basic mod info
-	// name is required
-	if (!modJson.HasMember("Name"))
-	{
-		Error(eLog::MODSYS, NO_ERROR, "Failed reading mod file %s: missing required member \"Name\"\n", (modDir / "mod.json").string().c_str());
-		return;
-	}
-
-	Name = modJson["Name"].GetString();
-	Warning(eLog::MODSYS, "Loading mod '%s'\n", Name.c_str());
-
-	// Don't load blacklisted mods
-	if (!strstr(GetCommandLineA(), "-nomodblacklist") && MODS_BLACKLIST.find(Name) != std::end(MODS_BLACKLIST))
-	{
-		Warning(eLog::MODSYS, "Skipping blacklisted mod \"%s\"!\n", Name.c_str());
-		return;
-	}
-
-	if (modJson.HasMember("Description"))
-		Description = modJson["Description"].GetString();
-	else
-		Description = "";
-
-	if (modJson.HasMember("Version"))
-		Version = modJson["Version"].GetString();
-	else
-	{
-		Version = "0.0.0";
-		Warning(eLog::MS, "Mod file %s is missing a version, consider adding a version\n", (modDir / "mod.json").string().c_str());
-	}
-
-	if (modJson.HasMember("DownloadLink"))
-		DownloadLink = modJson["DownloadLink"].GetString();
-	else
-		DownloadLink = "";
-
-	if (modJson.HasMember("RequiredOnClient"))
-		RequiredOnClient = modJson["RequiredOnClient"].GetBool();
-	else
-		RequiredOnClient = false;
-
-	if (modJson.HasMember("LoadPriority"))
-		LoadPriority = modJson["LoadPriority"].GetInt();
-	else
-	{
-		Warning(eLog::MS, "Mod file %s is missing a LoadPriority, consider adding one\n", (modDir / "mod.json").string().c_str());
-		LoadPriority = 0;
-	}
-
-	// Parse all array fields
-	ParseConVars(modJson);
-	ParseConCommands(modJson);
-	ParseScripts(modJson);
-	ParseLocalization(modJson);
-	ParseDependencies(modJson);
-	ParseInitScript(modJson);
-
-	m_bWasReadSuccessfully = true;
-}
-
-void Mod::ParseConVars(rapidjson_document& json)
-{
-	if (!json.HasMember("ConVars"))
-		return;
-
-	if (!json["ConVars"].IsArray())
-	{
-		Warning(eLog::MODSYS, "'ConVars' field is not an array, skipping...\n");
-		return;
-	}
-
-	for (auto& convarObj : json["ConVars"].GetArray())
-	{
-		if (!convarObj.IsObject())
+		// Don't load blacklisted mods
+		if (!strstr(GetCommandLineA(), "-nomodblacklist") && MODS_BLACKLIST.find(Name) != std::end(MODS_BLACKLIST))
 		{
-			Warning(eLog::MODSYS, "ConVar is not an object, skipping...\n");
-			continue;
-		}
-		if (!convarObj.HasMember("Name"))
-		{
-			Warning(eLog::MODSYS, "ConVar does not have a Name, skipping...\n");
-			continue;
-		}
-		// from here on, the ConVar can be referenced by name in logs
-		if (!convarObj.HasMember("DefaultValue"))
-		{
-			Warning(eLog::MODSYS, "ConVar '%s' does not have a DefaultValue, skipping...\n", convarObj["Name"].GetString());
-			continue;
-		}
-
-		// have to allocate this manually, otherwise convar registration will break
-		// unfortunately this causes us to leak memory on reload, unsure of a way around this rn
-		ModConVar* convar = new ModConVar;
-		convar->Name = convarObj["Name"].GetString();
-		convar->DefaultValue = convarObj["DefaultValue"].GetString();
-
-		if (convarObj.HasMember("HelpString"))
-			convar->HelpString = convarObj["HelpString"].GetString();
-		else
-			convar->HelpString = "";
-
-		convar->Flags = FCVAR_NONE;
-
-		if (convarObj.HasMember("Flags"))
-		{
-			// read raw integer flags
-			if (convarObj["Flags"].IsInt())
-				convar->Flags = convarObj["Flags"].GetInt();
-			else if (convarObj["Flags"].IsString())
-			{
-				// parse cvar flags from string
-				// example string: ARCHIVE_PLAYERPROFILE | GAMEDLL
-				convar->Flags |= ParseConVarFlagsString(convar->Name, convarObj["Flags"].GetString());
-			}
-		}
-
-		ConVars.push_back(convar);
-
-		DevMsg(eLog::MODSYS, "'%s' contains ConVar '%s'\n", Name.c_str(), convar->Name.c_str());
-	}
-}
-
-void Mod::ParseConCommands(rapidjson_document& json)
-{
-	if (!json.HasMember("ConCommands"))
-		return;
-
-	if (!json["ConCommands"].IsArray())
-	{
-		Warning(eLog::MODSYS, "'ConCommands' field is not an array, skipping...\n");
-		return;
-	}
-
-	for (auto& concommandObj : json["ConCommands"].GetArray())
-	{
-		if (!concommandObj.IsObject())
-		{
-			Warning(eLog::MODSYS, "ConCommand is not an object, skipping...\n");
-			continue;
-		}
-		if (!concommandObj.HasMember("Name"))
-		{
-			Warning(eLog::MODSYS, "ConCommand does not have a Name, skipping...\n");
-			continue;
-		}
-		// from here on, the ConCommand can be referenced by name in logs
-		if (!concommandObj.HasMember("Function"))
-		{
-			Warning(eLog::MODSYS, "ConCommand '{}' does not have a Function, skipping...\n", concommandObj["Name"].GetString());
-			continue;
-		}
-		if (!concommandObj.HasMember("Context"))
-		{
-			Warning(eLog::MODSYS, "ConCommand '{}' does not have a Context, skipping...\n", concommandObj["Name"].GetString());
-			continue;
-		}
-
-		// have to allocate this manually, otherwise concommand registration will break
-		// unfortunately this causes us to leak memory on reload, unsure of a way around this rn
-		ModConCommand* concommand = new ModConCommand;
-		concommand->Name = concommandObj["Name"].GetString();
-		concommand->Function = concommandObj["Function"].GetString();
-		concommand->Context = ScriptContextFromString(concommandObj["Context"].GetString());
-		if (concommand->Context == ScriptContext::INVALID)
-		{
-			Warning(eLog::MODSYS, "Mod ConCommand %s has invalid context %s\n", concommand->Name.c_str(), concommandObj["Context"].GetString());
-			continue;
-		}
-
-		if (concommandObj.HasMember("HelpString"))
-			concommand->HelpString = concommandObj["HelpString"].GetString();
-		else
-			concommand->HelpString = "";
-
-		concommand->Flags = FCVAR_NONE;
-
-		if (concommandObj.HasMember("Flags"))
-		{
-			// read raw integer flags
-			if (concommandObj["Flags"].IsInt())
-			{
-				concommand->Flags = concommandObj["Flags"].GetInt();
-			}
-			else if (concommandObj["Flags"].IsString())
-			{
-				// parse cvar flags from string
-				// example string: ARCHIVE_PLAYERPROFILE | GAMEDLL
-				concommand->Flags |= ParseConVarFlagsString(concommand->Name, concommandObj["Flags"].GetString());
-			}
-		}
-
-		ConCommands.push_back(concommand);
-
-		DevMsg(eLog::MODSYS, "'%s' contains ConCommand '%s'\n", Name.c_str(), concommand->Name.c_str());
-	}
-}
-
-void Mod::ParseScripts(rapidjson_document& json)
-{
-	if (!json.HasMember("Scripts"))
-		return;
-
-	if (!json["Scripts"].IsArray())
-	{
-		Warning(eLog::MODSYS, "'Scripts' field is not an array, skipping...\n");
-		return;
-	}
-
-	for (auto& scriptObj : json["Scripts"].GetArray())
-	{
-		if (!scriptObj.IsObject())
-		{
-			Warning(eLog::MODSYS, "Script is not an object, skipping...\n");
-			continue;
-		}
-		if (!scriptObj.HasMember("Path"))
-		{
-			Warning(eLog::MODSYS, "Script does not have a Path, skipping...\n");
-			continue;
-		}
-		// from here on, the Path for a script is used as it's name in logs
-		if (!scriptObj.HasMember("RunOn"))
-		{
-			// "a RunOn" sounds dumb but anything else doesn't match the format of the warnings...
-			// this is the best i could think of within 20 seconds
-			Warning(eLog::MODSYS, "Script '%s' does not have a RunOn field, skipping...\n", scriptObj["Path"].GetString());
-			continue;
-		}
-
-		ModScript script;
-
-		script.Path = scriptObj["Path"].GetString();
-		script.RunOn = scriptObj["RunOn"].GetString();
-
-		if (scriptObj.HasMember("ServerCallback"))
-		{
-			if (scriptObj["ServerCallback"].IsObject())
-			{
-				ModScriptCallback callback;
-				callback.Context = ScriptContext::SERVER;
-
-				if (scriptObj["ServerCallback"].HasMember("Before"))
-				{
-					if (scriptObj["ServerCallback"]["Before"].IsString())
-						callback.BeforeCallback = scriptObj["ServerCallback"]["Before"].GetString();
-					else
-						Warning(eLog::MODSYS, "'Before' ServerCallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				if (scriptObj["ServerCallback"].HasMember("After"))
-				{
-					if (scriptObj["ServerCallback"]["After"].IsString())
-						callback.AfterCallback = scriptObj["ServerCallback"]["After"].GetString();
-					else
-						Warning(eLog::MODSYS, "'After' ServerCallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				if (scriptObj["ServerCallback"].HasMember("Destroy"))
-				{
-					if (scriptObj["ServerCallback"]["Destroy"].IsString())
-						callback.DestroyCallback = scriptObj["ServerCallback"]["Destroy"].GetString();
-					else
-						Warning(eLog::MODSYS, "'Destroy' ServerCallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				script.Callbacks.push_back(callback);
-			}
-			else
-			{
-				Warning(eLog::MODSYS, "ServerCallback for script '%s' is not an object, skipping...\n", scriptObj["Path"].GetString());
-			}
-		}
-
-		if (scriptObj.HasMember("ClientCallback"))
-		{
-			if (scriptObj["ClientCallback"].IsObject())
-			{
-				ModScriptCallback callback;
-				callback.Context = ScriptContext::CLIENT;
-
-				if (scriptObj["ClientCallback"].HasMember("Before"))
-				{
-					if (scriptObj["ClientCallback"]["Before"].IsString())
-						callback.BeforeCallback = scriptObj["ClientCallback"]["Before"].GetString();
-					else
-						Warning(eLog::MODSYS, "'Before' ClientCallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				if (scriptObj["ClientCallback"].HasMember("After"))
-				{
-					if (scriptObj["ClientCallback"]["After"].IsString())
-						callback.AfterCallback = scriptObj["ClientCallback"]["After"].GetString();
-					else
-						Warning(eLog::MODSYS, "'After' ClientCallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				if (scriptObj["ClientCallback"].HasMember("Destroy"))
-				{
-					if (scriptObj["ClientCallback"]["Destroy"].IsString())
-						callback.DestroyCallback = scriptObj["ClientCallback"]["Destroy"].GetString();
-					else
-						Warning(eLog::MODSYS, "'Destroy' ClientCallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				script.Callbacks.push_back(callback);
-			}
-			else
-			{
-				Warning(eLog::MODSYS, "ClientCallback for script '%s' is not an object, skipping...\n", scriptObj["Path"].GetString());
-			}
-		}
-
-		if (scriptObj.HasMember("UICallback"))
-		{
-			if (scriptObj["UICallback"].IsObject())
-			{
-				ModScriptCallback callback;
-				callback.Context = ScriptContext::UI;
-
-				if (scriptObj["UICallback"].HasMember("Before"))
-				{
-					if (scriptObj["UICallback"]["Before"].IsString())
-						callback.BeforeCallback = scriptObj["UICallback"]["Before"].GetString();
-					else
-						Warning(eLog::MODSYS, "'Before' UICallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				if (scriptObj["UICallback"].HasMember("After"))
-				{
-					if (scriptObj["UICallback"]["After"].IsString())
-						callback.AfterCallback = scriptObj["UICallback"]["After"].GetString();
-					else
-						Warning(eLog::MODSYS, "'After' UICallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				if (scriptObj["UICallback"].HasMember("Destroy"))
-				{
-					if (scriptObj["UICallback"]["Destroy"].IsString())
-						callback.DestroyCallback = scriptObj["UICallback"]["Destroy"].GetString();
-					else
-						Warning(eLog::MODSYS, "'Destroy' UICallback for script '%s' is not a string, skipping...\n", scriptObj["Path"].GetString());
-				}
-
-				script.Callbacks.push_back(callback);
-			}
-			else
-			{
-				Warning(eLog::MODSYS, "UICallback for script '%s' is not an object, skipping...\n", scriptObj["Path"].GetString());
-			}
-		}
-
-		Scripts.push_back(script);
-
-		DevMsg(eLog::MODSYS, "'%s' contains Script '%s'\n", Name.c_str(), script.Path.c_str());
-	}
-}
-
-void Mod::ParseLocalization(rapidjson_document& json)
-{
-	if (!json.HasMember("Localisation"))
-		return;
-
-	if (!json["Localisation"].IsArray())
-	{
-		Warning(eLog::MODSYS, "'Localisation' field is not an array, skipping...\n");
-		return;
-	}
-
-	for (auto& localisationStr : json["Localisation"].GetArray())
-	{
-		if (!localisationStr.IsString())
-		{
-			// not a string but we still GetString() to log it :trol:
-			Warning(eLog::MODSYS, "Localisation '%s' is not a string, skipping...\n", localisationStr.GetString());
-			continue;
-		}
-
-		LocalisationFiles.push_back(localisationStr.GetString());
-
-		DevMsg(eLog::MODSYS, "'%s' registered Localisation '%s'\n", Name.c_str(), localisationStr.GetString());
-	}
-}
-
-void Mod::ParseDependencies(rapidjson_document& json)
-{
-	if (!json.HasMember("Dependencies"))
-		return;
-
-	if (!json["Dependencies"].IsObject())
-	{
-		Warning(eLog::MODSYS, "'Dependencies' field is not an object, skipping...\n");
-		return;
-	}
-
-	for (auto v = json["Dependencies"].MemberBegin(); v != json["Dependencies"].MemberEnd(); v++)
-	{
-		if (!v->name.IsString())
-		{
-			Warning(eLog::MODSYS, "Dependency constant '%s' is not a string, skipping...\n", v->name.GetString());
-			continue;
-		}
-		if (!v->value.IsString())
-		{
-			Warning(eLog::MODSYS, "Dependency constant '%s' is not a string, skipping...\n", v->value.GetString());
-			continue;
-		}
-
-		if (DependencyConstants.find(v->name.GetString()) != DependencyConstants.end() && v->value.GetString() != DependencyConstants[v->name.GetString()])
-		{
-			// this is fatal because otherwise the mod will probably try to use functions that dont exist,
-			// which will cause errors further down the line that are harder to debug
-			Error(eLog::MODSYS, NO_ERROR,
-				  "'%s' attempted to register a dependency constant '%s' for '%s' that already exists for '%s'. "
-				  "Change the constant name.\n",
-				  Name.c_str(), v->name.GetString(), v->value.GetString(), DependencyConstants[v->name.GetString()].c_str());
+			Warning(eLog::MODSYS, "Skipping blacklisted mod \"%s\"!\n", Name.c_str());
 			return;
 		}
 
-		if (DependencyConstants.find(v->name.GetString()) == DependencyConstants.end())
-			DependencyConstants.emplace(v->name.GetString(), v->value.GetString());
+		Description = jsMod["Description"].get<std::string>();
+		Version = jsMod["Version"].get<std::string>();
 
-		DevMsg(eLog::MODSYS, "'%s' registered dependency constant '%s' for mod '%s'\n", Name.c_str(), v->name.GetString(), v->value.GetString());
+		if (jsMod.contains("DownloadLink"))
+			DownloadLink = jsMod["DownloadLink"].get<std::string>();
+		else
+			DownloadLink = "";
+
+		if (jsMod.contains("RequiredOnClient"))
+			RequiredOnClient = jsMod["RequiredOnClient"].get<bool>();
+		else
+			RequiredOnClient = false;
+
+		LoadPriority = jsMod["LoadPriority"].get<int>();
+
+		// Parse Convars
+		if (jsMod.contains("ConVars"))
+		{
+			for (auto& jsConVar : jsMod["ConVars"])
+			{
+				std::string svName = jsConVar["Name"].get<std::string>();
+				std::string svDefaultValue = jsConVar["DefaultValue"].get<std::string>();
+
+				std::string svHelpString = "";
+				if (jsConVar.contains("HelpString"))
+					svHelpString = jsConVar["HelpString"].get<std::string>();
+
+				int nFlags = FCVAR_NONE;
+				if (jsConVar.contains("Flags"))
+				{
+					if (jsConVar["Flags"].is_number_integer())
+						nFlags = jsConVar["Flags"].get<int>();
+					else if (jsConVar["Flags"].is_string())
+						nFlags = ParseConVarFlagsString(svName, jsConVar["Flags"].get<std::string>());
+					else
+						throw std::exception("custom_parse_error: ConVar::Flags has invalid type");
+				}
+
+				// Has to be manually allocated as convar registarion breaks otherwise
+				// FIXME [Fifty]: We DONT deallocate this, this leaks memory and is bad
+				ModConVar* pConVar = new ModConVar;
+				pConVar->Name = svName;
+				pConVar->HelpString = svHelpString;
+				pConVar->DefaultValue = svDefaultValue;
+				pConVar->Flags = nFlags;
+
+				ConVars.emplace_back(pConVar);
+			}
+		}
+
+		// Parse Concommands
+		if (jsMod.contains("ConCommands"))
+		{
+			for (auto& jsConCommand : jsMod["ConCommands"])
+			{
+				std::string svName = jsConCommand["Name"].get<std::string>();
+				std::string svFunction = jsConCommand["Function"].get<std::string>();
+				std::string svContext = jsConCommand["Context"].get<std::string>();
+
+				ScriptContext eContext = ScriptContextFromString(svContext);
+				if (eContext == ScriptContext::INVALID)
+					throw std::exception("custom_parse_error: ConCommand::Context is invalid");
+
+				std::string svHelpString = "";
+				if (jsConCommand.contains("HelpString"))
+					svHelpString = jsConCommand["HelpString"].get<std::string>();
+
+				int nFlags = FCVAR_NONE;
+				if (jsConCommand.contains("Flags"))
+				{
+					if (jsConCommand["Flags"].is_number_integer())
+						nFlags = jsConCommand["Flags"].get<int>();
+					else if (jsConCommand["Flags"].is_string())
+						nFlags = ParseConVarFlagsString(svName, jsConCommand["Flags"].get<std::string>());
+					else
+						throw std::exception("custom_parse_error: ConCommand::Flags has invalid type");
+				}
+
+				// Has to be manually allocated as convar registarion breaks otherwise
+				// FIXME [Fifty]: We DONT deallocate this, this leaks memory and is bad
+				ModConCommand* pConCommand = new ModConCommand;
+				pConCommand->Name = svName;
+				pConCommand->Function = svFunction;
+				pConCommand->Context = eContext;
+				pConCommand->HelpString = svHelpString;
+				pConCommand->Flags = nFlags;
+
+				ConCommands.emplace_back(pConCommand);
+			}
+		}
+
+		// Parse Scripts
+		if (jsMod.contains("Scripts"))
+		{
+			for (auto& jsScript : jsMod["Scripts"])
+			{
+				ModScript script;
+
+				script.Path = jsScript["Path"].get<std::string>();
+				script.RunOn = jsScript["RunOn"].get<std::string>();
+
+				if (jsScript.contains("ServerCallback"))
+				{
+					ModScriptCallback callback;
+					callback.Context = ScriptContext::SERVER;
+
+					if (jsScript["ServerCallback"].contains("Before"))
+						callback.BeforeCallback = jsScript["ServerCallback"]["Before"].get<std::string>();
+
+					if (jsScript["ServerCallback"].contains("After"))
+						callback.AfterCallback = jsScript["ServerCallback"]["After"].get<std::string>();
+
+					if (jsScript["ServerCallback"].contains("Destroy"))
+						callback.DestroyCallback = jsScript["ServerCallback"]["Destroy"].get<std::string>();
+
+					script.Callbacks.emplace_back(callback);
+				}
+
+				if (jsScript.contains("ClientCallback"))
+				{
+					ModScriptCallback callback;
+					callback.Context = ScriptContext::CLIENT;
+
+					if (jsScript["ClientCallback"].contains("Before"))
+						callback.BeforeCallback = jsScript["ClientCallback"]["Before"].get<std::string>();
+
+					if (jsScript["ClientCallback"].contains("After"))
+						callback.AfterCallback = jsScript["ClientCallback"]["After"].get<std::string>();
+
+					if (jsScript["ClientCallback"].contains("Destroy"))
+						callback.DestroyCallback = jsScript["ClientCallback"]["Destroy"].get<std::string>();
+
+					script.Callbacks.emplace_back(callback);
+				}
+
+				if (jsScript.contains("UICallback"))
+				{
+					ModScriptCallback callback;
+					callback.Context = ScriptContext::UI;
+
+					if (jsScript["UICallback"].contains("Before"))
+						callback.BeforeCallback = jsScript["UICallback"]["Before"].get<std::string>();
+
+					if (jsScript["UICallback"].contains("After"))
+						callback.AfterCallback = jsScript["UICallback"]["After"].get<std::string>();
+
+					if (jsScript["UICallback"].contains("Destroy"))
+						callback.DestroyCallback = jsScript["UICallback"]["Destroy"].get<std::string>();
+
+					script.Callbacks.emplace_back(callback);
+				}
+
+				Scripts.emplace_back(script);
+			}
+		}
+
+		// Parse Localization
+		if (jsMod.contains("Localisation"))
+		{
+			for (auto& jsLoc : jsMod["Localisation"])
+			{
+				LocalisationFiles.emplace_back(jsLoc.get<std::string>());
+			}
+		}
+
+		// Parse Dependencies
+		if (jsMod.contains("Dependencies"))
+		{
+			for (auto& jsDep : jsMod["Dependencies"].items())
+			{
+				std::string svKey = jsDep.key();
+				std::string svValue = jsDep.value();
+
+				if (DependencyConstants.find(svKey) != DependencyConstants.end())
+					throw std::exception("custom_parse_error: Duplicate dependency constant!");
+
+				DependencyConstants.emplace(svKey, svValue);
+			}
+		}
+
+		// Parse InitScript
+		if (jsMod.contains("InitScript"))
+		{
+			initScript = jsMod["InitScript"].get<std::string>();
+		}
 	}
-}
-
-void Mod::ParseInitScript(rapidjson_document& json)
-{
-	if (!json.HasMember("InitScript"))
-		return;
-
-	if (!json["InitScript"].IsString())
+	catch (const std::exception& ex)
 	{
-		Warning(eLog::MODSYS, "'InitScript' field is not a string, skipping...\n");
+		Error(eLog::MODSYS, NO_ERROR, "Failed to parse mod.json in '%s': %s\n", modDir.string().c_str(), ex.what());
 		return;
 	}
 
-	initScript = json["InitScript"].GetString();
+	m_bWasReadSuccessfully = true;
+	DevMsg(eLog::MODSYS, "Succesfully parsed mod: '%s'!\n", Name.c_str());
 }
 
 ModManager::ModManager()
@@ -497,14 +240,8 @@ ModManager::ModManager()
 	LoadMods();
 }
 
-struct Test
-{
-	std::string funcName;
-	ScriptContext context;
-};
-
 template <ScriptContext context>
-auto ModConCommandCallback_Internal(std::string name, const CCommand& command)
+void ModConCommandCallback_Internal(std::string name, const CCommand& command)
 {
 	if (g_pSquirrel<context>->m_pSQVM && g_pSquirrel<context>->m_pSQVM)
 	{
@@ -527,10 +264,10 @@ auto ModConCommandCallback_Internal(std::string name, const CCommand& command)
 	}
 }
 
-auto ModConCommandCallback(const CCommand& command)
+void ModConCommandCallback(const CCommand& command)
 {
 	ModConCommand* found = nullptr;
-	auto commandString = std::string(command.GetCommandString());
+	std::string commandString = std::string(command.GetCommandString());
 
 	// Finding the first space to remove the command's name
 	auto firstSpace = commandString.find(' ');
@@ -568,20 +305,17 @@ auto ModConCommandCallback(const CCommand& command)
 
 void ModManager::LoadMods()
 {
+	// Unload mods first
 	if (m_bHasLoadedMods)
 		UnloadMods();
 
-	std::vector<fs::path> modDirs;
-
-	// ensure dirs exist
+	// Ensure dirs exist
 	fs::remove_all(GetCompiledAssetsPath());
 	fs::create_directories(GetModFolderPath());
 	fs::create_directories(GetThunderstoreModFolderPath());
 	fs::create_directories(GetRemoteModFolderPath());
 
-	m_DependencyConstants.clear();
-
-	// read enabled mods cfg
+	// Read enabled mods cfg
 	nlohmann::json jsEnabledModsCfg;
 	bool bHasEnabledModsCfg = false;
 
@@ -605,18 +339,20 @@ void ModManager::LoadMods()
 		Error(eLog::MODSYS, NO_ERROR, "Failed to parse enabledmods.json\n");
 	}
 
-	// get mod directories
-	fs::directory_iterator classicModsDir = fs::directory_iterator(GetModFolderPath());
-	fs::directory_iterator remoteModsDir = fs::directory_iterator(GetRemoteModFolderPath());
+	std::vector<fs::path> vModDirs;
 
-	for (fs::directory_iterator modIterator : {classicModsDir, remoteModsDir})
+	// Get mod directories
+	fs::directory_iterator fsClassicModsDir = fs::directory_iterator(GetModFolderPath());
+	fs::directory_iterator fsRemoteModsDir = fs::directory_iterator(GetRemoteModFolderPath());
+
+	// Collect all mods in classic and remote mod dirs
+	for (fs::directory_iterator modIterator : {fsClassicModsDir, fsRemoteModsDir})
 		for (fs::directory_entry dir : modIterator)
 			if (FileExists(dir.path() / "mod.json"))
-				modDirs.push_back(dir.path());
+				vModDirs.push_back(dir.path());
 
-	// Special case for Thunderstore mods dir
+	// Collect all thunderstore mods and make sure the package dir matches AUTHOR-MOD-VERSION
 	fs::directory_iterator thunderstoreModsDir = fs::directory_iterator(GetThunderstoreModFolderPath());
-	// Set up regex for `AUTHOR-MOD-VERSION` pattern
 	std::regex pattern(R"(.*\\([a-zA-Z0-9_]+)-([a-zA-Z0-9_]+)-(\d+\.\d+\.\d+))");
 	for (fs::directory_entry dir : thunderstoreModsDir)
 	{
@@ -633,32 +369,33 @@ void ModManager::LoadMods()
 			{
 				if (FileExists(subDir.path() / "mod.json"))
 				{
-					modDirs.push_back(subDir.path());
+					vModDirs.push_back(subDir.path());
 				}
 			}
 		}
 	}
 
-	for (fs::path modDir : modDirs)
+	// Try to load all collected mods
+	for (fs::path modDir : vModDirs)
 	{
-		// read mod json file
-		std::ifstream jsonStream(modDir / "mod.json");
-		std::stringstream jsonStringStream;
-
-		// fail if no mod json
-		if (jsonStream.fail())
+		// First read mod.json
+		std::string svModJson;
+		CFileStream fStream;
+		if (fStream.Open(FormatA("%s/mod.json", modDir.string().c_str()).c_str(), CFileStream::READ))
+		{
+			fStream.ReadString(svModJson);
+			fStream.Close();
+		}
+		else
 		{
 			Warning(eLog::MODSYS, "Mod file at '%s' does not exist or could not be read, is it installed correctly?\n", (modDir / "mod.json").string().c_str());
 			continue;
 		}
 
-		while (jsonStream.peek() != EOF)
-			jsonStringStream << (char)jsonStream.get();
+		// Parse mod.json
+		Mod mod(modDir, svModJson);
 
-		jsonStream.close();
-
-		Mod mod(modDir, (char*)jsonStringStream.str().c_str());
-
+		// Setup mod dependencies
 		for (auto& pair : mod.DependencyConstants)
 		{
 			if (m_DependencyConstants.find(pair.first) != m_DependencyConstants.end() && m_DependencyConstants[pair.first] != pair.second)
@@ -674,6 +411,7 @@ void ModManager::LoadMods()
 				m_DependencyConstants.emplace(pair);
 		}
 
+		// Check if it should be enabled
 		if (bHasEnabledModsCfg)
 		{
 			try
@@ -691,6 +429,7 @@ void ModManager::LoadMods()
 			mod.m_bEnabled = true;
 		}
 
+		// If succesful add it to m_LoadedMods, otherwise don't
 		if (mod.m_bWasReadSuccessfully)
 		{
 			if (mod.m_bEnabled)
@@ -701,7 +440,9 @@ void ModManager::LoadMods()
 			m_LoadedMods.push_back(mod);
 		}
 		else
+		{
 			Warning(eLog::MODSYS, "Mod file at '%s' failed to load\n", (modDir / "mod.json").string().c_str());
+		}
 	}
 
 	// sort by load prio, lowest-highest
@@ -738,22 +479,25 @@ void ModManager::LoadMods()
 		// read vpk paths
 		if (FileExists(mod.m_ModDirectory / "vpk"))
 		{
-			// read vpk cfg
-			std::ifstream vpkJsonStream(mod.m_ModDirectory / "vpk/vpk.json");
-			std::stringstream vpkJsonStringStream;
+			// Try to read the cfg if it exists
+			nlohmann::json jsVpk;
+			bool bHasVpkCfg = false;
 
-			bool bUseVPKJson = false;
-			rapidjson::Document dVpkJson;
-
-			if (!vpkJsonStream.fail())
+			CFileStream fStream;
+			if (fStream.Open(mod.m_ModDirectory / "vpk/vpk.json", CFileStream::READ))
 			{
-				while (vpkJsonStream.peek() != EOF)
-					vpkJsonStringStream << (char)vpkJsonStream.get();
+				std::string svVpk;
+				fStream.ReadString(svVpk);
+				fStream.Close();
 
-				vpkJsonStream.close();
-				dVpkJson.Parse<rapidjson::ParseFlag::kParseCommentsFlag | rapidjson::ParseFlag::kParseTrailingCommasFlag>(vpkJsonStringStream.str().c_str());
-
-				bUseVPKJson = !dVpkJson.HasParseError() && dVpkJson.IsObject();
+				try
+				{
+					jsVpk = nlohmann::json::parse(svVpk);
+					bHasVpkCfg = true;
+				}
+				catch (const std::exception& ex)
+				{
+				}
 			}
 
 			for (fs::directory_entry file : fs::directory_iterator(mod.m_ModDirectory / "vpk"))
@@ -767,9 +511,11 @@ void ModManager::LoadMods()
 					// this really fucking sucks but it'll work
 					std::string vpkName = formattedPath.substr(strlen("english"), formattedPath.find(".bsp") - 3);
 
-					ModVPKEntry& modVpk = mod.Vpks.emplace_back();
-					modVpk.m_bAutoLoad = !bUseVPKJson || (dVpkJson.HasMember("Preload") && dVpkJson["Preload"].IsObject() && dVpkJson["Preload"].HasMember(vpkName) && dVpkJson["Preload"][vpkName].IsTrue());
+					ModVPKEntry modVpk;
+					modVpk.m_bAutoLoad = !bHasVpkCfg || (jsVpk.contains("Preload") && jsVpk["Preload"].contains(vpkName) && jsVpk["Preload"][vpkName].is_boolean() && jsVpk["Preload"][vpkName].get<bool>());
 					modVpk.m_sVpkPath = (file.path().parent_path() / vpkName).string();
+
+					mod.Vpks.emplace_back(modVpk);
 
 					if (m_bHasLoadedMods && modVpk.m_bAutoLoad)
 						g_pFilesystem->m_vtable->MountVPK(g_pFilesystem, vpkName.c_str());
@@ -780,33 +526,37 @@ void ModManager::LoadMods()
 		// read rpak paths
 		if (FileExists(mod.m_ModDirectory / "paks"))
 		{
-			// read rpak cfg
-			std::ifstream rpakJsonStream(mod.m_ModDirectory / "paks/rpak.json");
-			std::stringstream rpakJsonStringStream;
+			// Try to read the cfg if it exists
+			nlohmann::json jsRPak;
+			bool bHasRPakCfg = false;
 
-			bool bUseRpakJson = false;
-			rapidjson::Document dRpakJson;
-
-			if (!rpakJsonStream.fail())
+			CFileStream fStream;
+			if (fStream.Open(mod.m_ModDirectory / "paks/rpak.json", CFileStream::READ))
 			{
-				while (rpakJsonStream.peek() != EOF)
-					rpakJsonStringStream << (char)rpakJsonStream.get();
+				std::string svRPak;
+				fStream.ReadString(svRPak);
+				fStream.Close();
 
-				rpakJsonStream.close();
-				dRpakJson.Parse<rapidjson::ParseFlag::kParseCommentsFlag | rapidjson::ParseFlag::kParseTrailingCommasFlag>(rpakJsonStringStream.str().c_str());
-
-				bUseRpakJson = !dRpakJson.HasParseError() && dRpakJson.IsObject();
+				try
+				{
+					jsRPak = nlohmann::json::parse(svRPak);
+					bHasRPakCfg = true;
+				}
+				catch (const std::exception& ex)
+				{
+				}
 			}
 
 			// read pak aliases
-			if (bUseRpakJson && dRpakJson.HasMember("Aliases") && dRpakJson["Aliases"].IsObject())
+			if (bHasRPakCfg && jsRPak.contains("Aliases"))
 			{
-				for (rapidjson::Value::ConstMemberIterator iterator = dRpakJson["Aliases"].MemberBegin(); iterator != dRpakJson["Aliases"].MemberEnd(); iterator++)
+				for (auto& jsAlias : jsRPak["Aliases"].items())
 				{
-					if (!iterator->name.IsString() || !iterator->value.IsString())
+					// TODO [Fifty]: Log this
+					if (!jsAlias.value().is_string())
 						continue;
 
-					mod.RpakAliases.insert(std::make_pair(iterator->name.GetString(), iterator->value.GetString()));
+					mod.RpakAliases.insert(std::make_pair(jsAlias.key(), jsAlias.value().get<std::string>()));
 				}
 			}
 
@@ -817,14 +567,16 @@ void ModManager::LoadMods()
 				{
 					std::string pakName(file.path().filename().string());
 
-					ModRpakEntry& modPak = mod.Rpaks.emplace_back();
-					modPak.m_bAutoLoad = !bUseRpakJson || (dRpakJson.HasMember("Preload") && dRpakJson["Preload"].IsObject() && dRpakJson["Preload"].HasMember(pakName) && dRpakJson["Preload"][pakName].IsTrue());
+					ModRpakEntry modPak;
+					modPak.m_bAutoLoad = !bHasRPakCfg || (jsRPak.contains("Preload") && jsRPak["Preload"].is_object() && jsRPak["Preload"].contains(pakName) && jsRPak["Preload"][pakName].is_boolean() && jsRPak["Preload"][pakName].get<bool>());
 
 					// postload things
-					if (!bUseRpakJson || (dRpakJson.HasMember("Postload") && dRpakJson["Postload"].IsObject() && dRpakJson["Postload"].HasMember(pakName)))
-						modPak.m_sLoadAfterPak = dRpakJson["Postload"][pakName].GetString();
+					if (!bHasRPakCfg || (jsRPak.contains("Postload") && jsRPak["Postload"].is_object() && jsRPak["Postload"].contains(pakName) && jsRPak["Postload"][pakName].is_string()))
+						modPak.m_sLoadAfterPak = jsRPak["Postload"][pakName].get<std::string>();
 
 					modPak.m_sPakName = pakName;
+
+					mod.Rpaks.emplace_back(modPak);
 
 					// read header of file and get the starpak paths
 					// this is done here as opposed to on starpak load because multiple rpaks can load a starpak
@@ -950,32 +702,6 @@ void ModManager::LoadMods()
 		}
 	}
 
-	// build modinfo obj for masterserver
-	rapidjson_document modinfoDoc;
-	auto& alloc = modinfoDoc.GetAllocator();
-	modinfoDoc.SetObject();
-	modinfoDoc.AddMember("Mods", rapidjson::kArrayType, alloc);
-
-	int currentModIndex = 0;
-	for (Mod& mod : m_LoadedMods)
-	{
-		if (!mod.m_bEnabled || (!mod.RequiredOnClient && !mod.Pdiff.size()))
-			continue;
-
-		modinfoDoc["Mods"].PushBack(rapidjson::kObjectType, modinfoDoc.GetAllocator());
-		modinfoDoc["Mods"][currentModIndex].AddMember("Name", rapidjson::StringRef(&mod.Name[0]), modinfoDoc.GetAllocator());
-		modinfoDoc["Mods"][currentModIndex].AddMember("Version", rapidjson::StringRef(&mod.Version[0]), modinfoDoc.GetAllocator());
-		modinfoDoc["Mods"][currentModIndex].AddMember("RequiredOnClient", mod.RequiredOnClient, modinfoDoc.GetAllocator());
-		modinfoDoc["Mods"][currentModIndex].AddMember("Pdiff", rapidjson::StringRef(&mod.Pdiff[0]), modinfoDoc.GetAllocator());
-
-		currentModIndex++;
-	}
-
-	rapidjson::StringBuffer buffer;
-	buffer.Clear();
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	modinfoDoc.Accept(writer);
-
 	m_bHasLoadedMods = true;
 
 	ReloadMapsList();
@@ -986,6 +712,7 @@ void ModManager::UnloadMods()
 	// clean up stuff from mods before we unload
 	m_vMapList.clear();
 	m_ModFiles.clear();
+	m_DependencyConstants.clear();
 	fs::remove_all(GetCompiledAssetsPath());
 
 	g_CustomAudioManager.ClearAudioOverrides();
