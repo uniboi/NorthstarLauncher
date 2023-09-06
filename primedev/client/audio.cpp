@@ -2,7 +2,6 @@
 #include "dedicated/dedicated.h"
 #include "tier1/convar.h"
 
-#include "rapidjson/error/en.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -36,10 +35,10 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		return;
 	}
 
-	fs::path samplesFolder = path;
-	samplesFolder = samplesFolder.replace_extension();
+	fs::path fsSamplesFolder = path;
+	fsSamplesFolder = fsSamplesFolder.replace_extension();
 
-	if (!FileExists(samplesFolder))
+	if (!FileExists(fsSamplesFolder))
 	{
 		Error(eLog::AUDIO, NO_ERROR,
 			  "Failed reading audio override file %s: samples folder doesn't exist; should be named the same as the definition file without "
@@ -48,48 +47,48 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		return;
 	}
 
-	rapidjson_document dataJson;
-	dataJson.Parse<rapidjson::ParseFlag::kParseCommentsFlag | rapidjson::ParseFlag::kParseTrailingCommasFlag>(data);
-
-	// fail if parse error
-	if (dataJson.HasParseError())
+	nlohmann::json jsData;
+	try
 	{
-		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: encountered parse error \"%s\" at offset %i\n", path.string().c_str(), GetParseError_En(dataJson.GetParseError()), dataJson.GetErrorOffset());
-		return;
+		jsData = nlohmann::json::parse(data);
+	}
+	catch (const std::exception& ex)
+	{
+		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: %s\n", path.string().c_str(), ex.what());
 	}
 
 	// fail if it's not a json obj (could be an array, string, etc)
-	if (!dataJson.IsObject())
+	if (!jsData.is_object())
 	{
 		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: file is not a JSON object\n", path.string().c_str());
 		return;
 	}
 
 	// fail if no event ids given
-	if (!dataJson.HasMember("EventId"))
+	if (!jsData.contains("EventId"))
 	{
 		Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: JSON object does not have the EventId property\n", path.string().c_str());
 		return;
 	}
 
 	// array of event ids
-	if (dataJson["EventId"].IsArray())
+	if (jsData["EventId"].is_array())
 	{
-		for (auto& eventId : dataJson["EventId"].GetArray())
+		for (auto& eventId : jsData["EventId"])
 		{
-			if (!eventId.IsString())
+			if (!eventId.is_string())
 			{
 				Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: EventId array has a value of invalid type, all must be strings\n", path.string().c_str());
 				return;
 			}
 
-			EventIds.push_back(eventId.GetString());
+			EventIds.push_back(eventId.get<std::string>());
 		}
 	}
 	// singular event id
-	else if (dataJson["EventId"].IsString())
+	else if (jsData["EventId"].is_string())
 	{
-		EventIds.push_back(dataJson["EventId"].GetString());
+		EventIds.push_back(jsData["EventId"].get<std::string>());
 	}
 	// incorrect type
 	else
@@ -98,20 +97,20 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		return;
 	}
 
-	if (dataJson.HasMember("EventIdRegex"))
+	if (jsData.contains("EventIdRegex"))
 	{
 		// array of event id regex
-		if (dataJson["EventIdRegex"].IsArray())
+		if (jsData["EventIdRegex"].is_array())
 		{
-			for (auto& eventId : dataJson["EventIdRegex"].GetArray())
+			for (auto& eventId : jsData["EventIdRegex"])
 			{
-				if (!eventId.IsString())
+				if (!eventId.is_string())
 				{
 					Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: EventIdRegex array has a value of invalid type, all must be strings\n", path.string().c_str());
 					return;
 				}
 
-				const std::string& regex = eventId.GetString();
+				const std::string& regex = eventId.get<std::string>();
 
 				try
 				{
@@ -125,9 +124,9 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 			}
 		}
 		// singular event id regex
-		else if (dataJson["EventIdRegex"].IsString())
+		else if (jsData["EventIdRegex"].is_string())
 		{
-			const std::string& regex = dataJson["EventIdRegex"].GetString();
+			const std::string& regex = jsData["EventIdRegex"].get<std::string>();
 			try
 			{
 				EventIdsRegex.push_back({regex, std::regex(regex)});
@@ -149,15 +148,15 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 		}
 	}
 
-	if (dataJson.HasMember("AudioSelectionStrategy"))
+	if (jsData.contains("AudioSelectionStrategy"))
 	{
-		if (!dataJson["AudioSelectionStrategy"].IsString())
+		if (!jsData["AudioSelectionStrategy"].is_string())
 		{
 			Error(eLog::AUDIO, NO_ERROR, "Failed reading audio override file %s: AudioSelectionStrategy property must be a string\n", path.string().c_str());
 			return;
 		}
 
-		std::string strategy = dataJson["AudioSelectionStrategy"].GetString();
+		std::string strategy = jsData["AudioSelectionStrategy"].get<std::string>();
 
 		if (strategy == "sequential")
 		{
@@ -175,7 +174,7 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 	}
 
 	// load samples
-	for (fs::directory_entry file : fs::recursive_directory_iterator(samplesFolder))
+	for (fs::directory_entry file : fs::recursive_directory_iterator(fsSamplesFolder))
 	{
 		if (file.is_regular_file() && file.path().extension().string() == ".wav")
 		{
@@ -227,19 +226,6 @@ EventOverrideData::EventOverrideData(const std::string& data, const fs::path& pa
 			readThread.detach();
 		}
 	}
-
-	/*
-	if (dataJson.HasMember("EnableOnLoopedSounds"))
-	{
-		if (!dataJson["EnableOnLoopedSounds"].IsBool())
-		{
-			spdlog::error("Failed reading audio override file {}: EnableOnLoopedSounds property is of invalid type (must be a bool)",
-	path.string()); return;
-		}
-
-		EnableOnLoopedSounds = dataJson["EnableOnLoopedSounds"].GetBool();
-	}
-	*/
 
 	if (Samples.size() == 0)
 		Warning(eLog::AUDIO, "Audio override %s has no valid samples! Sounds will not play for this event.\n", path.string().c_str());
