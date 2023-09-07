@@ -52,7 +52,7 @@ bool CFileStream::Open(const char* szPath, int nFlags)
 		return false;
 
 	fs::path fsPath = szPath;
-	Open(fsPath, nFlags);
+	return Open(fsPath, nFlags);
 }
 
 //-----------------------------------------------------------------------------
