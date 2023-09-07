@@ -3,7 +3,6 @@
 #include "core/memalloc.h"
 #include "squirrel/squirrelclasstypes.h"
 
-#include "rapidjson/document.h"
 #include <string>
 #include <vector>
 #include <filesystem>

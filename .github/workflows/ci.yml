@@ -36,7 +36,7 @@ jobs:
     - uses: DoozyX/clang-format-lint-action@v0.13
       with:
         source: 'primedev'
-        exclude: 'primedev/thirdparty/spdlog primedev/thirdparty/libcurl primedev/thirdparty/minhook primedev/thirdparty/rapidjson'
+        exclude: 'primedev/thirdparty/spdlog primedev/thirdparty/libcurl primedev/thirdparty/minhook primedev/thirdparty/nlohmann'
         extensions: 'h,cpp'
         clangFormatVersion: 13
         style: file

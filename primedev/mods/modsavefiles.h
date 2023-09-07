@@ -1,9 +1,5 @@
 #pragma once
 
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/error/en.h"
 #include <sstream>
 #include <fstream>
 #include "squirrel/squirrel.h"
