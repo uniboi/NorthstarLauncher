@@ -38,5 +38,6 @@ target_include_directories(CrashMsg PRIVATE utils/crashmsg)
 set_target_properties(CrashMsg PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}/bin
 					  OUTPUT_NAME crashmsg
+                      COMPILE_FLAGS "/W4"
                       LINK_FLAGS "/MANIFEST:NO /DEBUG /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
 )

@@ -56,5 +56,6 @@ target_compile_definitions(WSockProxy PRIVATE
 set_target_properties(WSockProxy PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}/bin/x64_retail
                       OUTPUT_NAME wsock32
+                      COMPILE_FLAGS "/W4"
                       LINK_FLAGS "/MANIFEST:NO /DEBUG"
 )

@@ -209,5 +209,6 @@ target_compile_definitions(PrimeDLL PRIVATE
 set_target_properties(PrimeDLL PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
                       OUTPUT_NAME bin/x64_retail/Prime
+                      COMPILE_FLAGS "/W4"
                       LINK_FLAGS "/MANIFEST:NO /DEBUG"
 )

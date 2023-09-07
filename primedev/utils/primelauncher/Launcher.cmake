@@ -50,5 +50,6 @@ target_include_directories(PrimeLauncher PRIVATE utils/primelauncher)
 set_target_properties(PrimeLauncher PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
 					  OUTPUT_NAME primelauncher
+                      COMPILE_FLAGS "/W4"
                       LINK_FLAGS "/MANIFEST:NO /DEBUG /STACK:8000000 /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
 )
