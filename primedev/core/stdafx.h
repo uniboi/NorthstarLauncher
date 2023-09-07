@@ -1,9 +1,7 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX // this too
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // temp because i'm very lazy and want to use inet_addr, remove later
+#define NOMINMAX
 
 #include <windows.h>
 #include <psapi.h>
