@@ -4,7 +4,6 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
-#include "scripts/scriptjson.h"
 #include <sstream>
 #include <fstream>
 #include "squirrel/squirrel.h"
@@ -19,30 +18,6 @@ bool IsPathSafe(const std::string param, fs::path dir);
 
 uintmax_t GetSizeOfFolder(fs::path dir);
 uintmax_t GetSizeOfFolderContentsMinusFile(fs::path dir, std::string file);
-
-// ok, I'm just gonna explain what the fuck is going on here because this
-// is the pinnacle of my stupidity and I do not want to touch this ever
-// again, yet someone will eventually have to maintain this.
-template <ScriptContext context>
-inline std::string EncodeJSON(HSquirrelVM* sqvm)
-{
-	// new rapidjson
-	rapidjson_document doc;
-	doc.SetObject();
-
-	// get the SECOND param
-	SQTable* table = sqvm->_stackOfCurrentFunction[2]._VAL.asTable;
-	// take the table and copy it's contents over into the rapidjson_document
-	EncodeJSONTable<context>(table, &doc, doc.GetAllocator());
-
-	// convert JSON document to string
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	doc.Accept(writer);
-
-	// return the converted string
-	return buffer.GetString();
-}
 
 class SaveFileManager
 {

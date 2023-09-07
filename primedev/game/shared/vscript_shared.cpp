@@ -1,3 +1,5 @@
+#include "game/shared/vscript_shared.h"
+
 #include "squirrel/squirrelautobind.h"
 #include "squirrel/squirrelclasstypes.h"
 #include "squirrel/squirreldatatypes.h"
@@ -5,7 +7,6 @@
 
 #include "mods/modsavefiles.h"
 #include "mods/modmanager.h"
-#include "scripts/scriptjson.h"
 #include "rtech/datatable.h"
 #include "rtech/pakapi.h"
 #include "filesystem/basefilesystem.h"
@@ -80,8 +81,12 @@ ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext:
 
 	// Note - this cannot be done in the async func since the table may get garbage collected.
 	// This means that especially large tables may still clog up the system.
-	std::string content = EncodeJSON<context>(sqvm);
-	if (ContainsInvalidChars(content))
+
+	nlohmann::json jsContent;
+	CScriptJson<context>::EncodeJsonTable(sqvm->_stackOfCurrentFunction[2]._VAL.asTable, jsContent);
+	std::string svContent = jsContent.dump(4);
+
+	if (ContainsInvalidChars(svContent))
 	{
 		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
 		return SQRESULT_ERROR;
@@ -91,7 +96,7 @@ ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext:
 	// this actually allows mods to go over the limit, but not by much
 	// the limit is to prevent mods from taking gigabytes of space,
 	// this ain't a cloud service.
-	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + content.length() > MAX_FOLDER_SIZE)
+	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + svContent.length() > MAX_FOLDER_SIZE)
 	{
 		g_pSquirrel<context>->raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
 														   "or increase the maximum folder size using the -maxfoldersize launch parameter.",
@@ -100,7 +105,7 @@ ADD_SQFUNC("void", NSSaveJSONFile, "string file, table data", "", ScriptContext:
 		return SQRESULT_ERROR;
 	}
 
-	g_pSaveFileManager->SaveFileAsync<context>(dir / fileName, content);
+	g_pSaveFileManager->SaveFileAsync<context>(dir / fileName, svContent);
 
 	return SQRESULT_NULL;
 }
@@ -443,44 +448,40 @@ ADD_SQFUNC("table", DecodeJSON, "string json, bool fatalParseErrors = false", "c
 	const char* pJson = g_pSquirrel<context>->getstring(sqvm, 1);
 	const bool bFatalParseErrors = g_pSquirrel<context>->getbool(sqvm, 2);
 
-	rapidjson_document doc;
-	doc.Parse(pJson);
-	if (doc.HasParseError())
+	nlohmann::json jsObj;
+
+	try
+	{
+		jsObj = nlohmann::json::parse(pJson);
+	}
+	catch (const std::exception& ex)
 	{
 		g_pSquirrel<context>->newtable(sqvm);
 
-		std::string sErrorString = fmt::format("Failed parsing json file: encountered parse error \"{}\" at offset {}", GetParseError_En(doc.GetParseError()), doc.GetErrorOffset());
+		std::string svError = FormatA("Failed parsing json file: encountered parse error: %s", ex.what());
 
 		if (bFatalParseErrors)
 		{
-			g_pSquirrel<context>->raiseerror(sqvm, sErrorString.c_str());
+			g_pSquirrel<context>->raiseerror(sqvm, svError.c_str());
 			return SQRESULT_ERROR;
 		}
 
-		Warning(eLog::NS, "%s\n", sErrorString.c_str());
+		Warning(eLog::NS, "%s\n", svError.c_str());
 		return SQRESULT_NOTNULL;
 	}
 
-	DecodeJsonTable<context>(sqvm, (rapidjson::GenericValue<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<SourceAllocator>>*)&doc);
+	CScriptJson<context>::DecodeJson(sqvm, jsObj);
+
 	return SQRESULT_NOTNULL;
 }
 
 ADD_SQFUNC("string", EncodeJSON, "table data", "converts a squirrel table to a json string", ScriptContext::UI | ScriptContext::CLIENT | ScriptContext::SERVER)
 {
-	rapidjson_document doc;
-	doc.SetObject();
+	nlohmann::json jsObj;
+	CScriptJson<context>::EncodeJsonTable(sqvm->_stackOfCurrentFunction[1]._VAL.asTable, jsObj);
 
-	// temp until this is just the func parameter type
-	HSquirrelVM* vm = (HSquirrelVM*)sqvm;
-	SQTable* table = vm->_stackOfCurrentFunction[1]._VAL.asTable;
-	EncodeJSONTable<context>(table, &doc, doc.GetAllocator());
-
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	doc.Accept(writer);
-	const char* pJsonString = buffer.GetString();
-
-	g_pSquirrel<context>->pushstring(sqvm, pJsonString, -1);
+	std::string svObj = jsObj.dump();
+	g_pSquirrel<context>->pushstring(sqvm, svObj.c_str(), -1);
 	return SQRESULT_NOTNULL;
 }
 
@@ -1124,4 +1125,210 @@ REPLACE_SQFUNC(GetDataTableRowLessThanOrEqualToFloatValue, (ScriptContext::UI | 
 
 	g_pSquirrel<context>->pushinteger(sqvm, -1);
 	return SQRESULT_NOTNULL;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Decodes a json object into a sq table
+// Input  : *sqvm -
+//          &jsObj -
+//-----------------------------------------------------------------------------
+template <ScriptContext context>
+void CScriptJson<context>::DecodeJson(HSquirrelVM* sqvm, nlohmann::json& jsObj)
+{
+	// FIXME [Fifty]: This is stupid, make the sq func return a var so we dont have to do this
+	if (jsObj.type() == nlohmann::json::value_t::array)
+	{
+		g_pSquirrel<context>->newtable(sqvm);
+		g_pSquirrel<context>->pushstring(sqvm, "RootArray", -1);
+		DecodeArray(sqvm, jsObj);
+		g_pSquirrel<context>->newslot(sqvm, -3, false);
+	}
+	else
+	{
+		DecodeTable(sqvm, jsObj);
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Decodes a json object into a sq table
+// Input  : *sqvm -
+//          &jsObj -
+//-----------------------------------------------------------------------------
+template <ScriptContext context>
+void CScriptJson<context>::DecodeTable(HSquirrelVM* sqvm, nlohmann::json& jsObj)
+{
+	g_pSquirrel<context>->newtable(sqvm);
+
+	for (auto& js : jsObj.items())
+	{
+		switch (js.value().type())
+		{
+		case nlohmann::json::value_t::boolean:
+			g_pSquirrel<context>->pushstring(sqvm, js.key().c_str(), -1);
+			g_pSquirrel<context>->pushbool(sqvm, js.value().get<bool>());
+			g_pSquirrel<context>->newslot(sqvm, -3, false);
+			break;
+		case nlohmann::json::value_t::string:
+			g_pSquirrel<context>->pushstring(sqvm, js.key().c_str(), -1);
+			g_pSquirrel<context>->pushstring(sqvm, js.value().get<std::string>().c_str());
+			g_pSquirrel<context>->newslot(sqvm, -3, false);
+			break;
+		case nlohmann::json::value_t::number_integer:
+		case nlohmann::json::value_t::number_unsigned:
+			g_pSquirrel<context>->pushstring(sqvm, js.key().c_str(), -1);
+			g_pSquirrel<context>->pushinteger(sqvm, js.value().get<int>());
+			g_pSquirrel<context>->newslot(sqvm, -3, false);
+			break;
+		case nlohmann::json::value_t::number_float:
+			g_pSquirrel<context>->pushstring(sqvm, js.key().c_str(), -1);
+			g_pSquirrel<context>->pushfloat(sqvm, js.value().get<float>());
+			g_pSquirrel<context>->newslot(sqvm, -3, false);
+			break;
+		case nlohmann::json::value_t::object:
+			g_pSquirrel<context>->pushstring(sqvm, js.key().c_str(), -1);
+			DecodeTable(sqvm, js.value());
+			g_pSquirrel<context>->newslot(sqvm, -3, false);
+			break;
+		case nlohmann::json::value_t::array:
+			g_pSquirrel<context>->pushstring(sqvm, js.key().c_str(), -1);
+			DecodeArray(sqvm, js.value());
+			g_pSquirrel<context>->newslot(sqvm, -3, false);
+			break;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Decodes a json object into a sq array
+// Input  : *sqvm -
+//          &jsObj -
+//-----------------------------------------------------------------------------
+template <ScriptContext context>
+void CScriptJson<context>::DecodeArray(HSquirrelVM* sqvm, nlohmann::json& jsObj)
+{
+	g_pSquirrel<context>->newarray(sqvm, 0);
+
+	for (auto& js : jsObj)
+	{
+		switch (js.type())
+		{
+		case nlohmann::json::value_t::boolean:
+			g_pSquirrel<context>->pushbool(sqvm, js.get<bool>());
+			g_pSquirrel<context>->arrayappend(sqvm, -2);
+			break;
+		case nlohmann::json::value_t::string:
+			g_pSquirrel<context>->pushstring(sqvm, js.get<std::string>().c_str(), -1);
+			g_pSquirrel<context>->arrayappend(sqvm, -2);
+			break;
+		case nlohmann::json::value_t::number_integer:
+		case nlohmann::json::value_t::number_unsigned:
+			g_pSquirrel<context>->pushinteger(sqvm, js.get<int>());
+			g_pSquirrel<context>->arrayappend(sqvm, -2);
+			break;
+		case nlohmann::json::value_t::number_float:
+			g_pSquirrel<context>->pushfloat(sqvm, js.get<float>());
+			g_pSquirrel<context>->arrayappend(sqvm, -2);
+			break;
+		case nlohmann::json::value_t::object:
+			DecodeTable(sqvm, js);
+			g_pSquirrel<context>->arrayappend(sqvm, -2);
+			break;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Encodes json represented as a sq table into a json obj
+// Input  : *pTable -
+//          &jsObj -
+//-----------------------------------------------------------------------------
+template <ScriptContext context>
+void CScriptJson<context>::EncodeJsonTable(SQTable* pTable, nlohmann::json& jsObj)
+{
+	for (int i = 0; i < pTable->_numOfNodes; i++)
+	{
+		tableNode* node = &pTable->_nodes[i];
+
+		nlohmann::json jsTable;
+		nlohmann::json jsArray;
+
+		if (node->key._Type == OT_STRING)
+		{
+			switch (node->val._Type)
+			{
+			case OT_STRING:
+				jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, node->val._VAL.asString->_val));
+				break;
+			case OT_INTEGER:
+				jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, node->val._VAL.asInteger));
+				break;
+			case OT_FLOAT:
+				jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, node->val._VAL.asFloat));
+				break;
+			case OT_BOOL:
+				if (node->val._VAL.asInteger)
+					jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, true));
+				else
+					jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, false));
+				break;
+			case OT_TABLE:
+				EncodeJsonTable(node->val._VAL.asTable, jsTable);
+				jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, jsTable));
+				break;
+			case OT_ARRAY:
+				EncodeJsonArray(node->val._VAL.asArray, jsArray);
+				jsObj.push_back(nlohmann::json::object_t::value_type(node->key._VAL.asString->_val, jsArray));
+				break;
+			default:
+				Warning(eLog::NS, "CScriptJson::EncodeJsonTable: squirrel type %s not supported\n", SQTypeNameFromID(node->val._Type));
+				break;
+			}
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Encodes json represented as a sq array into a json obj
+// Input  : *pArray -
+//          &jsObj -
+//-----------------------------------------------------------------------------
+template <ScriptContext context>
+void CScriptJson<context>::EncodeJsonArray(SQArray* pArray, nlohmann::json& jsObj)
+{
+	for (int i = 0; i < pArray->_usedSlots; i++)
+	{
+		SQObject* node = &pArray->_values[i];
+
+		nlohmann::json jsTable;
+		nlohmann::json jsArray;
+
+		switch (node->_Type)
+		{
+		case OT_STRING:
+			jsObj.push_back(node->_VAL.asString->_val);
+			break;
+		case OT_INTEGER:
+			jsObj.push_back(node->_VAL.asInteger);
+			break;
+		case OT_FLOAT:
+			jsObj.push_back(node->_VAL.asInteger);
+			break;
+		case OT_BOOL:
+			if (node->_VAL.asInteger)
+				jsObj.push_back(true);
+			else
+				jsObj.push_back(false);
+			break;
+		case OT_TABLE:
+			EncodeJsonTable(node->_VAL.asTable, jsTable);
+			jsObj.push_back(jsTable);
+			break;
+		case OT_ARRAY:
+			EncodeJsonArray(node->_VAL.asArray, jsArray);
+			jsObj.push_back(jsArray);
+			break;
+		default:
+			Warning(eLog::NS, "CScriptJson::EncodeJsonArray: squirrel type %s not supported\n", SQTypeNameFromID(node->_Type));
+		}
+	}
 }
