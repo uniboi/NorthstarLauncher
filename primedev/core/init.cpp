@@ -7,6 +7,7 @@
 
 #include "windows/libsys.h"
 #include "networksystem/atlas.h"
+#include "game/shared/vscript_shared.h"
 
 #include <string>
 
@@ -59,6 +60,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	g_pSquirrel<ScriptContext::CLIENT> = new SquirrelManager<ScriptContext::CLIENT>;
 	g_pSquirrel<ScriptContext::UI> = new SquirrelManager<ScriptContext::UI>;
 	g_pSquirrel<ScriptContext::SERVER> = new SquirrelManager<ScriptContext::SERVER>;
+
+	g_pScriptHttp = new CScriptHttp();
 
 	// Only run atlas client on client
 	if (!CommandLine()->CheckParm("-dedicated"))

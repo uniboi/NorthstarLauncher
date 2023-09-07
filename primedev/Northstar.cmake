@@ -126,8 +126,6 @@ add_library(PrimeDLL SHARED
             "rtech/datatable.h"
 			"rtech/pakapi.cpp"
 			"rtech/pakapi.h"
-            "scripts/scripthttprequesthandler.cpp"
-            "scripts/scripthttprequesthandler.h"
             "server/alltalk.cpp"
             "server/buildainfile.cpp"
             "shared/exploit_fixes/exploitfixes.cpp"
