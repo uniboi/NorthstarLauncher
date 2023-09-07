@@ -1,5 +1,8 @@
 #include <winsock.h>
 
+// FIXME [Fifty]: wsock implements these as wrappers with extra logic, although this works we
+//                should recreate it
+
 int __stdcall PROXY_getsockopt(SOCKET s, int level, int optname, char* optval, int* optlen)
 {
 	return getsockopt(s, level, optname, optval, optlen);
