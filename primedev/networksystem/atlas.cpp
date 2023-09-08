@@ -247,6 +247,13 @@ void CAtlasClient::AuthenticateRemoteGameServer(const char* pszUID, const char* 
 	std::thread(
 		[this, svUID, svPassword, server]()
 		{
+			double flStart = Plat_FloatTime();
+			// First wait for our server to finish pushing all persistence, or timeout after 40 secs
+			while (g_pAtlasServer->m_iPersistencePushes && flStart + 40.0 > Plat_FloatTime())
+			{
+				Sleep(100);
+			}
+
 			CURLParms cParms;
 			cParms.nTimeout = 30; // TODO: make this a cvar
 			cParms.pWriteFunc = CURLWriteStringCallback;
@@ -907,6 +914,7 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 	}
 
 	DevMsg(eLog::MS, "%s: Pushing persistence to atlas for: '%s' ( %s )\n", __FUNCTION, pClient->m_szServerName, pClient->m_UID);
+	m_iPersistencePushes++;
 
 	// FIXME [Fifty]: Atlas cries when i send pdata of PERSISTENCE_MAX_SIZE size
 	//                '56306' is the size of pdata we get from atlas on auth so lets hope it doesnt break
@@ -943,6 +951,7 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 			if (nResult != CURLcode::CURLE_OK)
 			{
 				Error(eLog::MS, NO_ERROR, "%s: Curl error: '%s'\n", __FUNCTION, curl_easy_strerror(nResult));
+				m_iPersistencePushes--;
 				return;
 			}
 
@@ -952,7 +961,7 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 
 				if (jsResponse["success"] == false)
 				{
-					Error(eLog::MS, NO_ERROR, "%s: Failed to register self with atlas!\n", __FUNCTION);
+					Error(eLog::MS, NO_ERROR, "%s: Failed to push persistence to atlas for '%s'!\n", __FUNCTION, svName.c_str());
 					if (jsResponse["error"]["enum"].is_string())
 						Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 					if (jsResponse["error"]["msg"].is_string())
@@ -962,6 +971,8 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 			catch (const std::exception& ex)
 			{
 			}
+
+			m_iPersistencePushes--;
 		})
 		.detach();
 #undef __FUNCTION

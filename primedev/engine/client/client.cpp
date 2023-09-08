@@ -50,7 +50,13 @@ void,, (CClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
 	{
 		DevMsg(eLog::NS, "Player %s disconnected: \"%s\"\n", self->m_szServerName, buf);
 
-		g_pAtlasServer->PushPersistence(self);
+		// Only try to push if we're registered
+		// This gets called when client is leaving their own lobby so this
+		// is just a sanity check as we would fail to push most likely
+		if (g_pAtlasServer->IsRegistered())
+		{
+			g_pAtlasServer->PushPersistence(self);
+		}
 
 		g_pServerLimits->RemovePlayer(self);
 	}

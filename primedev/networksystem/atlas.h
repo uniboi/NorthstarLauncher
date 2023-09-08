@@ -105,7 +105,6 @@ struct AuthInfo_t
 {
 	AuthInfo_t() : m_svName(), m_svUID(), m_svPData(), m_bValid(false) {}
 
-	
 	std::string m_svName;
 	std::string m_svUID;
 
@@ -118,6 +117,8 @@ struct AuthInfo_t
 //
 class CAtlasServer
 {
+	friend class CAtlasClient;
+
   public:
 	void HeartBeat(double flCurrentTime);
 	void RegisterSelf();
@@ -136,6 +137,11 @@ class CAtlasServer
 	void RemoveAuthInfo(std::string svToken);
 	void ClearAuthInfo();
 
+	inline bool IsRegistered() const
+	{
+		return !m_svID.empty();
+	}
+
   private:
 	double m_flLastHearBeat = 0.0;
 
@@ -148,6 +154,8 @@ class CAtlasServer
 	// Map of auth info ( token : info )
 	std::map<std::string, AuthInfo_t> m_mpAuthInfo;
 	std::mutex m_AuthDataMutex;
+
+	std::atomic_int m_iPersistencePushes = 0;
 };
 
 inline CAtlasServer* g_pAtlasServer = nullptr;
