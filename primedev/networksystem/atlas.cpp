@@ -8,20 +8,26 @@
 #include "networksystem/bansystem.h"
 #include "mods/modmanager.h"
 
+// NOTE [Fifty]: Not using __FUNCTION__ as in threads it gets appended with more information
+//               decreasing readabality
+
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Authenticates the local client with stryder through atlas
+// Input  : *pszUID - UID of the local client
+//          *pszToken - Origin token of local client
 //-----------------------------------------------------------------------------
 void CAtlasClient::AuthenticateOrigin(const char* pszUID, const char* pszToken)
 {
+#define __FUNCTION "CAtlasClient::AuthenticateOrigin"
 	if (!pszUID || !pszToken)
 	{
-		Error(eLog::MS, NO_ERROR, "%s: pszUID or pszToken are NULL!\n", __FUNCTION__);
+		Error(eLog::MS, NO_ERROR, "%s: pszUID or pszToken are NULL!\n", __FUNCTION);
 		return;
 	}
 
 	if (Cvar_ns_has_agreed_to_send_token->GetInt() != 1 /*AGREED_TO_SEND_TOKEN*/)
 	{
-		Error(eLog::MS, NO_ERROR, "%s: ns_has_agreed_to_send_token != AGREED_TO_SEND_TOKEN!\n", __FUNCTION__);
+		Error(eLog::MS, NO_ERROR, "%s: ns_has_agreed_to_send_token != AGREED_TO_SEND_TOKEN!\n", __FUNCTION);
 		return;
 	}
 
@@ -54,19 +60,17 @@ void CAtlasClient::AuthenticateOrigin(const char* pszUID, const char* pszToken)
 
 			if (result != CURLcode::CURLE_OK)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed performing northstar origin auth: '%s'\n", curl_easy_strerror(result));
+				Error(eLog::MS, NO_ERROR, "%s: Curl error: %s\n", __FUNCTION, curl_easy_strerror(result));
 				SetOriginAuthInProgress(false);
 				return;
 			}
 
 			if (svResponse.empty())
 			{
-				Error(eLog::MS, NO_ERROR, "Response body is empty\n");
+				Error(eLog::MS, NO_ERROR, "%s: Response body is empty\n", __FUNCTION);
 				SetOriginAuthInProgress(false);
 				return;
 			}
-
-			DevMsg(eLog::MS, "%s\n", svResponse.c_str());
 
 			try
 			{
@@ -75,7 +79,7 @@ void CAtlasClient::AuthenticateOrigin(const char* pszUID, const char* pszToken)
 				// We failed to auth for some reason, print it and return
 				if (jsResponse["success"] == false)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed to auth with atlas!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Failed to authenticate with atlas!\n", __FUNCTION);
 					if (jsResponse["error"]["enum"].is_string())
 						Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 					if (jsResponse["error"]["msg"].is_string())
@@ -87,20 +91,21 @@ void CAtlasClient::AuthenticateOrigin(const char* pszUID, const char* pszToken)
 
 				SetOriginAuthSuccessful(true);
 				m_svToken = jsResponse["token"].get<std::string>();
-				DevMsg(eLog::MS, "Successfully authenticated with atlas!\n");
+				DevMsg(eLog::MS, "%s: Successfully authenticated with atlas!\n", __FUNCTION);
 			}
 			catch (const std::exception& ex)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed parsing response json: '%s'\n", ex.what());
+				Error(eLog::MS, NO_ERROR, "%s: Failed parsing response json: '%s'\n", __FUNCTION, ex.what());
 			}
 
 			SetOriginAuthInProgress(false);
 		})
 		.detach();
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Clears the vector of remote servers
 //-----------------------------------------------------------------------------
 void CAtlasClient::ClearRemoteGameServerList()
 {
@@ -108,13 +113,15 @@ void CAtlasClient::ClearRemoteGameServerList()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Fetches the list of remote servers from atlas
 //-----------------------------------------------------------------------------
 void CAtlasClient::FetchRemoteGameServerList()
 {
+
+#define __FUNCTION "CAtlasClient::FetchRemoteGameServerList"
 	if (GetFetchingRemoteGameServers())
 	{
-		Error(eLog::MS, NO_ERROR, "Already fetching the server list!\n");
+		Error(eLog::MS, NO_ERROR, "%s: Already fetching the server list!\n", __FUNCTION);
 		return;
 	}
 
@@ -139,14 +146,14 @@ void CAtlasClient::FetchRemoteGameServerList()
 
 			if (result != CURLcode::CURLE_OK)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed to fetch server list: '%s'\n", curl_easy_strerror(result));
+				Error(eLog::MS, NO_ERROR, "%s: Curl error: %s\n", __FUNCTION, curl_easy_strerror(result));
 				SetFetchingRemoteGameServers(false);
 				return;
 			}
 
 			if (svResponse.empty())
 			{
-				Error(eLog::MS, NO_ERROR, "Server fetch response body is empty\n");
+				Error(eLog::MS, NO_ERROR, "%s: Response body is empty\n", __FUNCTION);
 				SetFetchingRemoteGameServers(false);
 				return;
 			}
@@ -183,21 +190,22 @@ void CAtlasClient::FetchRemoteGameServerList()
 					m_vServers.push_back(server);
 				}
 
-				DevMsg(eLog::MS, "Successfully fetched server list!\n");
+				DevMsg(eLog::MS, "%s: Successfully fetched server list!\n", __FUNCTION);
 			}
 			catch (const std::exception& ex)
 			{
 				ClearRemoteGameServerList();
-				Error(eLog::MS, NO_ERROR, "Failed parsing response json: '%s'\n", ex.what());
+				Error(eLog::MS, NO_ERROR, "%s: Failed parsing response json: '%s'\n", ex.what(), __FUNCTION);
 			}
 
 			SetFetchingRemoteGameServers(false);
 		})
 		.detach();
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Returns a vector of remote servers
 //-----------------------------------------------------------------------------
 std::vector<RemoteGameServer_t> CAtlasClient::GetRemoteGameServerList()
 {
@@ -205,25 +213,29 @@ std::vector<RemoteGameServer_t> CAtlasClient::GetRemoteGameServerList()
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Authenticates the client with a game server and joins when succesful
+// Input  : *pszUID - UID of local client
+//          *pszPassword - password passed by the client, empty if no password passed
+//          server - The remote game server we want to authenticate and join
 //-----------------------------------------------------------------------------
 void CAtlasClient::AuthenticateRemoteGameServer(const char* pszUID, const char* pszPassword, RemoteGameServer_t server)
 {
+#define __FUNCTION "CAtlasClient::FetchRemoteGameServerList"
 	if (!pszUID || !pszPassword)
 	{
-		Error(eLog::MS, NO_ERROR, "pszUID or pszPassword are NULL!\n");
+		Error(eLog::MS, NO_ERROR, "%s: pszUID or pszPassword are NULL!\n", __FUNCTION);
 		return;
 	}
 
 	if (!GetOriginAuthSuccessful())
 	{
-		Error(eLog::MS, NO_ERROR, "Tried to connect to a server while not being authed with origin!\n");
+		Error(eLog::MS, NO_ERROR, "%s: Tried to connect to a server while not being authed with origin!\n", __FUNCTION);
 		return;
 	}
 
 	if (m_bAuthenticatingWithGameServer)
 	{
-		Error(eLog::MS, NO_ERROR, "Already trying to authenticate with a server!\n");
+		Error(eLog::MS, NO_ERROR, "%s: Already trying to authenticate with a server!\n", __FUNCTION);
 		return;
 	}
 
@@ -253,19 +265,17 @@ void CAtlasClient::AuthenticateRemoteGameServer(const char* pszUID, const char* 
 
 			if (result != CURLcode::CURLE_OK)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed to auth with server: '%s'\n", curl_easy_strerror(result));
+				Error(eLog::MS, NO_ERROR, "%s: Curl error %s\n", __FUNCTION, curl_easy_strerror(result));
 				m_bAuthenticatingWithGameServer = false;
 				return;
 			}
 
 			if (svResponse.empty())
 			{
-				Error(eLog::MS, NO_ERROR, "Server auth response body is empty\n");
+				Error(eLog::MS, NO_ERROR, "%s: Response body is empty\n", __FUNCTION);
 				m_bAuthenticatingWithGameServer = false;
 				return;
 			}
-
-			DevMsg(eLog::MS, "%s\n", svResponse.c_str());
 
 			try
 			{
@@ -273,7 +283,7 @@ void CAtlasClient::AuthenticateRemoteGameServer(const char* pszUID, const char* 
 
 				if (jsResponse["success"] == false)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed to auth with remote game server!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Failed to authenticate with remote game server!\n", __FUNCTION);
 					if (jsResponse["error"]["enum"].is_string())
 						Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 					if (jsResponse["error"]["msg"].is_string())
@@ -290,23 +300,28 @@ void CAtlasClient::AuthenticateRemoteGameServer(const char* pszUID, const char* 
 
 				Cbuf_AddText(Cbuf_GetCurrentPlayer(), svConnectCmd.c_str(), cmd_source_t::kCommandSrcCode);
 
-				DevMsg(eLog::MS, "Successfully authed with server!\n");
+				DevMsg(eLog::MS, "%s: Successfully authed with server!\n", __FUNCTION);
 			}
 			catch (const std::exception& ex)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed parsing response json: '%s'\n", ex.what());
+				Error(eLog::MS, NO_ERROR, "%s: Failed parsing response json: '%s'\n", __FUNCTION, ex.what());
 			}
 
 			m_bAuthenticatingWithGameServer = false;
 		})
 		.detach();
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Tries to send a heartbeat to atlas every 5 seconds only when
+//          atlas_broadcast_local_server is true. If it is true and we're
+//          not registered yet it registeres us with atlas
+// Input  : flCurrentTime - Current time relative to program start
 //-----------------------------------------------------------------------------
 void CAtlasServer::HeartBeat(double flCurrentTime)
 {
+#define __FUNCTION "CAtlasServer::HeartBeat"
 	// User doesnt want to breadcast, return
 	if (!Cvar_atlas_broadcast_local_server->GetBool())
 	{
@@ -328,7 +343,6 @@ void CAtlasServer::HeartBeat(double flCurrentTime)
 		return;
 	}
 
-	// DevMsg(eLog::MS, "Running heartbeat\n");
 	std::thread(
 		[this]()
 		{
@@ -362,7 +376,7 @@ void CAtlasServer::HeartBeat(double flCurrentTime)
 			for (const Mod& mod : g_pModManager->m_LoadedMods)
 			{
 				nlohmann::json jsMod;
-				
+
 				jsMod["Name"] = mod.Name;
 				jsMod["Version"] = mod.Version;
 				jsMod["RequiredOnClient"] = mod.RequiredOnClient;
@@ -380,17 +394,15 @@ void CAtlasServer::HeartBeat(double flCurrentTime)
 
 			if (nResult != CURLcode::CURLE_OK)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed to submit server heartbeat: '%s'\n", curl_easy_strerror(nResult));
+				Error(eLog::MS, NO_ERROR, "%s: Curl error %s\n", __FUNCTION, curl_easy_strerror(nResult));
 				return;
 			}
 
 			if (svResponse.empty())
 			{
-				Error(eLog::MS, NO_ERROR, "Server heartbeat response body is empty\n");
+				Error(eLog::MS, NO_ERROR, "%s: Response body is empty\n", __FUNCTION);
 				return;
 			}
-
-			// DevMsg(eLog::MS, "%s\n", svResponse.c_str());
 
 			try
 			{
@@ -398,7 +410,7 @@ void CAtlasServer::HeartBeat(double flCurrentTime)
 
 				if (jsResponse["success"] == false)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed heartbeat!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Failed heartbeat!\n", __FUNCTION);
 					if (jsResponse["error"]["enum"].is_string())
 						Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 					if (jsResponse["error"]["msg"].is_string())
@@ -410,28 +422,28 @@ void CAtlasServer::HeartBeat(double flCurrentTime)
 				// Update ID and Token
 				m_svID = jsResponse["id"].get<std::string>();
 				m_svAuthToken = jsResponse["serverAuthToken"].get<std::string>();
-
-				// DevMsg(eLog::MS, "Successfully heartbeat server!\n");
 			}
 			catch (const std::exception& ex)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed parsing response json: '%s'\n", ex.what());
+				Error(eLog::MS, NO_ERROR, "%s: Failed parsing response json: '%s'\n", __FUNCTION, ex.what());
 			}
 		})
 		.detach();
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Registers us with atlas, only called from heartbeat
 //-----------------------------------------------------------------------------
 void CAtlasServer::RegisterSelf()
 {
+#define __FUNCTION "CAtlasServer::RegisterSelf"
 	if (m_bAttemptingToRegisterSelf)
 	{
 		return;
 	}
 
-	DevMsg(eLog::MS, "Attempting to register local server to atlas\n");
+	DevMsg(eLog::MS, "%s: Attempting to register local server to atlas\n", __FUNCTION);
 	m_bAttemptingToRegisterSelf = true;
 
 	std::thread(
@@ -485,19 +497,17 @@ void CAtlasServer::RegisterSelf()
 
 			if (nResult != CURLcode::CURLE_OK)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed to submit server registration: '%s'\n", curl_easy_strerror(nResult));
+				Error(eLog::MS, NO_ERROR, "%s: Curl error: %s\n", __FUNCTION, curl_easy_strerror(nResult));
 				m_bAttemptingToRegisterSelf = false;
 				return;
 			}
 
 			if (svResponse.empty())
 			{
-				Error(eLog::MS, NO_ERROR, "Server registration response body is empty\n");
+				Error(eLog::MS, NO_ERROR, "%s: Response body is empty\n", __FUNCTION);
 				m_bAttemptingToRegisterSelf = false;
 				return;
 			}
-
-			DevMsg(eLog::MS, "%s\n", svResponse.c_str());
 
 			try
 			{
@@ -505,7 +515,7 @@ void CAtlasServer::RegisterSelf()
 
 				if (jsResponse["success"] == false)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed to register self with atlas!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Failed to register self with atlas!\n", __FUNCTION);
 					if (jsResponse["error"]["enum"].is_string())
 						Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 					if (jsResponse["error"]["msg"].is_string())
@@ -518,21 +528,25 @@ void CAtlasServer::RegisterSelf()
 				m_svID = jsResponse["id"].get<std::string>();
 				m_svAuthToken = jsResponse["serverAuthToken"].get<std::string>();
 
-				DevMsg(eLog::MS, "Successfully registered server:\n");
+				DevMsg(eLog::MS, "%s: Successfully registered server:\n", __FUNCTION);
 				DevMsg(eLog::MS, "Name: %s\n", Cvar_hostname->GetString());
 				DevMsg(eLog::MS, "ID  : %s\n", m_svID.c_str());
 				m_bSuccesfullyRegisteredSelf = true;
 			}
 			catch (const std::exception& ex)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed parsing response json: '%s'\n", ex.what());
+				Error(eLog::MS, NO_ERROR, "%s: Failed parsing response json: '%s'\n", __FUNCTION, ex.what());
 			}
 
 			m_bAttemptingToRegisterSelf = false;
 		})
 		.detach();
+#undef __FUNCTION
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: Un-registers us from atlas
+//-----------------------------------------------------------------------------
 void CAtlasServer::UnregisterSelf()
 {
 	if (m_svAuthToken.empty())
@@ -559,14 +573,17 @@ void CAtlasServer::UnregisterSelf()
 
 			m_svAuthToken = "";
 			m_svID = "";
-		}).detach();
+		})
+		.detach();
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Parses and responds to an atlas connectionless packet
+// Input  : *packet -
 //-----------------------------------------------------------------------------
 void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 {
+#define __FUNCTION "CAtlasServer::HandleConnectionlessPacket"
 	if (!m_bSuccesfullyRegisteredSelf)
 	{
 		return;
@@ -595,7 +612,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 	// v1 HMACSHA256-signed atlas request
 	if (pData.length() < HMACSHA256_LEN)
 	{
-		Warning(eLog::MS, "Ignoring Atlas connectionless packet (size=%i type=%s): invalid: too short for signature", packet->size, pType.c_str());
+		Warning(eLog::MS, "%s: Ignoring Atlas connectionless packet (size=%i type=%s): invalid: too short for signature\n", __FUNCTION, packet->size, pType.c_str());
 		return;
 	}
 
@@ -605,17 +622,15 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 
 	if (!g_pAtlasServer || !g_pAtlasServer->m_svAuthToken.size())
 	{
-		Warning(eLog::MS, "Ignoring Atlas connectionless packet (size=%i type=%s): invalid (data=%s): no masterserver token yet", packet->size, pType.c_str(), pData.c_str());
+		Warning(eLog::MS, "%s: Ignoring Atlas connectionless packet (size=%i type=%s): invalid (data=%s): no masterserver token yet\n", __FUNCTION, packet->size, pType.c_str(), pData.c_str());
 		return;
 	}
 
 	if (!VerifyHMACSHA256(g_pAtlasServer->m_svAuthToken, pSig, pData))
 	{
-		Warning(eLog::MS, "Ignoring Atlas connectionless packet (size=%i type=%s): invalid: invalid signature (key=%s)", packet->size, pType.c_str(), m_svAuthToken.c_str());
+		Warning(eLog::MS, "%s: Ignoring Atlas connectionless packet (size=%i type=%s): invalid: invalid signature (key=%s)\n", __FUNCTION, packet->size, pType.c_str(), m_svAuthToken.c_str());
 		return;
 	}
-
-	DevMsg(eLog::MS, "%s\n", pData.c_str());
 
 	// Don't block
 	std::thread(
@@ -630,7 +645,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 
 				if (jsResponse["type"].get<std::string>() != "connect")
 				{
-					Error(eLog::MS, NO_ERROR, "Invalid atlas connectionless packet type!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Invalid atlas connectionless packet type!\n", __FUNCTION);
 					return;
 				}
 
@@ -643,18 +658,18 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 				{
 					return;
 				}
-				// ip, time, token, type, uid, username
+
 				// Each attempt has a unique token
 			}
 			catch (const std::exception& ex)
 			{
-				Error(eLog::MS, NO_ERROR, "Failed parsing atlas connectionless packet json!\n");
+				Error(eLog::MS, NO_ERROR, "%s: Failed parsing atlas connectionless packet json!\n", __FUNCTION);
 				return;
 			}
 
 			if (!svToken.size())
 			{
-				Error(eLog::MS, NO_ERROR, "svToken is empty!\n");
+				Error(eLog::MS, NO_ERROR, "%s: svToken is empty!\n", __FUNCTION);
 				return;
 			}
 
@@ -686,13 +701,13 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 
 				if (nResult != CURLcode::CURLE_OK)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed to connect client to atlas: '%s'\n", curl_easy_strerror(nResult));
+					Error(eLog::MS, NO_ERROR, "%s (connect): Curl error: %s \n", __FUNCTION, curl_easy_strerror(nResult));
 					return;
 				}
 
 				if (nResponse != 200)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed making connect request: %ld\n", nResponse);
+					Error(eLog::MS, NO_ERROR, "%s: Failed making connect request: %ld\n", __FUNCTION, nResponse);
 					try
 					{
 						nlohmann::json jsResponse = nlohmann::json::parse(svResponse);
@@ -709,7 +724,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 				}
 				if (svResponse.size() > PERSISTENCE_MAX_SIZE)
 				{
-					Error(eLog::MS, NO_ERROR, "Persistence buffer too large!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Persistence buffer too large!\n", __FUNCTION);
 					return;
 				}
 
@@ -720,7 +735,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 
 				info.m_svPData = svResponse;
 
-				DevMsg(eLog::MS, "Authenticated user '%s' ( %s ), pdata size: %li\n", info.m_svName.c_str(), info.m_svUID.c_str(), info.m_svPData.size());
+				DevMsg(eLog::MS, "%s: Authenticated user '%s' ( %s ), pdata size: %li\n", __FUNCTION, info.m_svName.c_str(), info.m_svUID.c_str(), info.m_svPData.size());
 
 				AddAuthInfo(svToken, info);
 			}
@@ -745,13 +760,13 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 
 				if (nResult != CURLcode::CURLE_OK)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed to reject connect request: '%s'\n", curl_easy_strerror(nResult));
+					Error(eLog::MS, NO_ERROR, "%s (reject): Curl error: %s\n", __FUNCTION, curl_easy_strerror(nResult));
 					return;
 				}
 
 				if (nResponse != 200)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed rejecting connect request: %ld\n", nResponse);
+					Error(eLog::MS, NO_ERROR, "%s: Failed rejecting connect request: %ld\n", __FUNCTION, nResponse);
 					try
 					{
 						nlohmann::json jsResponse = nlohmann::json::parse(svResponse);
@@ -767,10 +782,11 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 					return;
 				}
 
-				DevMsg(eLog::MS, "Rejected atlas connectionless packet for client '%s' with reason: '%s'\n", svUserName.c_str(), svReject.c_str());
+				DevMsg(eLog::MS, "%s: Rejected atlas connectionless packet for client '%s' with reason: '%s'\n", __FUNCTION, svUserName.c_str(), svReject.c_str());
 			}
 		})
 		.detach();
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
@@ -779,7 +795,8 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 //-----------------------------------------------------------------------------
 void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 {
-	DevMsg(eLog::MS, "Authenticating local client!\n");
+#define __FUNCTION "CAtlasServer::AuthenticateLocalClient"
+	DevMsg(eLog::MS, "%s: Authenticating local client!\n", __FUNCTION);
 
 	std::string svUrl = FormatA("%s/client/auth_with_self?id=%s&playerToken=%s", Cvar_atlas_hostname->GetString(), svUID.c_str(), g_pAtlasClient->m_svToken.c_str());
 
@@ -797,7 +814,7 @@ void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 
 	if (nResult != CURLcode::CURLE_OK)
 	{
-		Error(eLog::MS, NO_ERROR, "Failed to reject connect request: '%s'\n", curl_easy_strerror(nResult));
+		Error(eLog::MS, NO_ERROR, "%s: Curl error: '%s'\n", __FUNCTION, curl_easy_strerror(nResult));
 		return;
 	}
 
@@ -807,7 +824,7 @@ void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 
 		if (jsResponse["success"] == false)
 		{
-			Error(eLog::MS, NO_ERROR, "Failed to submitting local auth request!\n");
+			Error(eLog::MS, NO_ERROR, "%s: Failed to submitting local auth request!\n", __FUNCTION);
 			if (jsResponse["error"]["enum"].is_string())
 				Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 			if (jsResponse["error"]["msg"].is_string())
@@ -827,7 +844,7 @@ void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 
 		if (nSize > PERSISTENCE_MAX_SIZE)
 		{
-			Error(eLog::MS, NO_ERROR, "Persistence array too large!\n");
+			Error(eLog::MS, NO_ERROR, "%s: Persistence array too large!\n", __FUNCTION);
 			return;
 		}
 
@@ -837,7 +854,7 @@ void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 			info.m_svPData[i] = jsResponse["persistentData"][i].get<int8_t>();
 		}
 
-		DevMsg(eLog::MS, "Authenticated local user ( %s ), pdata size: %li\n", info.m_svName.c_str(), info.m_svUID.c_str(), info.m_svPData.size());
+		DevMsg(eLog::MS, "%s: Authenticated local user ( %s ), pdata size: %li\n", __FUNCTION, info.m_svName.c_str(), info.m_svUID.c_str(), info.m_svPData.size());
 
 		AddAuthInfo(svToken, info);
 
@@ -845,12 +862,15 @@ void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 	}
 	catch (const std::exception& ex)
 	{
-		Error(eLog::MS, NO_ERROR, "Failed parsing local client auth response: '%s'\n", ex.what());
+		Error(eLog::MS, NO_ERROR, "%s: Failed parsing local client auth response: '%s'\n", __FUNCTION, ex.what());
 	}
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Sets up a client setting its pdata
+// Input  : *pClient -
+//          svToken -
 //-----------------------------------------------------------------------------
 bool CAtlasServer::SetupClient(CClient* pClient, std::string svToken)
 {
@@ -869,13 +889,15 @@ bool CAtlasServer::SetupClient(CClient* pClient, std::string svToken)
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Pushes persistence of a client to atlas
+//        : *pClient -
 //-----------------------------------------------------------------------------
 void CAtlasServer::PushPersistence(CClient* pClient)
 {
+#define __FUNCTION "CAtlasServer::PushPersistence"
 	if (!pClient)
 	{
-		Error(eLog::NS, NO_ERROR, "Tried to push persistence for null client!\n");
+		Error(eLog::NS, NO_ERROR, "%s: Tried to push persistence for null client!\n", __FUNCTION);
 		return;
 	}
 
@@ -884,7 +906,7 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 		return;
 	}
 
-	DevMsg(eLog::MS, "Pushing persistence to atlas for: '%s' ( %s )\n", pClient->m_szServerName, pClient->m_UID);
+	DevMsg(eLog::MS, "%s: Pushing persistence to atlas for: '%s' ( %s )\n", __FUNCTION, pClient->m_szServerName, pClient->m_UID);
 
 	// FIXME [Fifty]: Atlas cries when i send pdata of PERSISTENCE_MAX_SIZE size
 	//                '56306' is the size of pdata we get from atlas on auth so lets hope it doesnt break
@@ -918,13 +940,19 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 			CURLcode nResult = CURLSubmitRequest(curl);
 			CURLCleanup(curl);
 
+			if (nResult != CURLcode::CURLE_OK)
+			{
+				Error(eLog::MS, NO_ERROR, "%s: Curl error: '%s'\n", __FUNCTION, curl_easy_strerror(nResult));
+				return;
+			}
+
 			try
 			{
 				nlohmann::json jsResponse = nlohmann::json::parse(svResponse);
 
 				if (jsResponse["success"] == false)
 				{
-					Error(eLog::MS, NO_ERROR, "Failed to register self with atlas!\n");
+					Error(eLog::MS, NO_ERROR, "%s: Failed to register self with atlas!\n", __FUNCTION);
 					if (jsResponse["error"]["enum"].is_string())
 						Error(eLog::MS, NO_ERROR, "Code: '%s'\n", jsResponse["error"]["enum"].get<std::string>().c_str());
 					if (jsResponse["error"]["msg"].is_string())
@@ -936,10 +964,12 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 			}
 		})
 		.detach();
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Checks if we have auth info for a token
+// Input  : svToken -
 //-----------------------------------------------------------------------------
 bool CAtlasServer::HasAuthInfo(std::string svToken)
 {
@@ -949,57 +979,67 @@ bool CAtlasServer::HasAuthInfo(std::string svToken)
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Gets the auth info for a token
+// Input  : svToken -
 //-----------------------------------------------------------------------------
 AuthInfo_t CAtlasServer::GetAuthInfo(std::string svToken)
 {
+#define __FUNCTION "CAtlasServer::GetAuthInfo"
 	if (!HasAuthInfo(svToken))
 	{
-		Error(eLog::MS, NO_ERROR, "Tried to get auth info for invalid token!\n");
+		Error(eLog::MS, NO_ERROR, "%s: Tried to get auth info for invalid token!\n", __FUNCTION);
 		return AuthInfo_t(); // Return invalid auth info
 	}
 
 	std::lock_guard<std::mutex> guard(m_AuthDataMutex);
 
 	return m_mpAuthInfo.at(svToken);
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Adds auth info for a token
+// Input  : svToken -
+//          info -
 //-----------------------------------------------------------------------------
 void CAtlasServer::AddAuthInfo(std::string svToken, AuthInfo_t info)
 {
+#define __FUNCTION "CAtlasServer::AddAuthInfo"
 	if (HasAuthInfo(svToken))
 	{
 		// This sohuld never happen, let's log it though
-		Error(eLog::MS, NO_ERROR, "Tried to add duplicate auth info!\n");
+		Error(eLog::MS, NO_ERROR, "%s: Tried to add duplicate auth info!\n", __FUNCTION);
 		return;
 	}
 
 	std::lock_guard<std::mutex> guard(m_AuthDataMutex);
 
 	m_mpAuthInfo.insert(std::make_pair(svToken, info));
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Removes auth info for a token
+// Input  : svToken -
 //-----------------------------------------------------------------------------
 void CAtlasServer::RemoveAuthInfo(std::string svToken)
 {
+#define __FUNCTION "CAtlasServer::RemoveAuthInfo"
 	if (!HasAuthInfo(svToken))
 	{
 		// This sohuld never happen, let's log it though
-		Error(eLog::MS, NO_ERROR, "Tried to remove non-existent auth info!\n");
+		Error(eLog::MS, NO_ERROR, "%s: Tried to remove non-existent auth info!\n", __FUNCTION);
 		return;
 	}
 
 	std::lock_guard<std::mutex> guard(m_AuthDataMutex);
 
 	m_mpAuthInfo.erase(svToken);
+#undef __FUNCTION
 }
 
 //-----------------------------------------------------------------------------
-// Purpose:
+// Purpose: Clears the auth info map
 //-----------------------------------------------------------------------------
 void CAtlasServer::ClearAuthInfo()
 {
