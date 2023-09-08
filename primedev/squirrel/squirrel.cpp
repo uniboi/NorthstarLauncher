@@ -790,7 +790,7 @@ ON_DLL_LOAD("server.dll", ServerSquirrel, (CModule module))
 	MAKEHOOK(module.Offset(0x26E20), &DestroyVMHook<ScriptContext::SERVER>, &DestroyVM<ScriptContext::SERVER>);
 	MAKEHOOK(module.Offset(0x799E0), &ScriptCompileErrorHook<ScriptContext::SERVER>, &SQCompileError<ScriptContext::SERVER>);
 	MAKEHOOK(module.Offset(0x1D5C0), &CallScriptInitCallbackHook<ScriptContext::SERVER>, &CallScriptInitCallback<ScriptContext::SERVER>);
-	MAKEHOOK(module.Offset(0x17BE0), &CSquirrelVM_initHook<ScriptContext::SERVER>, &CSquirrelVM_init<ScriptContext::SERVER>);
+	MAKEHOOK(module.Offset(0x1B7E0), &CSquirrelVM_initHook<ScriptContext::SERVER>, &CSquirrelVM_init<ScriptContext::SERVER>);
 
 	StubUnsafeSQFuncs<ScriptContext::SERVER>();
 }
