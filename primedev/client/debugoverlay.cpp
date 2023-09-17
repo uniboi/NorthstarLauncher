@@ -104,6 +104,11 @@ void, __fastcall, (OverlayBase_t * pOverlay))
 		}
 	}
 	break;
+	default:
+	{
+		Warning(eLog::ENGINE, "Unimplemented overlay type %i\n", pOverlay->m_Type);
+		break;
+	}
 	}
 	LeaveCriticalSection((LPCRITICAL_SECTION)((char*)sEngineModule + 0x10DB0A38));
 }

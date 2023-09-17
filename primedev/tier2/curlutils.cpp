@@ -52,7 +52,6 @@ void CURLCleanup(CURL* curl)
 	curl_easy_cleanup(curl);
 }
 
-
 long CURLGetResponse(CURL* curl)
 {
 	long nResponse;

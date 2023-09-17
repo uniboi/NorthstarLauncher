@@ -112,7 +112,7 @@ AUTOHOOK(CServer__ConnectClient, engine.dll + 0x114430, CClient*, ,
 	// Setup atlas info ( pdata )
 	if (!g_pAtlasServer->SetupClient(pClient, pszServerFilter))
 	{
-		CClient__Disconnect(pClient, 1, "Failed to setup client!");	
+		CClient__Disconnect(pClient, 1, "Failed to setup client!");
 	}
 
 	// No need to keep this after connecting the client

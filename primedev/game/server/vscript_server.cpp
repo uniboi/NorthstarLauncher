@@ -12,7 +12,7 @@
 ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", ScriptContext::SERVER)
 {
 	const CPlayer* pPlayer = g_pSquirrel<context>->template getentity<CPlayer>(sqvm, 1);
-	
+
 	return SQRESULT_NULL;
 }
 

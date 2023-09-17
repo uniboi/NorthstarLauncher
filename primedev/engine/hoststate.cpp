@@ -52,7 +52,7 @@ void, __fastcall, (CHostState* self))
 	Cbuf_Execute();
 
 	// need to do this to ensure we don't go to private match
-	//if (g_pServerAuthentication->m_bNeedLocalAuthForNewgame)
+	// if (g_pServerAuthentication->m_bNeedLocalAuthForNewgame)
 	//	R2::SetCurrentPlaylist("tdm");
 
 	ServerStartingOrChangingMap();
@@ -77,7 +77,7 @@ void, __fastcall, (CHostState* self))
 
 	// this is normally done in ServerStartingOrChangingMap(), but seemingly the map name isn't set at this point
 	g_pCVar->FindVar("net_data_block_enabled")->SetValue(true);
-	//g_pServerAuthentication->m_bStartingLocalSPGame = true;
+	// g_pServerAuthentication->m_bStartingLocalSPGame = true;
 
 	double dStartTime = Plat_FloatTime();
 	CHostState__State_LoadGame(self);
@@ -102,7 +102,7 @@ void, __fastcall, (CHostState* self))
 	CHostState__State_ChangeLevelMP(self);
 	DevMsg(eLog::ENGINE, "loading took %f sec\n", Plat_FloatTime() - dStartTime);
 
-	//g_pServerPresence->SetMap(g_pHostState->m_levelName);
+	// g_pServerPresence->SetMap(g_pHostState->m_levelName);
 }
 
 // clang-format off
@@ -112,7 +112,7 @@ void, __fastcall, (CHostState* self))
 {
 	DevMsg(eLog::ENGINE, "HostState: GameShutdown\n");
 
-	//g_pServerPresence->DestroyPresence();
+	// g_pServerPresence->DestroyPresence();
 
 	CHostState__State_GameShutdown(self);
 

@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 extern "C" void* _malloc_base(size_t size);
 extern "C" void* _calloc_base(size_t const count, size_t const size);
 extern "C" void* _realloc_base(void* block, size_t size);
