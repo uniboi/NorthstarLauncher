@@ -1,12 +1,13 @@
-# NorthstarLauncher
-![Build Status](https://github.com/R2Northstar/NorthstarLauncher/actions/workflows/ci.yml/badge.svg)
+# Northstar Prime
 
-Launcher used to modify Titanfall 2 to allow Northstar mods and custom content to be loaded.
+A fork of the NorthstarLauncher focusing on improving the code base while also fixing bugs and improving stability.
 
-## Build
+> NOTE: This mostly serves as a reference in discussions where the project should go. While functional only use this if you can fix any issues you encounter as you wont get any help in the discord.
 
-Check [BUILD.md](https://github.com/R2Northstar/NorthstarLauncher/blob/main/BUILD.md) for instructions on how to compile, you can also download [binaries built by GitHub Actions](https://github.com/R2Northstar/NorthstarLauncher/actions).
+## Cherry picked opinions:
 
-## Format
+![image](https://github.com/F1F7Y/NorthstarLauncher/assets/64418963/b0884569-2dd3-4236-ad65-b6a6c59aa9fd)
 
-This project uses [clang-format](https://clang.llvm.org/docs/ClangFormat.html), make sure you run `clang-format -i --style=file NorthstarLauncher/*.cpp NorthstarLauncher/*.h NorthstarDLL/*.cpp NorthstarDLL/*.h` when opening a Pull Request. Check the tool's website for instructions on how to integrate it with your IDE.
+![image](https://github.com/F1F7Y/NorthstarLauncher/assets/64418963/d08c9f33-2ad9-4e15-b2ec-718054c31876)
+
+![image](https://github.com/F1F7Y/NorthstarLauncher/assets/64418963/36e4a001-a3d5-4115-a5fb-96d74c4e874a)
