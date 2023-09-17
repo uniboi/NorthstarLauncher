@@ -22,7 +22,7 @@ struct CURLMime
 
 size_t CURLWriteStringCallback(char* contents, size_t size, size_t nmemb, std::string* userp);
 
-CURL* CURLInitRequest(const char* pszUrl, const char* pszRequest, std::string& svResponse, CURLParms& parms, CURLMime *pMime = nullptr);
+CURL* CURLInitRequest(const char* pszUrl, const char* pszRequest, std::string& svResponse, CURLParms& parms, CURLMime* pMime = nullptr);
 CURLcode CURLSubmitRequest(CURL* curl);
 void CURLCleanup(CURL* curl);
 long CURLGetResponse(CURL* curl);
