@@ -6,6 +6,8 @@ AUTOHOOK(COM_ExplainDisconnection, engine.dll + 0x1342F0,
 void, __fastcall, (bool bPrint, const char* fmt, ...))
 // clang-format on
 {
+	// FIXME [Fifty]: Potential crash can happen here as there's no certainty the format string
+	//                is good
 	va_list va;
 	va_start(va, fmt);
 	char szString[1024];
@@ -27,7 +29,7 @@ void, __fastcall, (bool bPrint, const char* fmt, ...))
 	// don't call Cbuf_Execute because we don't need this called immediately
 	Cbuf_AddText(Cbuf_GetCurrentPlayer(), "disconnect", cmd_source_t::kCommandSrcCode);
 
-	return COM_ExplainDisconnection(bPrint, szString);
+	return COM_ExplainDisconnection(bPrint, "%s", szString);
 }
 
 ON_DLL_LOAD_CLIENT("engine.dll", RejectConnectionFixes, (CModule module))
