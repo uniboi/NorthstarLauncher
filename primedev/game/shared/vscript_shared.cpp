@@ -1605,7 +1605,7 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters)
 		[this, handle, requestParameters, bAllowLocalHttp]()
 		{
 			std::string hostname, resolvedAddress, resolvedPort;
-
+			
 			if (!bAllowLocalHttp)
 			{
 				if (!IsHttpDestinationHostAllowed(requestParameters.svBaseUrl, hostname, resolvedAddress, resolvedPort))
