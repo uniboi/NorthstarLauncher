@@ -133,8 +133,6 @@ add_library(PrimeDLL SHARED
             "shared/exploit_fixes/exploitfixes_utf8parser.cpp"
             "shared/exploit_fixes/ns_limits.cpp"
             "shared/exploit_fixes/ns_limits.h"
-            "shared/maxplayers.cpp"
-            "shared/maxplayers.h"
             "shared/misccommands.cpp"
             "shared/misccommands.h"
             "shared/playlist.cpp"
