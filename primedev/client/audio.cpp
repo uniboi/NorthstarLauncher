@@ -7,12 +7,6 @@
 #include <sstream>
 #include <random>
 
-extern "C"
-{
-	// should be called only in LoadSampleMetadata_Hook
-	extern void* __fastcall Audio_GetParentEvent();
-}
-
 CustomAudioManager g_CustomAudioManager;
 
 EventOverrideData::EventOverrideData()
@@ -340,11 +334,9 @@ bool ShouldPlayAudioEvent(const char* eventName, const std::shared_ptr<EventOver
 
 bool (*o_LoadSampleMetadata)(void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType);
 
-// DO NOT INLINE THIS FUNCTION
-// See comment below.
-bool __declspec(noinline) __fastcall LoadSampleMetadata_Internal(uintptr_t parentEvent, void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType)
+bool LoadSampleMetadata_Internal(const char* parentEvent, void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType)
 {
-	char* eventName = (char*)parentEvent + 0x110;
+	const char* eventName = parentEvent;
 
 	if (Cvar_ns_print_played_sounds->GetInt() > 0)
 		DevMsg(eLog::AUDIO, "Playing event %s\n", eventName);
@@ -443,19 +435,44 @@ bool __declspec(noinline) __fastcall LoadSampleMetadata_Internal(uintptr_t paren
 	return res;
 }
 
-// DO NOT TOUCH THIS FUNCTION
-// The actual logic of it in a separate function (forcefully not inlined) to preserve the r12 register, which holds the event pointer.
+const char* pszAudioEventName = nullptr;
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+// Only: mileswin64.dll + 0xf66d is caled with audioType being variable
 bool h_LoadSampleMetadata(void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType)
 {
-	uintptr_t parentEvent = (uintptr_t)Audio_GetParentEvent();
-
 	// Raw source, used for voice data only
 	if (audioType == 0)
 		return o_LoadSampleMetadata(sample, audioBuffer, audioBufferLength, audioType);
 
-	return LoadSampleMetadata_Internal(parentEvent, sample, audioBuffer, audioBufferLength, audioType);
+	return LoadSampleMetadata_Internal(pszAudioEventName, sample, audioBuffer, audioBufferLength, audioType);
 }
 
+// calls LoadSampleMetadata ( only caller where audiotype isnt 0 )
+bool (*o_SetSource)(void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType);
+
+bool h_SetSource(void* sample, void* audioBuffer, unsigned int audioBufferLength, int audioType)
+{
+	return o_SetSource(sample, audioBuffer, audioBufferLength, audioType);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+// Calls SetSource, looks like a queue func or smth
+void* (*o_sub_1800294C0)(void* a1, void* a2);
+
+void* h_sub_1800294C0(void* a1, void* a2)
+{
+	pszAudioEventName = reinterpret_cast<const char*>((*((__int64*)a2 + 6)));
+	return o_sub_1800294C0(a1, a2);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
 void (*o_MilesLog)(int level, const char* string);
 
 void h_MilesLog(int level, const char* string)
@@ -467,6 +484,12 @@ ON_DLL_LOAD_CLIENT("mileswin64.dll", MilesHook, (CModule module))
 {
 	o_LoadSampleMetadata = module.Offset(0xF110).RCast<bool (*)(void*, void*, unsigned int, int)>();
 	HookAttach(&(PVOID&)o_LoadSampleMetadata, (PVOID)h_LoadSampleMetadata);
+
+	o_SetSource = module.Offset(0xF600).RCast<bool (*)(void*, void*, unsigned int, int)>();
+	HookAttach(&(PVOID&)o_SetSource, (PVOID)h_SetSource);
+
+	o_sub_1800294C0 = module.Offset(0x294C0).RCast<void* (*)(void*, void*)>();
+	HookAttach(&(PVOID&)o_sub_1800294C0, (PVOID)h_sub_1800294C0);
 }
 
 ON_DLL_LOAD_CLIENT("client.dll", AudioHooks, (CModule module))

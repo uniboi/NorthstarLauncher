@@ -174,7 +174,6 @@ add_library(PrimeDLL SHARED
 			"windows/wconsole.cpp"
 			"windows/wconsole.h"
 			"windows/window.cpp"
-            "audio_asm.asm"
 			"Northstar.def"
 )
 
