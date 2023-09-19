@@ -5,8 +5,6 @@
 #include "engine/edict.h"
 #include "engine/sys_engine.h"
 
-AUTOHOOK_INIT()
-
 // CDedidcatedExports defs
 struct CDedicatedExports; // forward declare
 
@@ -82,10 +80,9 @@ DWORD WINAPI ConsoleInputThread(PVOID pThreadParameter)
 	return 0;
 }
 
-// clang-format off
-AUTOHOOK(IsGameActiveWindow, engine.dll + 0x1CDC80,
-bool,, ())
-// clang-format on
+bool (*o_IsGameWindowActive)();
+
+bool h_IsGameWindowActive()
 {
 	return true;
 }
@@ -94,7 +91,8 @@ ON_DLL_LOAD_DEDI("engine.dll", DedicatedServer, (CModule module))
 {
 	DevMsg(eLog::NS, "InitialiseDedicated\n");
 
-	AUTOHOOK_DISPATCH_MODULE(engine.dll)
+	o_IsGameWindowActive = module.Offset(0x1CDC80).RCast<bool (*)()>();
+	HookAttach(&(PVOID&)o_IsGameWindowActive, (PVOID)h_IsGameWindowActive);
 
 	// Host_Init
 	// prevent a particle init that relies on client dll
@@ -231,12 +229,13 @@ ON_DLL_LOAD_DEDI("tier0.dll", DedicatedServerOrigin, (CModule module))
 	module.GetExportedFunction("Tier0_InitOrigin").Patch("C3");
 }
 
+void (*o_PrintSquirrelError)(void* sqvm);
+
 // clang-format off
-AUTOHOOK(PrintSquirrelError, server.dll + 0x794D0, 
-void, __fastcall, (void* sqvm))
+void h_PrintSquirrelError(void* sqvm)
 // clang-format on
 {
-	PrintSquirrelError(sqvm);
+	o_PrintSquirrelError(sqvm);
 
 	// close dedicated server if a fatal error is hit
 	// atm, this will crash if not aborted, so this just closes more gracefully
@@ -248,7 +247,8 @@ void, __fastcall, (void* sqvm))
 
 ON_DLL_LOAD_DEDI("server.dll", DedicatedServerGameDLL, (CModule module))
 {
-	AUTOHOOK_DISPATCH_MODULE(server.dll)
+	o_PrintSquirrelError = module.Offset(0x794D0).RCast<void (*)(void*)>();
+	HookAttach(&(PVOID&)o_PrintSquirrelError, (PVOID)h_PrintSquirrelError);
 
 	if (CommandLine()->CheckParm("-nopakdedi"))
 	{

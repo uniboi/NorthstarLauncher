@@ -2,15 +2,12 @@
 #include "shared/misccommands.h"
 #include "engine/host.h"
 
-AUTOHOOK_INIT()
+void (*o_Host_Init)(bool bDedicated);
 
-// clang-format off
-AUTOHOOK(Host_Init, engine.dll + 0x155EA0,
-void, __fastcall, (bool bDedicated))
-// clang-format on
+void h_Host_Init(bool bDedicated)
 {
 	DevMsg(eLog::ENGINE, "Host_Init(bDedicated: %d)\n", bDedicated);
-	Host_Init(bDedicated);
+	o_Host_Init(bDedicated);
 	FixupCvarFlags();
 
 	// Hardcoded mod functionality, add something to mod.json or just teach users on how to +exec as a replacement ot this
@@ -23,14 +20,20 @@ void, __fastcall, (bool bDedicated))
 		Cbuf_AddText(Cbuf_GetCurrentPlayer(), "exec autoexec_ns_client", cmd_source_t::kCommandSrcCode);
 }
 
-AUTOHOOK(Host_NewGame, engine.dll + 0x156B10, bool, __fastcall, (char* pszMapName, bool bLoadGame, bool bBackgroundLevel, bool bSplitScreenConnect, const char* pszOldMap, const char* pszLandmark))
+bool (*o_Host_NewGame)(char* pszMapName, bool bLoadGame, bool bBackgroundLevel, bool bSplitScreenConnect, const char* pszOldMap, const char* pszLandmark);
+
+bool h_Host_NewGame(char* pszMapName, bool bLoadGame, bool bBackgroundLevel, bool bSplitScreenConnect, const char* pszOldMap, const char* pszLandmark)
 {
-	return Host_NewGame(pszMapName, bLoadGame, bBackgroundLevel, bSplitScreenConnect, pszOldMap, pszLandmark);
+	return o_Host_NewGame(pszMapName, bLoadGame, bBackgroundLevel, bSplitScreenConnect, pszOldMap, pszLandmark);
 }
 
 ON_DLL_LOAD("engine.dll", Host_Init, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_Host_Init = module.Offset(0x155EA0).RCast<void (*)(bool)>();
+	HookAttach(&(PVOID&)o_Host_Init, (PVOID)h_Host_Init);
+
+	o_Host_NewGame = module.Offset(0x156B10).RCast<bool (*)(char*, bool, bool, bool, const char*, const char*)>();
+	HookAttach(&(PVOID&)o_Host_NewGame, (PVOID)h_Host_NewGame);
 
 	g_pEngineParms = module.Offset(0x13159310).RCast<EngineParms_t*>();
 }

@@ -15,16 +15,24 @@ ILoadLibraryExW o_LoadLibraryExW = nullptr;
 //-----------------------------------------------------------------------------
 // Purpose: Run detour callbacks for given HMODULE
 //-----------------------------------------------------------------------------
-void LibSys_RunModuleCallbacks(HMODULE hModule)
+void LibSys_RunModuleCallbacks(HMODULE hModule, int iRecurse = 0)
 {
-	if (!hModule)
+	if (!hModule || iRecurse > 1)
 	{
 		return;
 	}
 
+	// FIXME [Fifty]: Instead of only recursing once we should store the modules we ran callbacks for
+	iRecurse++;
+
 	// Get module base name in ASCII as noone wants to deal with unicode
 	CHAR szModuleName[MAX_PATH];
 	GetModuleBaseNameA(GetCurrentProcess(), hModule, szModuleName, MAX_PATH);
+
+	// Run calllbacks for all imported modules
+	CModule cModule(hModule);
+	for (const std::string& svImport : cModule.GetImportedModules())
+		LibSys_RunModuleCallbacks(GetModuleHandleA(svImport.c_str()), iRecurse);
 
 	// DevMsg(eLog::NONE, "%s\n", szModuleName);
 

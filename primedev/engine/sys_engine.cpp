@@ -2,19 +2,17 @@
 
 #include "hoststate.h"
 
-AUTOHOOK_INIT()
+void (*o_CEngine__Frame)(CEngine* self);
 
-// clang-format off
-AUTOHOOK(CEngine__Frame, engine.dll + 0x1C8650,
-void, __fastcall, (CEngine* self))
-// clang-format on
+void h_CEngine__Frame(CEngine* self)
 {
-	CEngine__Frame(self);
+	o_CEngine__Frame(self);
 }
 
 ON_DLL_LOAD("engine.dll", RunFrame, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_CEngine__Frame = module.Offset(0x1C8650).RCast<void (*)(CEngine*)>();
+	HookAttach(&(PVOID&)o_CEngine__Frame, (PVOID)h_CEngine__Frame);
 
 	g_pEngine = module.Offset(0x7D70C8).Deref().RCast<CEngine*>();
 }

@@ -1,18 +1,16 @@
 #include "tier1/convar.h"
 
-AUTOHOOK_INIT()
-
 void (*m_winelfx_WaitAndBeginFrame)();
+void (*o_OnRenderStart)();
 
 // clang-format off
-AUTOHOOK(OnRenderStart, client.dll + 0x1952C0, 
-void, __fastcall, ())
+void h_OnRenderStart()
 // clang-format on
 {
 	if (Cvar_r_latencyflex->GetBool() && m_winelfx_WaitAndBeginFrame)
 		m_winelfx_WaitAndBeginFrame();
 
-	OnRenderStart();
+	o_OnRenderStart();
 }
 
 ON_DLL_LOAD_CLIENT("client.dll", LatencyFlex, (CModule module))
@@ -32,7 +30,8 @@ ON_DLL_LOAD_CLIENT("client.dll", LatencyFlex, (CModule module))
 		return;
 	}
 
-	AUTOHOOK_DISPATCH()
+	o_OnRenderStart = module.Offset(0x1952C0).RCast<void (*)()>();
+	HookAttach(&(PVOID&)o_OnRenderStart, (PVOID)h_OnRenderStart);
 
 	DevMsg(eLog::NS, "LatencyFleX initialized.\n");
 }

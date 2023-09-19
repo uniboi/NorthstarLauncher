@@ -65,14 +65,17 @@ class ICvar : public IAppSystem
 
 	virtual void sub_18000F4B0() = 0;
 	virtual void sub_unk() = 0;
+
 	virtual void sub_18000AEB0() = 0;
 	virtual void sub_18000AEC0() = 0;
+
 	virtual void sub_18000C530() = 0;
 	virtual void sub_18000DD60() = 0;
 	virtual void sub_18000DCD0() = 0;
 	virtual void sub_18000DDF0() = 0;
 	virtual void sub_18000B8A0() = 0;
 	virtual void sub_18000D3C0() = 0;
+
 	virtual CCVarIteratorInternal* FactoryInternalIterator() = 0;
 };
 

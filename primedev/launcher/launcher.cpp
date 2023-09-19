@@ -1,22 +1,24 @@
 
-AUTOHOOK_INIT()
 
-AUTOHOOK(CSourceAppSystemGroup__PreInit, launcher.dll + 0xB730, bool, __fastcall, (void* thisptr))
+bool (*o_CSourceAppSystemGroup__PreInit)(void* self);
+bool h_CSourceAppSystemGroup__PreInit(void* self)
 {
 	DevMsg(eLog::ENGINE, "CSourceAppSystemGroup__PreInit\n");
-	return CSourceAppSystemGroup__PreInit(thisptr);
+	return o_CSourceAppSystemGroup__PreInit(self);
 }
 
-// clang-format off
-AUTOHOOK_PROCADDRESS(LauncherMain, launcher.dll, LauncherMain, int, __fastcall,
-	(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow))
-// clang-format on
+int (*o_LauncherMain)(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
+int h_LauncherMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	DevMsg(eLog::ENGINE, "LauncherMain\n");
-	return LauncherMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+	return o_LauncherMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 }
 
 ON_DLL_LOAD("launcher.dll", Launcher, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_CSourceAppSystemGroup__PreInit = module.Offset(0xB730).RCast<bool (*)(void*)>();
+	HookAttach(&(PVOID&)o_CSourceAppSystemGroup__PreInit, (PVOID)h_CSourceAppSystemGroup__PreInit);
+
+	o_LauncherMain = module.GetExportedFunction("LauncherMain").RCast<int (*)(HINSTANCE, HINSTANCE, LPSTR, int)>();
+	HookAttach(&(PVOID&)o_LauncherMain, (PVOID)h_LauncherMain);
 }

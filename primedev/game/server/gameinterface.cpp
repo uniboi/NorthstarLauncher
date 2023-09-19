@@ -7,26 +7,13 @@
 #include "engine/server/server.h"
 #include "game/server/util_server.h"
 
-AUTOHOOK_INIT()
+void (*o_CServerGameDLL__OnReceivedSayTextMessage)(CServerGameDLL* self, unsigned int senderPlayerId, const char* text, bool isTeam);
 
-bool bShouldCallSayTextHook = false;
-// clang-format off
-AUTOHOOK(_CServerGameDLL__OnReceivedSayTextMessage, server.dll + 0x1595C0,
-void, __fastcall, (CServerGameDLL* self, unsigned int senderPlayerId, const char* text, bool isTeam))
-// clang-format on
+void h_CServerGameDLL__OnReceivedSayTextMessage(CServerGameDLL* self, unsigned int senderPlayerId, const char* text, bool isTeam)
 {
-	// We first go through script then get called again from NSSendMessage
+	// We first go through script then call the original from Script_NSSendMessage
 	// This allows script to modify the message
 	RemoveAsciiControlSequences(const_cast<char*>(text), true);
-
-	// MiniHook doesn't allow calling the base function outside of anywhere but the hook function.
-	// To allow bypassing the hook, isSkippingHook can be set.
-	if (bShouldCallSayTextHook)
-	{
-		bShouldCallSayTextHook = false;
-		_CServerGameDLL__OnReceivedSayTextMessage(self, senderPlayerId, text, isTeam);
-		return;
-	}
 
 	// check chat ratelimits
 	if (!g_pServerLimits->CheckChatLimits(g_pServer->GetClient(senderPlayerId - 1)))
@@ -35,15 +22,15 @@ void, __fastcall, (CServerGameDLL* self, unsigned int senderPlayerId, const char
 	SQRESULT result = g_pSquirrel<ScriptContext::SERVER>->Call("CServerGameDLL_ProcessMessageStartThread", static_cast<int>(senderPlayerId) - 1, text, isTeam);
 
 	if (result == SQRESULT_ERROR)
-		_CServerGameDLL__OnReceivedSayTextMessage(self, senderPlayerId, text, isTeam);
+		o_CServerGameDLL__OnReceivedSayTextMessage(self, senderPlayerId, text, isTeam);
 }
 
 void Chat_SendMessage(unsigned int playerIndex, const char* text, bool isTeam)
 {
-	bShouldCallSayTextHook = true;
-	CServerGameDLL__OnReceivedSayTextMessage(g_pServerGameDLL,
-											 // Ensure the first bit isn't set, since this indicates a custom message
-											 (playerIndex + 1) & CUSTOM_MESSAGE_INDEX_MASK, text, isTeam);
+	RemoveAsciiControlSequences(const_cast<char*>(text), true);
+	o_CServerGameDLL__OnReceivedSayTextMessage(g_pServerGameDLL,
+											   // Ensure the first bit isn't set, since this indicates a custom message
+											   (playerIndex + 1) & CUSTOM_MESSAGE_INDEX_MASK, text, isTeam);
 }
 
 void Chat_BroadcastMessage(int fromPlayerIndex, int toPlayerIndex, const char* text, bool isTeam, bool isDead, CustomMessageType messageType)
@@ -88,7 +75,8 @@ void Chat_BroadcastMessage(int fromPlayerIndex, int toPlayerIndex, const char* t
 
 ON_DLL_LOAD("server.dll", GameInterface, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_CServerGameDLL__OnReceivedSayTextMessage = module.Offset(0x1595C0).RCast<void (*)(CServerGameDLL*, unsigned int, const char*, bool)>();
+	HookAttach(&(PVOID&)o_CServerGameDLL__OnReceivedSayTextMessage, (PVOID)h_CServerGameDLL__OnReceivedSayTextMessage);
 
 	g_pServerGameClients = Sys_GetFactoryPtr("server.dll", "ServerGameClients004").RCast<CServerGameClients*>();
 	g_pServerGameDLL = Sys_GetFactoryPtr("server.dll", "ServerGameDLL005").RCast<CServerGameDLL*>();

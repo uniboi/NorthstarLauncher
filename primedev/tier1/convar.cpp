@@ -477,7 +477,6 @@ int ParseConVarFlagsString(std::string modName, std::string sFlags)
 
 	return iFlags;
 }
-AUTOHOOK_INIT()
 
 /*
 NOTE [Fifty]: These are calls to CCVar::AllocateDLLIdentifier() which is only called from ConVar_Register
@@ -494,25 +493,39 @@ vgui2.dll + 0x479fb
 server.dll + 0x724f9b
 client.dll + 0x73836b
 */
-AUTOHOOK(ConVar_Register_Client, client.dll + 0x738330, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
+void (*o_ConVar_Register_Client)(int nCVarFlag, IConCommandBaseAccessor* pAccessor);
+
+void h_ConVar_Register_Client(int nCVarFlag, IConCommandBaseAccessor* pAccessor)
 {
-	ConVar_Register_Client(nCVarFlag, pAccessor);
+	o_ConVar_Register_Client(nCVarFlag, pAccessor);
 	CVar_InitShipped("client.dll");
 }
 
-ON_DLL_LOAD("client.dll", ConVar_Client, (CModule module)) {AUTOHOOK_DISPATCH_MODULE(client.dll)}
-
-AUTOHOOK(ConVar_Register_Server, server.dll + 0x724F60, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
+ON_DLL_LOAD("client.dll", ConVar_Client, (CModule module))
 {
-	ConVar_Register_Server(nCVarFlag, pAccessor);
+	o_ConVar_Register_Client = module.Offset(0x738330).RCast<void (*)(int, IConCommandBaseAccessor*)>();
+	HookAttach(&(PVOID&)o_ConVar_Register_Client, (PVOID)h_ConVar_Register_Client);
+}
+
+void (*o_ConVar_Register_Server)(int nCVarFlag, IConCommandBaseAccessor* pAccessor);
+
+void h_ConVar_Register_Server(int nCVarFlag, IConCommandBaseAccessor* pAccessor)
+{
+	o_ConVar_Register_Server(nCVarFlag, pAccessor);
 	CVar_InitShipped("server.dll");
 }
 
-ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module)) {AUTOHOOK_DISPATCH_MODULE(server.dll)}
-
-AUTOHOOK(ConVar_Register_Engine, engine.dll + 0x417090, void, __fastcall, (int nCVarFlag, IConCommandBaseAccessor* pAccessor))
+ON_DLL_LOAD("server.dll", ConVar_Server, (CModule module))
 {
-	ConVar_Register_Engine(nCVarFlag, pAccessor);
+	o_ConVar_Register_Server = module.Offset(0x724F60).RCast<void (*)(int, IConCommandBaseAccessor*)>();
+	HookAttach(&(PVOID&)o_ConVar_Register_Server, (PVOID)h_ConVar_Register_Server);
+}
+
+void (*o_ConVar_Register_Engine)(int nCVarFlag, IConCommandBaseAccessor* pAccessor);
+
+void h_ConVar_Register_Engine(int nCVarFlag, IConCommandBaseAccessor* pAccessor)
+{
+	o_ConVar_Register_Engine(nCVarFlag, pAccessor);
 	CVar_InitShipped("engine.dll");
 }
 
@@ -521,7 +534,8 @@ AUTOHOOK(ConVar_Register_Engine, engine.dll + 0x417090, void, __fastcall, (int n
 //-----------------------------------------------------------------------------
 ON_DLL_LOAD("engine.dll", ConVar, (CModule module))
 {
-	AUTOHOOK_DISPATCH_MODULE(engine.dll)
+	o_ConVar_Register_Engine = module.Offset(0x417090).RCast<void (*)(int, IConCommandBaseAccessor*)>();
+	HookAttach(&(PVOID&)o_ConVar_Register_Engine, (PVOID)h_ConVar_Register_Engine);
 
 	CCommand__Tokenize = module.Offset(0x418380).RCast<bool (*)(CCommand&, const char*, cmd_source_t)>();
 

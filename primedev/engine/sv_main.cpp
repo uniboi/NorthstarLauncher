@@ -2,14 +2,15 @@
 #include "originsdk/origin.h"
 #include "engine/edict.h"
 
-AUTOHOOK_INIT()
+bool (*o_SV_ActivateServer)();
 
-AUTOHOOK(SV_ActivateServer, engine.dll + 0x108270, bool, __fastcall, ())
+bool h_SV_ActivateServer()
 {
-	return SV_ActivateServer();
+	return o_SV_ActivateServer();
 }
 
-ON_DLL_LOAD("engine.dll", EngineSvMain, (CModule modulle))
+ON_DLL_LOAD("engine.dll", EngineSvMain, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_SV_ActivateServer = module.Offset(0x108270).RCast<bool (*)()>();
+	HookAttach(&(PVOID&)o_SV_ActivateServer, (PVOID)h_SV_ActivateServer);
 }

@@ -3,8 +3,6 @@
 
 #include <fstream>
 
-AUTOHOOK_INIT()
-
 void ModManager::TryBuildKeyValues(const char* filename)
 {
 	DevMsg(eLog::MODSYS, "Building KeyValues for file %s\n", filename);

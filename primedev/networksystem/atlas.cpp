@@ -360,7 +360,7 @@ void CAtlasServer::HeartBeat(double flCurrentTime)
 			char* pszEscapedHostPlaylist = curl_easy_escape(nullptr, Cvar_mp_gamemode->GetString(), strlen(Cvar_mp_gamemode->GetString()));
 			char* pszEscapedHostPassword = curl_easy_escape(nullptr, Cvar_hostpassword->GetString(), strlen(Cvar_hostpassword->GetString()));
 			std::string svUrl = FormatA("%s/server/update_values?id=%s&port=%i&authPort=udp&name=%s&description=%s&map=%s&playlist=%s&playerCount=%i&maxPlayers=%s&password=%s", Cvar_atlas_hostname->GetString(), m_svID.c_str(), Cvar_hostport->GetInt(),
-										pszEscapedHostName, pszEscapedHostDescription, pszEscapedHostMap, pszEscapedHostPlaylist, g_pServer->GetNumClients(), R2::GetCurrentPlaylistVar("max_players", true), pszEscapedHostPassword);
+										pszEscapedHostName, pszEscapedHostDescription, pszEscapedHostMap, pszEscapedHostPlaylist, g_pServer->GetNumClients(), GetCurrentPlaylistVar("max_players", true), pszEscapedHostPassword);
 			curl_free(pszEscapedHostName);
 			curl_free(pszEscapedHostDescription);
 			curl_free(pszEscapedHostMap);
@@ -463,7 +463,7 @@ void CAtlasServer::RegisterSelf()
 			char* pszEscapedHostPlaylist = curl_easy_escape(nullptr, Cvar_mp_gamemode->GetString(), strlen(Cvar_mp_gamemode->GetString()));
 			char* pszEscapedHostPassword = curl_easy_escape(nullptr, Cvar_hostpassword->GetString(), strlen(Cvar_hostpassword->GetString()));
 			std::string svUrl = FormatA("%s/server/add_server?port=%i&authPort=udp&name=%s&description=%s&map=%s&playlist=%s&maxPlayers=%s&password=%s", Cvar_atlas_hostname->GetString(), Cvar_hostport->GetInt(), pszEscapedHostName,
-										pszEscapedHostDescription, pszEscapedHostMap, pszEscapedHostPlaylist, R2::GetCurrentPlaylistVar("max_players", true), pszEscapedHostPassword);
+										pszEscapedHostDescription, pszEscapedHostMap, pszEscapedHostPlaylist, GetCurrentPlaylistVar("max_players", true), pszEscapedHostPassword);
 			curl_free(pszEscapedHostName);
 			curl_free(pszEscapedHostDescription);
 			curl_free(pszEscapedHostMap);

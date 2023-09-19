@@ -1,10 +1,7 @@
 
-AUTOHOOK_INIT()
+void (*o_COM_ExplainDisconnection)(bool bPrint, const char* fmt, ...);
 
-// clang-format off
-AUTOHOOK(COM_ExplainDisconnection, engine.dll + 0x1342F0,
-void, __fastcall, (bool bPrint, const char* fmt, ...))
-// clang-format on
+void h_COM_ExplainDisconnection(bool bPrint, const char* fmt, ...)
 {
 	// FIXME [Fifty]: Potential crash can happen here as there's no certainty the format string
 	//                is good
@@ -29,10 +26,11 @@ void, __fastcall, (bool bPrint, const char* fmt, ...))
 	// don't call Cbuf_Execute because we don't need this called immediately
 	Cbuf_AddText(Cbuf_GetCurrentPlayer(), "disconnect", cmd_source_t::kCommandSrcCode);
 
-	return COM_ExplainDisconnection(bPrint, "%s", szString);
+	return o_COM_ExplainDisconnection(bPrint, "%s", szString);
 }
 
 ON_DLL_LOAD_CLIENT("engine.dll", RejectConnectionFixes, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_COM_ExplainDisconnection = module.Offset(0x1342F0).RCast<void (*)(bool, const char*, ...)>();
+	HookAttach(&(PVOID&)o_COM_ExplainDisconnection, (PVOID)h_COM_ExplainDisconnection);
 }

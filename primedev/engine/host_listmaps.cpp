@@ -1,10 +1,8 @@
 #include "mods/modmanager.h"
 
-AUTOHOOK_INIT()
-
+int (*o_Host_Map_f_CompletionFunc)(const char* const cmdname, const char* const partial, char commands[COMMAND_COMPLETION_MAXITEMS][COMMAND_COMPLETION_ITEM_LENGTH]);
 // clang-format off
-AUTOHOOK(_Host_Map_f_CompletionFunc, engine.dll + 0x161AE0,
-int, __fastcall, (const char *const cmdname, const char *const partial, char commands[COMMAND_COMPLETION_MAXITEMS][COMMAND_COMPLETION_ITEM_LENGTH]))
+int h_Host_Map_f_CompletionFunc(const char *const cmdname, const char *const partial, char commands[COMMAND_COMPLETION_MAXITEMS][COMMAND_COMPLETION_ITEM_LENGTH])
 // clang-format on
 {
 	// use a custom autocomplete func for all map loading commands
@@ -27,5 +25,6 @@ int, __fastcall, (const char *const cmdname, const char *const partial, char com
 
 ON_DLL_LOAD("engine.dll", HostListMaps, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_Host_Map_f_CompletionFunc = module.Offset(0x161AE0).RCast<int (*)(const char* const, const char* const, char[COMMAND_COMPLETION_MAXITEMS][COMMAND_COMPLETION_ITEM_LENGTH])>();
+	HookAttach(&(PVOID&)o_Host_Map_f_CompletionFunc, (PVOID)h_Host_Map_f_CompletionFunc);
 }

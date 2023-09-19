@@ -1,17 +1,13 @@
 #include "engine/client/client.h"
 
-#include "networksystem/bansystem.h"
 #include "networksystem/atlas.h"
 #include "shared/exploit_fixes/ns_limits.h"
 
-AUTOHOOK_INIT()
+bool (*o_CClient__Connect)(CClient* self, char* pszName, void* pNetChannel, bool bFakePlayer, void* a5, char pDisconnectReason[256], int nSize);
 
-// clang-format off
-AUTOHOOK(CClient__Connect, engine.dll + 0x101740,
-bool,, (CClient* self, char* pszName, void* pNetChannel, char bFakePlayer, void* a5, char pDisconnectReason[256], int nSize))
-// clang-format on
+bool h_CClient__Connect(CClient* self, char* pszName, void* pNetChannel, bool bFakePlayer, void* a5, char pDisconnectReason[256], int nSize)
 {
-	if (!CClient__Connect(self, pszName, pNetChannel, bFakePlayer, a5, pDisconnectReason, nSize))
+	if (!o_CClient__Connect(self, pszName, pNetChannel, bFakePlayer, a5, pDisconnectReason, nSize))
 		return false;
 
 	// Set clantag for fake players
@@ -24,18 +20,16 @@ bool,, (CClient* self, char* pszName, void* pNetChannel, char bFakePlayer, void*
 	return true;
 }
 
-// clang-format off
-AUTOHOOK(CClient__ActivatePlayer, engine.dll + 0x100F80,
-void,, (CClient* self))
-// clang-format on
+void (*o_CClient__ActivatePlayer)(CClient* self);
+
+void h_CClient__ActivatePlayer(CClient* self)
 {
-	CClient__ActivatePlayer(self);
+	o_CClient__ActivatePlayer(self);
 }
 
-// clang-format off
-AUTOHOOK(_CClient__Disconnect, engine.dll + 0x1012C0,
-void,, (CClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
-// clang-format on
+void (*o_CClient__Disconnect)(CClient* self, uint32_t unknownButAlways1, const char* pReason, ...);
+
+void CClient__Disconnect(CClient* self, uint32_t unknownButAlways1, const char* pReason, ...)
 {
 	// have to manually format message because can't pass varargs to original func
 	char buf[1024];
@@ -61,12 +55,17 @@ void,, (CClient* self, uint32_t unknownButAlways1, const char* pReason, ...))
 		g_pServerLimits->RemovePlayer(self);
 	}
 
-	_CClient__Disconnect(self, unknownButAlways1, buf);
+	o_CClient__Disconnect(self, unknownButAlways1, "%s", buf);
 }
 
 ON_DLL_LOAD("engine.dll", EngineClient, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_CClient__Connect = module.Offset(0x101740).RCast<bool (*)(CClient*, char*, void*, bool, void* a5, char[256], int)>();
+	HookAttach(&(PVOID&)o_CClient__Connect, (PVOID)h_CClient__Connect);
 
-	CClient__Disconnect = module.Offset(0x1012C0).RCast<void (*)(void*, uint32_t, const char*, ...)>();
+	o_CClient__ActivatePlayer = module.Offset(0x100F80).RCast<void (*)(CClient*)>();
+	HookAttach(&(PVOID&)o_CClient__ActivatePlayer, (PVOID)h_CClient__ActivatePlayer);
+
+	o_CClient__Disconnect = module.Offset(0x1012C0).RCast<void (*)(CClient*, uint32_t, const char*, ...)>();
+	HookAttach(&(PVOID&)o_CClient__Disconnect, (PVOID)CClient__Disconnect);
 }

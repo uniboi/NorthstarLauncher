@@ -2,8 +2,6 @@
 
 #include "tier1/keyvalues.h"
 
-inline void (*CClient__Disconnect)(void* self, uint32_t unknownButAlways1, const char* reason, ...);
-
 // #56169 $DB69 PData size
 // #512   $200	Trailing data
 // #100	  $64	Safety buffer
@@ -85,3 +83,5 @@ static_assert(offsetof(CClient, m_bFakePlayer) == 0x484);
 static_assert(offsetof(CClient, m_nPersistenceState) == 0x4A0);
 static_assert(offsetof(CClient, m_PersistenceBuffer) == 0x4FA);
 static_assert(offsetof(CClient, m_UID) == 0xF500);
+
+void CClient__Disconnect(CClient* self, uint32_t unknownButAlways1, const char* pReason, ...);

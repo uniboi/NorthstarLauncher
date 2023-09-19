@@ -1,8 +1,6 @@
 #include "dedicated/dedicated.h"
 #include "mathlib/vector.h"
 
-AUTOHOOK_INIT()
-
 enum OverlayType_t
 {
 	OVERLAY_BOX = 0,
@@ -74,10 +72,9 @@ typedef void (*RenderBoxType)(Vector3 vOrigin, QAngle angles, Vector3 vMins, Vec
 static RenderBoxType RenderBox;
 static RenderBoxType RenderWireframeBox;
 
-// clang-format off
-AUTOHOOK(DrawOverlay, engine.dll + 0xABCB0, 
-void, __fastcall, (OverlayBase_t * pOverlay))
-// clang-format on
+void (*o_DrawOverlay)(OverlayBase_t* pOverlay);
+
+void h_DrawOverlay(OverlayBase_t * pOverlay)
 {
 	EnterCriticalSection((LPCRITICAL_SECTION)((char*)sEngineModule + 0x10DB0A38)); // s_OverlayMutex
 
@@ -115,7 +112,8 @@ void, __fastcall, (OverlayBase_t * pOverlay))
 
 ON_DLL_LOAD_CLIENT("engine.dll", DebugOverlay, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_DrawOverlay = module.Offset(0xABCB0).RCast<void (*)(OverlayBase_t*)>();
+	HookAttach(&(PVOID&)o_DrawOverlay, (PVOID)h_DrawOverlay);
 
 	RenderLine = module.Offset(0x192A70).RCast<RenderLineType>();
 	RenderBox = module.Offset(0x192520).RCast<RenderBoxType>();

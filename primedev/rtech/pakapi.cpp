@@ -2,8 +2,6 @@
 #include "mods/modmanager.h"
 #include "dedicated/dedicated.h"
 
-AUTOHOOK_INIT()
-
 // there are more i'm just too lazy to add
 struct PakLoadFuncs
 {
@@ -173,10 +171,9 @@ void LoadCustomMapPaks(char** pakName, bool* bNeedToFreePakName)
 	}
 }
 
-// clang-format off
-AUTOHOOK(LoadPakAsync, rtech_game.dll + 0xb0f0,
-int, __fastcall, (char* pPath, void* unknownSingleton, int flags, void* pCallback0, void* pCallback1))
-// clang-format on
+int (*o_LoadPakAsync)(char* pPath, void* unknownSingleton, int flags, void* pCallback0, void* pCallback1);
+
+int h_LoadPakAsync(char* pPath, void* unknownSingleton, int flags, void* pCallback0, void* pCallback1)
 {
 	HandlePakAliases(&pPath);
 
@@ -218,7 +215,7 @@ int, __fastcall, (char* pPath, void* unknownSingleton, int flags, void* pCallbac
 		}
 	}
 
-	int iPakHandle = LoadPakAsync(pPath, unknownSingleton, flags, pCallback0, pCallback1);
+	int iPakHandle = o_LoadPakAsync(pPath, unknownSingleton, flags, pCallback0, pCallback1);
 	DevMsg(eLog::RTECH, "LoadPakAsync %s %i\n", pPath, iPakHandle);
 
 	// trak the pak
@@ -231,10 +228,9 @@ int, __fastcall, (char* pPath, void* unknownSingleton, int flags, void* pCallbac
 	return iPakHandle;
 }
 
-// clang-format off
-AUTOHOOK(UnloadPak, rtech_game.dll + 0xb280,
-void*, __fastcall, (int nPakHandle, void* pCallback))
-// clang-format on
+void* (*o_UnloadPak)(int nPakHandle, void* pCallback);
+
+void* h_UnloadPak(int nPakHandle, void* pCallback)
 {
 	// stop tracking the pak
 	g_pPakLoadManager->RemoveLoadedPak(nPakHandle);
@@ -248,15 +244,14 @@ void*, __fastcall, (int nPakHandle, void* pCallback))
 	}
 
 	DevMsg(eLog::RTECH, "UnloadPak %i\n", nPakHandle);
-	return UnloadPak(nPakHandle, pCallback);
+	return o_UnloadPak(nPakHandle, pCallback);
 }
 
 // we hook this exclusively for resolving stbsp paths, but seemingly it's also used for other stuff like vpk, rpak, mprj and starpak loads
 // tbh this actually might be for memory mapped files or something, would make sense i think
-// clang-format off
-AUTOHOOK(ReadFileAsync, rtech_game.dll + 0x1e20, 
-void*, __fastcall, (const char* pPath, void* pCallback))
-// clang-format on
+void* (*o_ReadFileAsync)(const char* pPath, void* pCallback);
+
+void* h_ReadFileAsync(const char* pPath, void* pCallback)
 {
 	fs::path path(pPath);
 	std::string newPath = "";
@@ -327,13 +322,24 @@ void*, __fastcall, (const char* pPath, void* pCallback))
 		DevMsg(eLog::RTECH, "LoadStreamPak: %s\n", filename.string().c_str());
 	}
 
-	return ReadFileAsync(pPath, pCallback);
+	return o_ReadFileAsync(pPath, pCallback);
+}
+
+// FIXME [Fifty]: module name is case sensitive and winapi gives us this, fix it
+ON_DLL_LOAD("rtech_game.DLL", RpakFuncs, (CModule module))
+{
+	o_LoadPakAsync = module.Offset(0xb0f0).RCast<int (*)(char*, void*, int, void*, void*)>();
+	HookAttach(&(PVOID&)o_LoadPakAsync, (PVOID)h_LoadPakAsync);
+
+	o_UnloadPak = module.Offset(0xb280).RCast<void* (*)(int, void*)>();
+	HookAttach(&(PVOID&)o_UnloadPak, (PVOID)h_UnloadPak);
+
+	o_ReadFileAsync = module.Offset(0x1e20).RCast<void* (*)(const char*, void*)>();
+	HookAttach(&(PVOID&)o_ReadFileAsync, (PVOID)h_ReadFileAsync);
 }
 
 ON_DLL_LOAD("engine.dll", RpakFilesystem, (CModule module))
 {
-	AUTOHOOK_DISPATCH();
-
 	g_pPakLoadManager = new PakLoadManager;
 
 	g_pakLoadApi = module.Offset(0x5BED78).Deref().RCast<PakLoadFuncs*>();

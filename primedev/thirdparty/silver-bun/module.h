@@ -57,6 +57,10 @@ class CModule
 	{
 		return m_ModuleSections;
 	}
+	inline const std::vector<std::string>& GetImportedModules() const
+	{
+		return m_vImportedModules;
+	}
 	inline uintptr_t GetModuleBase(void) const
 	{
 		return m_pModuleBase;
@@ -89,4 +93,5 @@ class CModule
 	uintptr_t m_pModuleBase;
 	DWORD m_nModuleSize;
 	std::vector<ModuleSections_t> m_ModuleSections;
+	std::vector<std::string> m_vImportedModules;
 };

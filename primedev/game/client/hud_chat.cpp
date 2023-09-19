@@ -3,11 +3,10 @@
 #include "game/server/gameinterface.h"
 #include "squirrel/squirrel.h"
 
-AUTOHOOK_INIT()
+void (*o_CHudChat__AddGameLine)(void* self, const char* message, int inboxId, bool isTeam, bool isDead);
 
 // clang-format off
-AUTOHOOK(CHudChat__AddGameLine, client.dll + 0x22E580,
-void, __fastcall, (void* self, const char* message, int inboxId, bool isTeam, bool isDead))
+void h_CHudChat__AddGameLine(void* self, const char* message, int inboxId, bool isTeam, bool isDead)
 // clang-format on
 {
 	// This hook is called for each HUD, but we only want our logic to run once.
@@ -32,10 +31,11 @@ void, __fastcall, (void* self, const char* message, int inboxId, bool isTeam, bo
 	SQRESULT result = g_pSquirrel<ScriptContext::CLIENT>->Call("CHudChat_ProcessMessageStartThread", static_cast<int>(senderId) - 1, payload, isTeam, isDead, type);
 	if (result == SQRESULT_ERROR)
 		for (CHudChat* hud = *CHudChat::allHuds; hud != NULL; hud = hud->next)
-			CHudChat__AddGameLine(hud, message, inboxId, isTeam, isDead);
+			o_CHudChat__AddGameLine(hud, message, inboxId, isTeam, isDead);
 }
 
 ON_DLL_LOAD_CLIENT("client.dll", HudChat, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_CHudChat__AddGameLine = module.Offset(0x22E580).RCast<void (*)(void*, const char*, int, bool, bool)>();
+	HookAttach(&(PVOID&)o_CHudChat__AddGameLine, (PVOID)h_CHudChat__AddGameLine);
 }

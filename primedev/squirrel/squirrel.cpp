@@ -7,8 +7,6 @@
 
 #include <any>
 
-AUTOHOOK_INIT()
-
 //-----------------------------------------------------------------------------
 // Purpose: Returns script log context based on Script context
 //-----------------------------------------------------------------------------
@@ -616,8 +614,6 @@ void SquirrelManager<context>::ProcessMessageBuffer()
 
 ON_DLL_LOAD("client.dll", ClientSquirrel, (CModule module))
 {
-	AUTOHOOK_DISPATCH_MODULE(client.dll)
-
 	g_pSquirrel<ScriptContext::CLIENT>->__sq_defconst = module.Offset(0x12120).RCast<sq_defconstType>();
 	g_pSquirrel<ScriptContext::UI>->__sq_defconst = g_pSquirrel<ScriptContext::CLIENT>->__sq_defconst;
 
@@ -730,8 +726,6 @@ ON_DLL_LOAD("client.dll", ClientSquirrel, (CModule module))
 
 ON_DLL_LOAD("server.dll", ServerSquirrel, (CModule module))
 {
-	AUTOHOOK_DISPATCH_MODULE(server.dll)
-
 	g_pSquirrel<ScriptContext::SERVER>->__sq_defconst = module.Offset(0x1F550).RCast<sq_defconstType>();
 
 	g_pSquirrel<ScriptContext::SERVER>->__sq_compilebuffer = module.Offset(0x3110).RCast<sq_compilebufferType>();

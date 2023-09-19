@@ -1,5 +1,3 @@
-AUTOHOOK_INIT()
-
 #include "game/server/util_server.h"
 #include "engine/server/server.h"
 #include "engine/client/client.h"
@@ -28,13 +26,16 @@ void Physics_RunBotThinkFunctions(bool bSimulate)
 	}
 }
 
-AUTOHOOK(Physics_RunThinkFunctions, server.dll + 0x483A50, void, __fastcall, (bool bSimulate))
+void (*o_Physics_RunThinkFunctions)(bool bSimulate);
+
+void h_Physics_RunThinkFunctions(bool bSimulate)
 {
 	Physics_RunBotThinkFunctions(bSimulate);
-	Physics_RunThinkFunctions(bSimulate);
+	o_Physics_RunThinkFunctions(bSimulate);
 }
 
 ON_DLL_LOAD("server.dll", PhysicsMain, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_Physics_RunThinkFunctions = module.Offset(0x483A50).RCast<void (*)(bool)>();
+	HookAttach(&(PVOID&)o_Physics_RunThinkFunctions, (PVOID)h_Physics_RunThinkFunctions);
 }

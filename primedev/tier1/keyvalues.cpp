@@ -1290,12 +1290,9 @@ ON_DLL_LOAD("vstdlib.dll", KeyValues, (CModule module))
 	KeyValuesSystem = module.GetExportedFunction("KeyValuesSystem").RCast<CKeyValuesSystem* (*)()>();
 }
 
-AUTOHOOK_INIT()
+char (*o_KeyValues__LoadFromBuffer)(KeyValues* self, const char* pResourceName, const char* pBuffer, void* pFileSystem, void* a5, void* a6, int a7);
 
-// clang-format off
-AUTOHOOK(KeyValues__LoadFromBuffer, engine.dll + 0x426C30,
-char, __fastcall, (KeyValues* self, const char* pResourceName, const char* pBuffer, void* pFileSystem, void* a5, void* a6, int a7))
-// clang-format on
+char h_KeyValues__LoadFromBuffer(KeyValues* self, const char* pResourceName, const char* pBuffer, void* pFileSystem, void* a5, void* a6, int a7)
 {
 	static void* pSavedFilesystemPtr = nullptr;
 
@@ -1309,10 +1306,11 @@ char, __fastcall, (KeyValues* self, const char* pResourceName, const char* pBuff
 	if (!pFileSystem && !strcmp(pResourceName, "playlists"))
 		pFileSystem = pSavedFilesystemPtr;
 
-	return KeyValues__LoadFromBuffer(self, pResourceName, pBuffer, pFileSystem, a5, a6, a7);
+	return o_KeyValues__LoadFromBuffer(self, pResourceName, pBuffer, pFileSystem, a5, a6, a7);
 }
 
 ON_DLL_LOAD("engine.dll", EngineKeyValues, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_KeyValues__LoadFromBuffer = module.Offset(0x426C30).RCast<char (*)(KeyValues*, const char*, const char*, void*, void*, void*, int)>();
+	HookAttach(&(PVOID&)o_KeyValues__LoadFromBuffer, (PVOID)h_KeyValues__LoadFromBuffer);
 }

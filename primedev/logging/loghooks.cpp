@@ -4,10 +4,6 @@
 #include "tier1/cmd.h"
 #include "mathlib/bitbuf.h"
 #include "squirrel/squirrel.h"
-#include <iomanip>
-#include <sstream>
-
-AUTOHOOK_INIT()
 
 enum class TextMsgPrintType_t
 {
@@ -40,18 +36,11 @@ enum class SpewType_t
 
 	SPEW_TYPE_COUNT
 };
-
-const std::unordered_map<SpewType_t, const char*> PrintSpewTypes = {
-	{SpewType_t::SPEW_MESSAGE, "SPEW_MESSAGE"}, {SpewType_t::SPEW_WARNING, "SPEW_WARNING"}, {SpewType_t::SPEW_ASSERT, "SPEW_ASSERT"}, {SpewType_t::SPEW_ERROR, "SPEW_ERROR"}, {SpewType_t::SPEW_LOG, "SPEW_LOG"}};
-
-const std::unordered_map<SpewType_t, const char> PrintSpewTypes_Short = {{SpewType_t::SPEW_MESSAGE, 'M'}, {SpewType_t::SPEW_WARNING, 'W'}, {SpewType_t::SPEW_ASSERT, 'A'}, {SpewType_t::SPEW_ERROR, 'E'}, {SpewType_t::SPEW_LOG, 'L'}};
-
 ICenterPrint* pInternalCenterPrint = NULL;
 
-// clang-format off
-AUTOHOOK(TextMsg, client.dll + 0x198710,
-void,, (BFRead* msg))
-// clang-format on
+void (*o_TextMsg)(BFRead* msg);
+
+void h_TextMsg(BFRead* msg)
 {
 	TextMsgPrintType_t msg_dest = (TextMsgPrintType_t)msg->ReadByte();
 
@@ -81,10 +70,9 @@ void,, (BFRead* msg))
 	}
 }
 
-// clang-format off
-AUTOHOOK(Hook_fprintf, engine.dll + 0x51B1F0,
-int,, (void* const stream, const char* const format, ...))
-// clang-format on
+int (*o_fpritnf)(void* const stream, const char* const fmt, ...);
+
+int h_fprintf(void* const stream, const char* const format, ...)
 {
 	va_list va;
 	va_start(va, format);
@@ -103,24 +91,21 @@ int,, (void* const stream, const char* const format, ...))
 	return 0;
 }
 
-// clang-format off
-AUTOHOOK(ConCommand_echo, engine.dll + 0x123680,
-void,, (const CCommand& arg))
-// clang-format on
+void (*o_ConCommand_echo)(const CCommand& arg);
+
+void h_ConCommand_echo(const CCommand& arg)
 {
 	if (arg.ArgC() >= 2)
 		DevMsg(eLog::ENGINE, "%s\n", arg.ArgS());
 }
 
-// clang-format off
-AUTOHOOK(EngineSpewFunc, engine.dll + 0x11CA80,
-void, __fastcall, (void* pEngineServer, SpewType_t type, const char* format, va_list args))
-// clang-format on
+void (*o_CVEngineServer__Spew)(void* self, SpewType_t type, const char* fmt, va_list va);
+
+void h_CVEngineServer__Spew(void* self, SpewType_t type, const char* format, va_list args)
 {
 	if (!Cvar_spewlog_enable->GetBool())
 		return;
 
-	const char* typeStr = PrintSpewTypes.at(type);
 	char formatted[2048] = {0};
 	bool bShouldFormat = true;
 
@@ -179,7 +164,7 @@ void, __fastcall, (void* pEngineServer, SpewType_t type, const char* format, va_
 	if (bShouldFormat)
 		vsnprintf(formatted, sizeof(formatted), format, args);
 	else
-		Warning(eLog::NS, "Failed to format %s \"%s\"\n", typeStr, format);
+		Warning(eLog::NS, "Failed to format spew message \"%s\"\n", format);
 
 	auto endpos = strlen(formatted);
 	if (formatted[endpos - 1] == '\n')
@@ -202,10 +187,9 @@ void, __fastcall, (void* pEngineServer, SpewType_t type, const char* format, va_
 }
 
 // used for printing the output of status
-// clang-format off
-AUTOHOOK(Status_ConMsg, engine.dll + 0x15ABD0,
-void,, (const char* text, ...))
-// clang-format on
+void (*o_Status_ConMsg)(const char* text, ...);
+
+void h_Status_ConMsg(const char* text, ...)
 {
 	char formatted[2048];
 	va_list list;
@@ -214,21 +198,20 @@ void,, (const char* text, ...))
 	vsprintf_s(formatted, text, list);
 	va_end(list);
 
-	auto endpos = strlen(formatted);
+	size_t endpos = strlen(formatted);
 	if (formatted[endpos - 1] == '\n')
 		formatted[endpos - 1] = '\0'; // cut off repeated newline
 
 	DevMsg(eLog::ENGINE, "%s\n", formatted);
 }
 
-// clang-format off
-AUTOHOOK(CClientState_ProcessPrint, engine.dll + 0x1A1530, 
-bool,, (void* thisptr, uintptr_t msg))
-// clang-format on
+bool (*o_CClientState__ProcessPrint)(void* self, uintptr_t msg);
+
+bool h_CClientState__ProcessPrint(void* thisptr, uintptr_t msg)
 {
 	char* text = *(char**)(msg + 0x20);
 
-	auto endpos = strlen(text);
+	size_t endpos = strlen(text);
 	if (text[endpos - 1] == '\n')
 		text[endpos - 1] = '\0'; // cut off repeated newline
 
@@ -236,11 +219,28 @@ bool,, (void* thisptr, uintptr_t msg))
 	return true;
 }
 
-ON_DLL_LOAD("engine.dll", EngineSpewFuncHooks, (CModule module)) {AUTOHOOK_DISPATCH_MODULE(engine.dll)}
+ON_DLL_LOAD("engine.dll", EngineSpewFuncHooks, (CModule module))
+{
+	o_fpritnf = module.Offset(0x51B1F0).RCast<int (*)(void* const, const char* const, ...)>();
+	HookAttach(&(PVOID&)o_fpritnf, (PVOID)h_fprintf);
+
+	o_ConCommand_echo = module.Offset(0x123680).RCast<void (*)(const CCommand&)>();
+	HookAttach(&(PVOID&)o_ConCommand_echo, (PVOID)h_ConCommand_echo);
+
+	o_CVEngineServer__Spew = module.Offset(0x11CA80).RCast<void (*)(void*, SpewType_t, const char*, va_list)>();
+	HookAttach(&(PVOID&)o_CVEngineServer__Spew, (PVOID)h_CVEngineServer__Spew);
+
+	o_Status_ConMsg = module.Offset(0x15ABD0).RCast<void (*)(const char*, ...)>();
+	HookAttach(&(PVOID&)o_Status_ConMsg, (PVOID)h_Status_ConMsg);
+
+	o_CClientState__ProcessPrint = module.Offset(0x1A1530).RCast<bool (*)(void*, uintptr_t)>();
+	HookAttach(&(PVOID&)o_CClientState__ProcessPrint, (PVOID)h_CClientState__ProcessPrint);
+}
 
 ON_DLL_LOAD_CLIENT("client.dll", ClientPrintHooks, (CModule module))
 {
-	AUTOHOOK_DISPATCH_MODULE(client.dll)
+	o_TextMsg = module.Offset(0x198710).RCast<void (*)(BFRead*)>();
+	HookAttach(&(PVOID&)o_TextMsg, (PVOID)h_TextMsg);
 
 	pInternalCenterPrint = module.Offset(0x216E940).RCast<ICenterPrint*>();
 }

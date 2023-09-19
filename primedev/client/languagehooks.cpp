@@ -1,8 +1,9 @@
 #include <regex>
 
-AUTOHOOK_INIT()
+LANGID (*Tier0_DetectDefaultLanguage)();
 
-typedef LANGID (*Tier0_DetectDefaultLanguageType)();
+char* g_pszInGameLang;
+bool* g_bCanOriginDetectLang;
 
 bool CheckLangAudioExists(char* pszLang)
 {
@@ -42,16 +43,12 @@ std::string GetAnyInstalledAudioLanguage()
 	return "NO LANGUAGE DETECTED";
 }
 
+char* (*o_GetGameLanguage)();
+
 // clang-format off
-AUTOHOOK(GetGameLanguage, tier0.dll + 0xF560,
-char*, __fastcall, ())
+char* h_GetGameLanguage()
 // clang-format on
 {
-	auto tier0Handle = GetModuleHandleA("tier0.dll");
-	auto Tier0_DetectDefaultLanguageType = GetProcAddress(tier0Handle, "Tier0_DetectDefaultLanguage");
-	char* ingameLang1 = (char*)tier0Handle + 0xA9B60; // one of the globals we need to override if overriding lang (size: 256)
-	bool& canOriginDictateLang = *(bool*)((char*)tier0Handle + 0xA9A90);
-
 	const char* forcedLanguage;
 	if (CommandLine()->CheckParm("-language", &forcedLanguage))
 	{
@@ -65,14 +62,14 @@ char*, __fastcall, ())
 		else
 		{
 			DevMsg(eLog::AUDIO, "User forcing the language (-language) to: %s\n", forcedLanguage);
-			strncpy(ingameLang1, forcedLanguage, 256);
-			return ingameLang1;
+			strncpy(g_pszInGameLang, forcedLanguage, 256);
+			return g_pszInGameLang;
 		}
 	}
 
-	canOriginDictateLang = true; // let it try
+	*g_bCanOriginDetectLang = true; // let it try
 	{
-		auto lang = GetGameLanguage();
+		auto lang = o_GetGameLanguage();
 		if (!CheckLangAudioExists(lang))
 		{
 			if (strcmp(lang, "russian") != 0) // don't log for "russian" since it's the default and that means Origin detection just didn't change it most likely
@@ -85,10 +82,10 @@ char*, __fastcall, ())
 		}
 	}
 
-	Tier0_DetectDefaultLanguageType(); // force the global in tier0 to be populated with language inferred from user's system rather than
+	Tier0_DetectDefaultLanguage(); // force the global in tier0 to be populated with language inferred from user's system rather than
 									   // defaulting to Russian
-	canOriginDictateLang = false; // Origin has no say anymore, we will fallback to user's system setup language
-	auto lang = GetGameLanguage();
+	*g_bCanOriginDetectLang = false; // Origin has no say anymore, we will fallback to user's system setup language
+	auto lang = o_GetGameLanguage();
 	DevMsg(eLog::AUDIO, "Detected system language: %s\n", lang);
 	if (!CheckLangAudioExists(lang))
 	{
@@ -96,8 +93,8 @@ char*, __fastcall, ())
 							 "option.\n");
 		auto lang = GetAnyInstalledAudioLanguage();
 		Warning(eLog::AUDIO, "Falling back to the first installed audio language: %s\n", lang.c_str());
-		strncpy(ingameLang1, lang.c_str(), 256);
-		return ingameLang1;
+		strncpy(g_pszInGameLang, lang.c_str(), 256);
+		return g_pszInGameLang;
 	}
 
 	return lang;
@@ -105,5 +102,11 @@ char*, __fastcall, ())
 
 ON_DLL_LOAD_CLIENT("tier0.dll", LanguageHooks, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_GetGameLanguage = module.Offset(0xF560).RCast<char* (*)()>();
+	HookAttach(&(PVOID&)o_GetGameLanguage, (PVOID)h_GetGameLanguage);
+
+	g_pszInGameLang = module.Offset(0xA9B60).RCast<char*>(); // Size 256
+	g_bCanOriginDetectLang = module.Offset(0xA9A90).RCast<bool*>();
+
+	Tier0_DetectDefaultLanguage = module.GetExportedFunction("Tier0_DetectDefaultLanguage").RCast<LANGID (*)()>();
 }

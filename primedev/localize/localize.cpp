@@ -3,46 +3,40 @@
 #include "gameui/GameConsole.h"
 #include "vgui/vgui_baseui_interface.h"
 
-AUTOHOOK_INIT()
+class CLocalize;
 
-void* g_pVguiLocalize;
+CLocalize* g_pLocalize;
 
-// clang-format off
-AUTOHOOK(CLocalize__AddFile, localize.dll + 0x6D80,
-bool, __fastcall, (void* pVguiLocalize, const char* path, const char* pathId, bool bIncludeFallbackSearchPaths))
-// clang-format on
+bool (*o_CLocalize__AddFile)(CLocalize* self, const char* path, const char* pathId, bool bIncludeFallbackSearchPaths);
+
+bool h_CLocalize__AddFile(CLocalize* pVguiLocalize, const char* path, const char* pathId, bool bIncludeFallbackSearchPaths)
 {
-	// save this for later
-	g_pVguiLocalize = pVguiLocalize;
-
-	bool ret = CLocalize__AddFile(pVguiLocalize, path, pathId, bIncludeFallbackSearchPaths);
+	bool ret = o_CLocalize__AddFile(pVguiLocalize, path, pathId, bIncludeFallbackSearchPaths);
 	if (ret)
 		DevMsg(eLog::MODSYS, "Loaded localisation file %s successfully\n", path);
 
 	return true;
 }
 
-// clang-format off
-AUTOHOOK(CLocalize__ReloadLocalizationFiles, localize.dll + 0xB830,
-void, __fastcall, (void* pVguiLocalize))
-// clang-format on
+void (*o_CLocalize__ReloadLocalizationFiles)(CLocalize* self);
+
+void h_CLocalize__ReloadLocalizationFiles(CLocalize* pVguiLocalize)
 {
 	// load all mod localization manually, so we keep track of all files, not just previously loaded ones
 	for (Mod mod : g_pModManager->m_LoadedMods)
 		if (mod.m_bEnabled)
 			for (std::string& localisationFile : mod.LocalisationFiles)
-				CLocalize__AddFile(g_pVguiLocalize, localisationFile.c_str(), nullptr, false);
+				o_CLocalize__AddFile(g_pLocalize, localisationFile.c_str(), nullptr, false);
 
 	DevMsg(eLog::MODSYS, "reloading localization...\n");
-	CLocalize__ReloadLocalizationFiles(pVguiLocalize);
+	o_CLocalize__ReloadLocalizationFiles(pVguiLocalize);
 }
 
-// clang-format off
-AUTOHOOK(CEngineVGui__Init, engine.dll + 0x247E10,
-void, __fastcall, (void* self))
-// clang-format on
+void (*o_CEngineVGui__Init)(void* self);
+
+void h_CEngineVGui__Init(void* self)
 {
-	CEngineVGui__Init(self); // this loads r1_english, valve_english, dev_english
+	o_CEngineVGui__Init(self); // this loads r1_english, valve_english, dev_english
 
 	g_bEngineVguiInitilased = true;
 
@@ -53,10 +47,22 @@ void, __fastcall, (void* self))
 	for (Mod mod : g_pModManager->m_LoadedMods)
 		if (mod.m_bEnabled)
 			for (std::string& localisationFile : mod.LocalisationFiles)
-				CLocalize__AddFile(g_pVguiLocalize, localisationFile.c_str(), nullptr, false);
+				o_CLocalize__AddFile(g_pLocalize, localisationFile.c_str(), nullptr, false);
 }
 
 ON_DLL_LOAD_CLIENT("localize.dll", Localize, (CModule module))
 {
-	AUTOHOOK_DISPATCH()
+	o_CLocalize__AddFile = module.Offset(0x6D80).RCast<bool (*)(CLocalize*, const char*, const char*, bool)>();
+	HookAttach(&(PVOID&)o_CLocalize__AddFile, (PVOID)h_CLocalize__AddFile);
+
+	o_CLocalize__ReloadLocalizationFiles = module.Offset(0xB830).RCast<void (*)(CLocalize*)>();
+	HookAttach(&(PVOID&)o_CLocalize__ReloadLocalizationFiles, (PVOID)h_CLocalize__ReloadLocalizationFiles);
+
+	g_pLocalize = Sys_GetFactoryPtr("localize.dll", "Localize_001").RCast<CLocalize*>();
+}
+
+ON_DLL_LOAD_CLIENT("engine.dll", LocalizeEngineVgui, (CModule module))
+{
+	o_CEngineVGui__Init = module.Offset(0x247E10).RCast<void (*)(void*)>();
+	HookAttach(&(PVOID&)o_CEngineVGui__Init, (PVOID)h_CEngineVGui__Init);
 }

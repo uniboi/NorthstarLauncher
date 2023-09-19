@@ -278,7 +278,7 @@ void CC_playlist_f(const CCommand& args)
 	if (args.ArgC() < 2)
 		return;
 
-	R2::SetCurrentPlaylist(args.Arg(1));
+	SetCurrentPlaylist(args.Arg(1));
 }
 
 //-----------------------------------------------------------------------------
@@ -290,7 +290,7 @@ void CC_setplaylistvaroverride_f(const CCommand& args)
 		return;
 
 	for (int i = 1; i < args.ArgC(); i += 2)
-		R2::SetPlaylistVarOverride(args.Arg(i), args.Arg(i + 1));
+		SetPlaylistVarOverride(args.Arg(i), args.Arg(i + 1));
 }
 
 //-----------------------------------------------------------------------------
