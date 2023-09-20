@@ -1,6 +1,7 @@
 #include "common/globals_cvar.h"
 
 #include "common/callbacks.h"
+#include "engine/debugoverlay.h"
 
 std::vector<std::string> vInitilasedModules;
 
