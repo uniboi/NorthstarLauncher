@@ -11,9 +11,7 @@ const int DISAGREED_TO_SEND_TOKEN = 2;
 
 void (*o_AuthWithStryder)(void* a1);
 
-// clang-format off
 void h_AuthWithStryder(void* a1)
-// clang-format on
 {
 	// We need to auth with atlas first
 	if (Cvar_ns_has_agreed_to_send_token->GetInt() == AGREED_TO_SEND_TOKEN && !g_pAtlasClient->GetOriginAuthSuccessful())
@@ -42,7 +40,7 @@ char* h_GetNucleusToken()
 	return o_GetNucleusToken();
 }
 
-ON_DLL_LOAD_CLIENT("engine.dll", ClientAuthHooks, (CModule module))
+ON_DLL_LOAD_CLIENT("engine.dll", OriginSDKStryder, (CModule module))
 {
 	o_AuthWithStryder = module.Offset(0x1843A0).RCast<void (*)(void*)>();
 	HookAttach(&(PVOID&)o_AuthWithStryder, (PVOID)h_AuthWithStryder);
