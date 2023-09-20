@@ -58,7 +58,9 @@ void CC_dump_datamap(const CCommand& args)
 	// CTriggerHurt: 0xB2DE80
 	// CPlayer: 0xB86460
 	// CFuncBrush: 0xB145C0
-	datamap_t* pMap = mServer.Offset(0xB86460).RCast<datamap_t*>();
+	// CPointEntity: 0xB63070
+	// CAI_NetworkManager: 0xB51720
+	datamap_t* pMap = mServer.Offset(0xB51720).RCast<datamap_t*>();
 
 	DataMap_Dump(pMap);
 }

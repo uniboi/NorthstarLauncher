@@ -80,3 +80,5 @@ extern ConVar* Cvar_hostport;
 
 extern ConVar* Cvar_enable_debug_overlays;
 extern ConVar* Cvar_dedi_sendPrintsToClient;
+
+extern ConVar* Cvar_ai_script_nodes_draw;

@@ -1,8 +1,9 @@
-#include "game/server/ai_node.h"
+#include "game/server/ai_networkmanager.h"
 
 #include "engine/hoststate.h"
 #include "engine/host.h"
 #include "engine/edict.h"
+#include "engine/debugoverlay.h"
 
 #include <fstream>
 
@@ -17,8 +18,9 @@ UnkLinkStruct1*** pppUnkStruct1s;
 
 //-----------------------------------------------------------------------------
 // Purpose: Save network graph to disk
+// Input  : *aiNetwork
 //-----------------------------------------------------------------------------
-void CAI_NetworkBuilder__SaveNetworkGraph(CAI_Network* aiNetwork)
+void CAI_NetworkManager::SaveNetworkGraph(CAI_Network* aiNetwork)
 {
 	// FIXME [Fifty]: Use new classes for this, clean up
 	fs::path writePath(fmt::format("{}/maps/graphs", g_pEngineParms->szModName));
@@ -195,25 +197,80 @@ void CAI_NetworkBuilder__SaveNetworkGraph(CAI_Network* aiNetwork)
 	writeStream.close();
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: Draw network using debug overlay
+// Input  : *pNetwork
+//-----------------------------------------------------------------------------
+void CAI_NetworkManager::DrawNetwork(CAI_Network* pNetwork)
+{
+	if (!pNetwork)
+	{
+		return;
+	}
+
+	// FIXME [Fifty]: God do i hate how mathlib classes are implemented
+	// FIXME [Fifty]: culling
+
+	Vector3 min;
+	min.x = -16.0f;
+	min.y = -16.0f;
+	min.z = -16.0f;
+
+	Vector3 max;
+	max.x = 16.0f;
+	max.y = 16.0f;
+	max.z = 16.0f;
+
+	QAngle ang;
+	ang.x = .0;
+	ang.y = .0;
+	ang.z = .0;
+	ang.w = .0;
+
+	for (int i = 0; i < pNetwork->scriptnodecount; i++)
+	{
+		CAI_ScriptNode* pNode = &pNetwork->scriptnodes[i];
+
+		Vector3 org;
+		org.x = pNode->x;
+		org.y = pNode->y;
+		org.z = pNode->z;
+
+		RenderWireframeBox(org, ang, min, max, Color(50, 220, 230), true, false);
+	}
+}
+
 void (*o_CAI_NetworkBuilder__Build)(void* self, CAI_Network* aiNetwork, void* unknown);
 
 void h_CAI_NetworkBuilder__Build(void* builder, CAI_Network* aiNetwork, void* unknown)
 {
 	o_CAI_NetworkBuilder__Build(builder, aiNetwork, unknown);
 
-	CAI_NetworkBuilder__SaveNetworkGraph(aiNetwork);
+	if (!*g_pNetworkManager)
+	{
+		Error(eLog::ENGINE, EXIT_FAILURE, "g_pNetworkManager is NULL in CAI_NetworkBuilder::Build");
+		return;
+	}
+
+	(*g_pNetworkManager)->SaveNetworkGraph(aiNetwork);
 }
 
-void (*o_CAI_NetworkManager__LoadNetworkGraph)(void* aimanager, void* buf, const char* filename);
+void (*o_CAI_NetworkManager__LoadNetworkGraph)(CAI_NetworkManager* self, void* buf, const char* filename);
 
-void h_CAI_NetworkManager__LoadNetworkGraph(void* aimanager, void* buf, const char* filename)
+void h_CAI_NetworkManager__LoadNetworkGraph(CAI_NetworkManager* self, void* buf, const char* filename)
 {
-	o_CAI_NetworkManager__LoadNetworkGraph(aimanager, buf, filename);
+	o_CAI_NetworkManager__LoadNetworkGraph(self, buf, filename);
 
 	if (Cvar_ns_ai_dumpAINfileFromLoad->GetBool())
 	{
 		DevMsg(eLog::NS, "running DumpAINInfo for loaded file %s\n", filename);
-		CAI_NetworkBuilder__SaveNetworkGraph(*(CAI_Network**)((char*)aimanager + 2536));
+		if (!*g_pNetworkManager)
+		{
+			Error(eLog::ENGINE, EXIT_FAILURE, "g_pNetworkManager is NULL in CAI_NetworkManager::LoadNetworkGraph");
+			return;
+		}
+
+		(*g_pNetworkManager)->SaveNetworkGraph((*g_pNetworkManager)->m_pNetwork);
 	}
 }
 
@@ -222,11 +279,14 @@ ON_DLL_LOAD("server.dll", AINetworkManager, (CModule module))
 	o_CAI_NetworkBuilder__Build = module.Offset(0x385E20).RCast<void (*)(void*, CAI_Network*, void*)>();
 	HookAttach(&(PVOID&)o_CAI_NetworkBuilder__Build, (PVOID)h_CAI_NetworkBuilder__Build);
 
-	o_CAI_NetworkManager__LoadNetworkGraph = module.Offset(0x3933A0).RCast<void (*)(void*, void*, const char*)>();
+	o_CAI_NetworkManager__LoadNetworkGraph = module.Offset(0x3933A0).RCast<void (*)(CAI_NetworkManager*, void*, const char*)>();
 	HookAttach(&(PVOID&)o_CAI_NetworkManager__LoadNetworkGraph, (PVOID)h_CAI_NetworkManager__LoadNetworkGraph);
 
 	pUnkStruct0Count = module.Offset(0x1063BF8).RCast<int*>();
 	pppUnkNodeStruct0s = module.Offset(0x1063BE0).RCast<UnkNodeStruct0***>();
 	pUnkLinkStruct1Count = module.Offset(0x1063AA8).RCast<int*>();
 	pppUnkStruct1s = module.Offset(0x1063A90).RCast<UnkLinkStruct1***>();
+
+	g_pAINetwork = module.Offset(0x1061160).RCast<CAI_Network**>();
+	g_pNetworkManager = module.Offset(0x10613F8).RCast<CAI_NetworkManager**>();
 }

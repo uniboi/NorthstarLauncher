@@ -236,6 +236,12 @@ void CVar_InitShipped(std::string svModule)
 		//
 	}
 
+	// Cvar_ai_script_nodes_draw
+	if (!Cvar_ai_script_nodes_draw && (Cvar_ai_script_nodes_draw = g_pCVar->FindVar("ai_script_nodes_draw")))
+	{
+		// FIXME [Fifty]: possibly make this FCVAR_CHEAT
+	}
+
 	//-----------------------------------------------------------------------------
 	// ConCommands
 
@@ -327,3 +333,5 @@ ConVar* Cvar_hostport = nullptr;
 
 ConVar* Cvar_enable_debug_overlays = nullptr;
 ConVar* Cvar_dedi_sendPrintsToClient = nullptr;
+
+ConVar* Cvar_ai_script_nodes_draw = nullptr;

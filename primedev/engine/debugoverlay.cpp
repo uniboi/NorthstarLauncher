@@ -1,5 +1,7 @@
 #include "engine/debugoverlay.h"
 
+#include "game/server/ai_networkmanager.h"
+
 // FIXME [Fifty]: Find DrawGridOverlay ore re-implement it
 
 enum OverlayType_t
@@ -132,37 +134,6 @@ static OverlayBase_t__DestroyOverlayType OverlayBase_t__DestroyOverlay;
 
 LPCRITICAL_SECTION s_OverlayMutex;
 
-// Render Line
-typedef void (*RenderLineType)(const Vector3& v1, const Vector3& v2, Color c, bool bZBuffer);
-static RenderLineType RenderLine;
-
-// Render box
-typedef void (*RenderBoxType)(const Vector3& vOrigin, const QAngle& angles, const Vector3& vMins, const Vector3& vMaxs, Color c, bool bZBuffer, bool bInsideOut);
-static RenderBoxType RenderBox;
-
-// Render wireframe box
-static RenderBoxType RenderWireframeBox;
-
-// Render swept box
-typedef void (*RenderWireframeSweptBoxType)(const Vector3& vStart, const Vector3& vEnd, const QAngle& angles, const Vector3& vMins, const Vector3& vMaxs, Color c, bool bZBuffer);
-RenderWireframeSweptBoxType RenderWireframeSweptBox;
-
-// Render Triangle
-typedef void (*RenderTriangleType)(const Vector3& p1, const Vector3& p2, const Vector3& p3, Color c, bool bZBuffer);
-static RenderTriangleType RenderTriangle;
-
-// Render Axis
-typedef void (*RenderAxisType)(const Vector3& vOrigin, float flScale, bool bZBuffer);
-static RenderAxisType RenderAxis;
-
-// I dont know
-typedef void (*RenderUnknownType)(const Vector3& vUnk, float flUnk, bool bUnk);
-static RenderUnknownType RenderUnknown;
-
-// Render Sphere
-typedef void (*RenderSphereType)(const Vector3& vCenter, float flRadius, int nTheta, int nPhi, Color c, bool bZBuffer);
-static RenderSphereType RenderSphere;
-
 //-----------------------------------------------------------------------------
 
 OverlayBase_t** s_pOverlays;
@@ -284,6 +255,11 @@ void h_DrawAllOverlays(bool bRender)
 			pPrevOverlay = pCurrOverlay;
 			pCurrOverlay = pCurrOverlay->m_pNextOverlay;
 		}
+	}
+
+	if (*g_pNetworkManager && Cvar_ai_script_nodes_draw->GetBool()) // [Fifty]: Don't think this is needed
+	{
+		(*g_pNetworkManager)->DrawNetwork(*g_pAINetwork);
 	}
 
 	LeaveCriticalSection(s_OverlayMutex);
