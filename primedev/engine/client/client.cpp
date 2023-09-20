@@ -2,6 +2,7 @@
 
 #include "networksystem/atlas.h"
 #include "shared/exploit_fixes/ns_limits.h"
+#include "engine/edict.h"
 
 bool (*o_CClient__Connect)(CClient* self, char* pszName, void* pNetChannel, bool bFakePlayer, void* a5, char pDisconnectReason[256], int nSize);
 
@@ -58,6 +59,16 @@ void CClient__Disconnect(CClient* self, uint32_t unknownButAlways1, const char* 
 	o_CClient__Disconnect(self, unknownButAlways1, "%s", buf);
 }
 
+size_t __fastcall ShouldAllowAlltalk()
+{
+	// this needs to return a 64 bit integer where 0 = true and 1 = false
+	if (Cvar_sv_alltalk->GetBool())
+		return 0;
+
+	// lobby should default to alltalk, otherwise don't allow it
+	return strcmp(g_pServerGlobalVariables->m_pMapName, "mp_lobby");
+}
+
 ON_DLL_LOAD("engine.dll", EngineClient, (CModule module))
 {
 	o_CClient__Connect = module.Offset(0x101740).RCast<bool (*)(CClient*, char*, void*, bool, void* a5, char[256], int)>();
@@ -68,4 +79,16 @@ ON_DLL_LOAD("engine.dll", EngineClient, (CModule module))
 
 	o_CClient__Disconnect = module.Offset(0x1012C0).RCast<void (*)(CClient*, uint32_t, const char*, ...)>();
 	HookAttach(&(PVOID&)o_CClient__Disconnect, (PVOID)CClient__Disconnect);
+
+		// replace strcmp function called in CClient::ProcessVoiceData with our own code that calls ShouldAllowAllTalk
+	CMemory base = module.Offset(0x1085FA);
+
+	base.Patch("48 B8"); // mov rax, 64 bit int
+	// (uint8_t*)&ShouldAllowAlltalk doesn't work for some reason? need to make it a uint64 first
+	uint64_t pShouldAllowAllTalk = reinterpret_cast<uint64_t>(ShouldAllowAlltalk);
+	base.Offset(0x2).Patch((uint8_t*)&pShouldAllowAllTalk, 8);
+	base.Offset(0xA).Patch("FF D0"); // call rax
+
+	// nop until compare (test eax, eax)
+	base.Offset(0xC).NOP(0x7);
 }

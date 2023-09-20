@@ -126,7 +126,6 @@ add_library(PrimeDLL SHARED
             "rtech/datatable.h"
 			"rtech/pakapi.cpp"
 			"rtech/pakapi.h"
-            "server/alltalk.cpp"
             "server/buildainfile.cpp"
             "shared/exploit_fixes/exploitfixes.cpp"
             "shared/exploit_fixes/exploitfixes_lzss.cpp"
