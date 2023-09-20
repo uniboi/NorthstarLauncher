@@ -33,8 +33,8 @@ char* h_GetNucleusToken()
 	// when it comes to community hosted ones
 	if (g_pAtlasClient->GetOriginAuthSuccessful())
 	{
-		//memset(g_pszNucleusToken, 0x0, 1024);
-		//strcpy(g_pszNucleusToken, "Protocol 3: Protect the Pilot");
+		memset(g_pszNucleusToken, 0x0, 1024);
+		strcpy(g_pszNucleusToken, "Protocol 3: Protect the Pilot");
 	}
 
 	return o_GetNucleusToken();
