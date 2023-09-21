@@ -72,8 +72,10 @@ CClient* (*o_CServer__ConnectClient)(CServer* self, void* a2, __int64 a3, unsign
 CClient* h_CServer__ConnectClient(CServer* self, void* a2, __int64 a3, unsigned int a4, unsigned int a5, int a6, __int64 a7, const char* pszPlayerName, const char* pszServerFilter, __int64 a10, char a11, void* a12, char a13, char a14, uint64_t nUID,
 								  unsigned int a16, unsigned int a17)
 {
+	const bool bAuthenticate = g_pServerGlobalVariables->m_nGameMode == MP_MODE;
+
 	// We use serverfilter to correlate client with auth data ( like pdata )
-	if (!g_pAtlasServer->HasAuthInfo(pszServerFilter))
+	if (!g_pAtlasServer->HasAuthInfo(pszServerFilter) && bAuthenticate)
 	{
 		CServer__RejectConnection(self, self->m_Socket, a2, "An error most likely occured when authenticating server-side!\n\nCode: INVALID_SERVERFILTER");
 		return nullptr;
@@ -86,6 +88,7 @@ CClient* h_CServer__ConnectClient(CServer* self, void* a2, __int64 a3, unsigned 
 	}
 
 	// Verify player name
+	// FIXME [Fifty]: Prints error in SP
 	AuthInfo_t info = g_pAtlasServer->GetAuthInfo(pszServerFilter);
 	std::string svPlayerName = pszPlayerName;
 	if (!info.m_svName.empty())
@@ -114,12 +117,13 @@ CClient* h_CServer__ConnectClient(CServer* self, void* a2, __int64 a3, unsigned 
 	strncpy(pClient->m_UID, svUID.c_str(), 32);
 
 	// Setup atlas info ( pdata )
-	if (!g_pAtlasServer->SetupClient(pClient, pszServerFilter))
+	if (!g_pAtlasServer->SetupClient(pClient, pszServerFilter) && bAuthenticate)
 	{
 		CClient__Disconnect(pClient, 1, "Failed to setup client!");
 	}
 
 	// No need to keep this after connecting the client
+	// FIXME [Fifty]: Prints error in sp
 	g_pAtlasServer->RemoveAuthInfo(pszServerFilter);
 
 	g_pServerLimits->AddPlayer(pClient);

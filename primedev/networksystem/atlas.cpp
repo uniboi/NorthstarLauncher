@@ -803,6 +803,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 {
 #define __FUNCTION "CAtlasServer::AuthenticateLocalClient"
+
 	DevMsg(eLog::MS, "%s: Authenticating local client!\n", __FUNCTION);
 
 	std::string svUrl = FormatA("%s/client/auth_with_self?id=%s&playerToken=%s", Cvar_atlas_hostname->GetString(), svUID.c_str(), g_pAtlasClient->m_svToken.c_str());
