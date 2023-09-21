@@ -1,5 +1,6 @@
 #include "engine/debugoverlay.h"
 
+#include "game/server/ai_helper.h"
 #include "game/server/ai_networkmanager.h"
 
 // FIXME [Fifty]: Find DrawGridOverlay ore re-implement it
@@ -257,10 +258,8 @@ void h_DrawAllOverlays(bool bRender)
 		}
 	}
 
-	if (*g_pNetworkManager && Cvar_ai_script_nodes_draw->GetBool()) // [Fifty]: Don't think this is needed
-	{
-		(*g_pNetworkManager)->DrawNetwork(*g_pAINetwork);
-	}
+	if (Cvar_ai_script_nodes_draw->GetBool())
+		g_pAIHelper->DrawNetwork(*g_pAINetwork);
 
 	LeaveCriticalSection(s_OverlayMutex);
 }

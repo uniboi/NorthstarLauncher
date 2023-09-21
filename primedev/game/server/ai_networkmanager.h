@@ -6,9 +6,6 @@
 class CAI_NetworkManager : public CBaseEntity
 {
   public:
-	void SaveNetworkGraph(CAI_Network* pNetwork);
-	void DrawNetwork(CAI_Network* pNetwork);
-
 	void* m_pEditOps; // 0x9e0 ( Size: 8 )
 	CAI_Network* m_pNetwork; // 0x9e8 ( Size: 8 )
 	bool m_fInitalized; // 0x9f0 ( Size: 1 )

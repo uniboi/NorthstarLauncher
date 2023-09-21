@@ -69,6 +69,8 @@ add_library(PrimeDLL SHARED
             "game/client/hud_chat.cpp"
             "game/client/hud_chat.h"
             "game/client/vscript_client.cpp"
+            "game/server/ai_helper.cpp"
+            "game/server/ai_helper.h"
             "game/server/ai_networkmanager.cpp"
             "game/server/ai_networkmanager.h"
             "game/server/ai_node.h"

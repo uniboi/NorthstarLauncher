@@ -8,6 +8,7 @@
 #include "windows/libsys.h"
 #include "networksystem/atlas.h"
 #include "game/shared/vscript_shared.h"
+#include "game/server/ai_helper.h"
 
 #include <string>
 
@@ -70,6 +71,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	}
 
 	g_pAtlasServer = new CAtlasServer();
+
+	g_pAIHelper = new CAI_Helper();
 
 	// Fix some users' failure to connect to respawn datacenters
 	SetEnvironmentVariableA("OPENSSL_ia32cap", "~0x200000200000000");
