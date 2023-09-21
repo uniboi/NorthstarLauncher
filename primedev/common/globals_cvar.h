@@ -72,6 +72,9 @@ extern ConVar* Cvar_sv_antispeedhack_budgetincreasemultiplier;
 extern ConVar* Cvar_ns_use_clc_SetPlaylistVarOverride;
 extern ConVar* Cvar_hostdescription;
 extern ConVar* Cvar_hostpassword;
+extern ConVar* Cvar_navmesh_debug_hull;
+extern ConVar* Cvar_navmesh_debug_camera_radius;
+extern ConVar* Cvar_navmesh_debug_draw_type;
 
 extern ConVar* Cvar_atlas_hostname;
 

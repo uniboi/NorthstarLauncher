@@ -121,6 +121,10 @@ void CVar_InitModule(std::string svModule)
 		Cvar_hostdescription = ConVar::StaticCreate("hostdescription", "Desc", FCVAR_RELEASE, "Descripiton of local server");
 		Cvar_hostpassword = ConVar::StaticCreate("hostpassword", "", FCVAR_RELEASE, "Password of local server");
 
+		Cvar_navmesh_debug_hull = ConVar::StaticCreate("navmesh_debug_hull", "0", FCVAR_RELEASE, "0 = NONE");
+		Cvar_navmesh_debug_camera_radius = ConVar::StaticCreate("navmesh_debug_camera_radius", "1000", FCVAR_RELEASE, "Radius in which to draw navmeshes");
+		Cvar_navmesh_debug_draw_type = ConVar::StaticCreate("navmesh_debug_draw_type", "0", FCVAR_RELEASE, "0 = fill + wireframe, 1 = fill, 2 = wireframe");
+
 		ConCommand::StaticCreate("reload_mods", "reloads mods", FCVAR_NONE, CC_reload_mods_f, nullptr);
 		ConCommand::StaticCreate("ns_fetchservers", "Fetch all servers from the masterserver", FCVAR_CLIENTDLL, CC_ns_fetchservers_f, nullptr);
 
@@ -325,6 +329,9 @@ ConVar* Cvar_sv_antispeedhack_budgetincreasemultiplier = nullptr;
 ConVar* Cvar_ns_use_clc_SetPlaylistVarOverride = nullptr;
 ConVar* Cvar_hostdescription = nullptr;
 ConVar* Cvar_hostpassword = nullptr;
+ConVar* Cvar_navmesh_debug_hull = nullptr;
+ConVar* Cvar_navmesh_debug_camera_radius = nullptr;
+ConVar* Cvar_navmesh_debug_draw_type = nullptr;
 
 ConVar* Cvar_atlas_hostname = nullptr;
 

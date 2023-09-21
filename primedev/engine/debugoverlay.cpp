@@ -258,8 +258,13 @@ void h_DrawAllOverlays(bool bRender)
 		}
 	}
 
-	if (Cvar_ai_script_nodes_draw->GetBool())
-		g_pAIHelper->DrawNetwork(*g_pAINetwork);
+	if (bRender && Cvar_enable_debug_overlays->GetBool())
+	{
+		if (Cvar_ai_script_nodes_draw->GetBool())
+			g_pAIHelper->DrawNetwork(*g_pAINetwork);
+
+		g_pAIHelper->DrawNavmeshPolys();
+	}
 
 	LeaveCriticalSection(s_OverlayMutex);
 }
