@@ -85,6 +85,7 @@ void Launcher_PrintEmblem()
 //-----------------------------------------------------------------------------
 void Launcher_PrintSysInfo()
 {
+	// FIXME [Fifty]: Error if a required feature is not present
 	if (!IsDedicatedServer())
 	{
 		for (int i = 0;; i++)
