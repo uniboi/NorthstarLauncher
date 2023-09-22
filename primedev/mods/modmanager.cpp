@@ -245,6 +245,7 @@ void ModConCommandCallback_Internal(std::string name, const CCommand& command)
 {
 	if (g_pSquirrel<context>->m_pSQVM && g_pSquirrel<context>->m_pSQVM)
 	{
+		// FIXME [Fifty]: 'command.ArgC()' is user dependent, we've basically give the user the choice to script error on command
 		if (command.ArgC() == 1)
 		{
 			g_pSquirrel<context>->AsyncCall(name);
