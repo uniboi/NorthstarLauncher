@@ -7,6 +7,7 @@
 #include "tier0/commandline.h"
 #include "tier0/crashhandler.h"
 #include "tier0/dbg.h"
+#include "tier0/cpu.h"
 #include "windows/wconsole.h"
 
 //-----------------------------------------------------------------------------
@@ -76,6 +77,59 @@ void Launcher_PrintEmblem()
 	for (int i = 0; i < ARRAY_SIZE(NSP_EMBLEM); i++)
 	{
 		DevMsg(eLog::NONE, "%s\n", NSP_EMBLEM[i]);
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Print system information
+//-----------------------------------------------------------------------------
+void Launcher_PrintSysInfo()
+{
+	if (!IsDedicatedServer())
+	{
+		for (int i = 0;; i++)
+		{
+			DISPLAY_DEVICEA dd = {sizeof(dd), {0}};
+			BOOL f = EnumDisplayDevicesA(NULL, i, &dd, EDD_GET_DEVICE_INTERFACE_NAME);
+			if (!f)
+			{
+				break;
+			}
+
+			if (dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+			{
+				DevMsg(eLog::NONE, "%-25s: '%s'\n", "GPU model identifier", dd.DeviceString);
+			}
+		}
+	}
+
+	const CPUInformation& pi = GetCPUInformation();
+
+	DevMsg(eLog::NONE, "%-25s: '%s'\n", "CPU model identifier", pi.m_szProcessorBrand);
+	DevMsg(eLog::NONE, "%-25s: '%s'\n", "CPU vendor tag", pi.m_szProcessorID);
+	DevMsg(eLog::NONE, "%-25s: '%12hhu' ('%2hhu' %s)\n", "CPU core count", pi.m_nPhysicalProcessors, pi.m_nLogicalProcessors, "logical");
+	DevMsg(eLog::NONE, "%-25s: '%12lld' ('%6.1f' %s)\n", "CPU core speed", pi.m_Speed, float(pi.m_Speed / 1000000), "MHz");
+	DevMsg(eLog::NONE, "%-20s%s: '%12lu' ('0x%-8X')\n", "L1 cache", "(KiB)", pi.m_nL1CacheSizeKb, pi.m_nL1CacheDesc);
+	DevMsg(eLog::NONE, "%-20s%s: '%12lu' ('0x%-8X')\n", "L2 cache", "(KiB)", pi.m_nL2CacheSizeKb, pi.m_nL2CacheDesc);
+	DevMsg(eLog::NONE, "%-20s%s: '%12lu' ('0x%-8X')\n", "L3 cache", "(KiB)", pi.m_nL3CacheSizeKb, pi.m_nL3CacheDesc);
+
+	MEMORYSTATUSEX statex {};
+	statex.dwLength = sizeof(statex);
+
+	if (GlobalMemoryStatusEx(&statex))
+	{
+		DWORDLONG totalPhysical = (statex.ullTotalPhys / 1024) / 1024;
+		DWORDLONG totalVirtual = (statex.ullTotalVirtual / 1024) / 1024;
+
+		DWORDLONG availPhysical = (statex.ullAvailPhys / 1024) / 1024;
+		DWORDLONG availVirtual = (statex.ullAvailVirtual / 1024) / 1024;
+
+		DevMsg(eLog::NONE, "%-20s%s: '%12llu' ('%9llu' %s)\n", "Total system memory", "(MiB)", totalPhysical, totalVirtual, "virtual");
+		DevMsg(eLog::NONE, "%-20s%s: '%12llu' ('%9llu' %s)\n", "Avail system memory", "(MiB)", availPhysical, availVirtual, "virtual");
+	}
+	else
+	{
+		Error(eLog::NONE, NO_ERROR, "Unable to retrieve system memory information: %s\n", std::system_category().message(static_cast<int>(::GetLastError())).c_str());
 	}
 }
 
@@ -186,6 +240,8 @@ void CNorthstarLauncher::InitNorthstarSubsystems()
 
 	// Print emblem and sys info
 	Launcher_PrintEmblem();
+	Launcher_PrintSysInfo();
+	DevMsg(eLog::NONE, "+---------------------------------------------------------------+\n");
 }
 
 #ifdef LAUNCHER

@@ -158,6 +158,8 @@ add_library(PrimeDLL SHARED
             "tier0/commandline.h"
             "tier0/dbg.cpp"
             "tier0/dbg.h"
+            "tier0/fasttimer.cpp"
+            "tier0/fasttimer.h"
             "tier0/filestream.cpp"
             "tier0/filestream.h"
             "tier0/memstd.cpp"
