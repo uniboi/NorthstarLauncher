@@ -123,7 +123,7 @@ void CVar_InitModule(std::string svModule)
 
 		Cvar_navmesh_debug_hull = ConVar::StaticCreate("navmesh_debug_hull", "0", FCVAR_RELEASE, "0 = NONE");
 		Cvar_navmesh_debug_camera_radius = ConVar::StaticCreate("navmesh_debug_camera_radius", "1000", FCVAR_RELEASE, "Radius in which to draw navmeshes");
-		Cvar_navmesh_debug_draw_type = ConVar::StaticCreate("navmesh_debug_draw_type", "0", FCVAR_RELEASE, "0 = fill + wireframe, 1 = fill, 2 = wireframe");
+		Cvar_navmesh_debug_lossy_optimization = ConVar::StaticCreate("navmesh_debug_lossy_optimization", "1", FCVAR_RELEASE, "Whether to enable lossy navmesh debug draw optimizations");
 
 		ConCommand::StaticCreate("reload_mods", "reloads mods", FCVAR_NONE, CC_reload_mods_f, nullptr);
 		ConCommand::StaticCreate("ns_fetchservers", "Fetch all servers from the masterserver", FCVAR_CLIENTDLL, CC_ns_fetchservers_f, nullptr);
@@ -331,7 +331,7 @@ ConVar* Cvar_hostdescription = nullptr;
 ConVar* Cvar_hostpassword = nullptr;
 ConVar* Cvar_navmesh_debug_hull = nullptr;
 ConVar* Cvar_navmesh_debug_camera_radius = nullptr;
-ConVar* Cvar_navmesh_debug_draw_type = nullptr;
+ConVar* Cvar_navmesh_debug_lossy_optimization = nullptr;
 
 ConVar* Cvar_atlas_hostname = nullptr;
 

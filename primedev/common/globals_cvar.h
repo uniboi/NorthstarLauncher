@@ -74,7 +74,7 @@ extern ConVar* Cvar_hostdescription;
 extern ConVar* Cvar_hostpassword;
 extern ConVar* Cvar_navmesh_debug_hull;
 extern ConVar* Cvar_navmesh_debug_camera_radius;
-extern ConVar* Cvar_navmesh_debug_draw_type;
+extern ConVar* Cvar_navmesh_debug_lossy_optimization;
 
 extern ConVar* Cvar_atlas_hostname;
 

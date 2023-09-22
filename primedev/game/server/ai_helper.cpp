@@ -252,6 +252,36 @@ void CAI_Helper::DrawNetwork(CAI_Network* pNetwork)
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: Packs two vectors into a __m128i
+// Input  : &v1 -
+//          &v2 -
+// Output :
+//-----------------------------------------------------------------------------
+__m128i PackVerticesSIMD16(const Vector3& v1, const Vector3& v2)
+{
+	short x1, x2, y1, y2, z1, z2;
+	x1 = static_cast<short>(v1.x);
+	x2 = static_cast<short>(v2.x);
+	y1 = static_cast<short>(v1.y);
+	y2 = static_cast<short>(v2.y);
+	z1 = static_cast<short>(v1.z);
+	z2 = static_cast<short>(v2.z);
+
+	__m128i xRes = _mm_set_epi16(x1, x2, y1, y2, z1, z2, 0, 0);
+
+	if (x1 < x2)
+		xRes = _mm_shufflehi_epi16(xRes, _MM_SHUFFLE(2, 3, 1, 0));
+
+	if (y1 < y2)
+		xRes = _mm_shufflehi_epi16(xRes, _MM_SHUFFLE(3, 2, 0, 1));
+
+	if (z1 < z2)
+		xRes = _mm_shufflelo_epi16(xRes, _MM_SHUFFLE(2, 3, 1, 0));
+
+	return xRes;
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: Draw navmesh polys using debug overlay
 // Input  : *pNavMesh
 //-----------------------------------------------------------------------------
@@ -267,10 +297,14 @@ void CAI_Helper::DrawNavmeshPolys(dtNavMesh* pNavMesh)
 	float fFov;
 	g_pClientTools->GetLocalPlayerEyePosition(vCamera, aCamera, fFov);
 
-	VPlane CullPlane(vCamera - aCamera.GetNormal() * 256.0f, aCamera);
+	const VPlane CullPlane(vCamera - aCamera.GetNormal() * 256.0f, aCamera);
 
 	const float fCamRadius = Cvar_navmesh_debug_camera_radius->GetFloat();
-	const int iDrawType = Cvar_navmesh_debug_draw_type->GetInt();
+	const bool bOptimize = Cvar_navmesh_debug_lossy_optimization->GetBool();
+
+	// Used for lossy optimization ( z is ignored when checking for duplicates )
+	// [Fifty]: On a release build i gained around 12 fps on a 1050 ti
+	std::unordered_set<int64_t> sOutlines;
 
 	for (int i = 0; i < pNavMesh->m_maxTiles; ++i)
 	{
@@ -319,17 +353,19 @@ void CAI_Helper::DrawNavmeshPolys(dtNavMesh* pNavMesh)
 						}
 					}
 
-					if (!(iDrawType & 2))
-					{
-						RenderTriangle(v[0], v[1], v[2], Color(110, 200, 220, 160), true);
-					}
+					RenderTriangle(v[0], v[1], v[2], Color(110, 200, 220, 160), true);
 
-					if (!(iDrawType & 1))
-					{
+					auto r = sOutlines.insert(_mm_extract_epi64(PackVerticesSIMD16(v[0], v[1]), 1));
+					if (r.second || !bOptimize)
 						RenderLine(v[0], v[1], Color(0, 0, 150), true);
+
+					r = sOutlines.insert(_mm_extract_epi64(PackVerticesSIMD16(v[1], v[2]), 1));
+					if (r.second || !bOptimize)
 						RenderLine(v[1], v[2], Color(0, 0, 150), true);
+
+					r = sOutlines.insert(_mm_extract_epi64(PackVerticesSIMD16(v[2], v[0]), 1));
+					if (r.second || !bOptimize)
 						RenderLine(v[2], v[0], Color(0, 0, 150), true);
-					}
 				}
 			}
 		}
