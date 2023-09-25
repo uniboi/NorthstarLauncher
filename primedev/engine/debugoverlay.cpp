@@ -2,6 +2,7 @@
 
 #include "game/server/ai_helper.h"
 #include "game/server/ai_networkmanager.h"
+#include "game/server/triggers.h"
 
 // FIXME [Fifty]: Find DrawGridOverlay ore re-implement it
 
@@ -264,6 +265,9 @@ void h_DrawAllOverlays(bool bRender)
 			g_pAIHelper->DrawNetwork(*g_pAINetwork);
 
 		g_pAIHelper->DrawNavmeshPolys();
+
+		if (Cvar_showtriggers->GetBool())
+			Triggers_Draw();
 	}
 
 	LeaveCriticalSection(s_OverlayMutex);

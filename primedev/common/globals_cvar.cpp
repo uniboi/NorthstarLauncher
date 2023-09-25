@@ -125,6 +125,10 @@ void CVar_InitModule(std::string svModule)
 		Cvar_navmesh_debug_camera_radius = ConVar::StaticCreate("navmesh_debug_camera_radius", "1000", FCVAR_RELEASE, "Radius in which to draw navmeshes");
 		Cvar_navmesh_debug_lossy_optimization = ConVar::StaticCreate("navmesh_debug_lossy_optimization", "1", FCVAR_RELEASE, "Whether to enable lossy navmesh debug draw optimizations");
 
+		Cvar_show_triggers_filter = ConVar::StaticCreate("show_triggers_filter", "", FCVAR_RELEASE, "String filter for trigger debug draw");
+
+		ConCommand::StaticCreate("show_triggers_dump", "Dump all trigger names in the loaded map", FCVAR_CLIENTDLL, CC_DumpTriggersInMap_f, nullptr);
+
 		ConCommand::StaticCreate("reload_mods", "reloads mods", FCVAR_NONE, CC_reload_mods_f, nullptr);
 		ConCommand::StaticCreate("ns_fetchservers", "Fetch all servers from the masterserver", FCVAR_CLIENTDLL, CC_ns_fetchservers_f, nullptr);
 
@@ -246,6 +250,16 @@ void CVar_InitShipped(std::string svModule)
 		// FIXME [Fifty]: possibly make this FCVAR_CHEAT
 	}
 
+	if (!Cvar_show_trigger_distance && (Cvar_show_trigger_distance = g_pCVar->FindVar("show_trigger_distance")))
+	{
+		//
+	}
+
+	if (!Cvar_showtriggers && (Cvar_showtriggers = g_pCVar->FindVar("showtriggers")))
+	{
+		//
+	}
+
 	//-----------------------------------------------------------------------------
 	// ConCommands
 
@@ -329,9 +343,14 @@ ConVar* Cvar_sv_antispeedhack_budgetincreasemultiplier = nullptr;
 ConVar* Cvar_ns_use_clc_SetPlaylistVarOverride = nullptr;
 ConVar* Cvar_hostdescription = nullptr;
 ConVar* Cvar_hostpassword = nullptr;
+
 ConVar* Cvar_navmesh_debug_hull = nullptr;
 ConVar* Cvar_navmesh_debug_camera_radius = nullptr;
 ConVar* Cvar_navmesh_debug_lossy_optimization = nullptr;
+
+ConVar* Cvar_show_trigger_distance = nullptr;
+ConVar* Cvar_showtriggers = nullptr;
+ConVar* Cvar_show_triggers_filter = nullptr;
 
 ConVar* Cvar_atlas_hostname = nullptr;
 

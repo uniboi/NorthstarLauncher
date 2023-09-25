@@ -49,9 +49,9 @@ static_assert(sizeof(CCollisionProperty) == 112);
 
 class CBaseEntity // : public IServerEntity
 {
+  public:
 	void* vftable;
 
-  public:
 	uint32_t m_RefEHandle; // 0x8 ( Size: 4 ) // handle
 	char gap_c[4];
 	void* m_collideable; // 0x10 ( Size: 8 )

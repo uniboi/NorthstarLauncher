@@ -16,6 +16,8 @@
 #include "engine/vengineserver_impl.h"
 #include "rtech/datatable.h"
 #include "networksystem/atlas.h"
+#include "game/server/entitylist.h"
+#include "game/server/triggers.h"
 
 //-----------------------------------------------------------------------------
 // Purpose:
@@ -60,7 +62,10 @@ void CC_dump_datamap(const CCommand& args)
 	// CFuncBrush: 0xB145C0
 	// CPointEntity: 0xB63070
 	// CAI_NetworkManager: 0xB51720
-	datamap_t* pMap = mServer.Offset(0xB51720).RCast<datamap_t*>();
+	// CTriggerMultiple: 0xB2E4C0
+	// CTriggerBrush: 0xB14650
+	// CWeaponX: 0xBAF1B0
+	datamap_t* pMap = mServer.Offset(0xBAF1B0).RCast<datamap_t*>();
 
 	DataMap_Dump(pMap);
 }
@@ -446,4 +451,30 @@ void CC_CreateFakePlayer_f(const CCommand& args)
 	g_pServerGameClients->ClientFullyConnect(nHandle, false);
 
 	g_pEngineServer->LockNetworkStringTables(false);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void CC_DumpTriggersInMap_f(const CCommand& args)
+{
+	DevMsg(eLog::ENGINE, "Dumping all triggers in this level: -----------------------------------\n");
+	std::unordered_set<std::string> uNames;
+	for (CBaseEntity* pEntity = CGlobalEntityList__FirstEnt(gEntList, nullptr); pEntity; pEntity = CGlobalEntityList__FirstEnt(gEntList, pEntity))
+	{
+		if (!IsTriggerEntity(pEntity))
+			continue;
+
+		if (!pEntity->m_iClassname)
+			continue;
+
+		uNames.insert(std::string((const char*)pEntity->m_iClassname));
+	}
+
+	for (std::string svName : uNames)
+	{
+		DevMsg(eLog::ENGINE, "%s\n", svName.c_str());
+	}
+
+	DevMsg(eLog::ENGINE, "Finished! -------------------------------------------------------------\n");
 }

@@ -41,3 +41,5 @@ void CC_printcvaraddr_f(const CCommand& arg);
 void CC_maps_f(const CCommand& args);
 
 void CC_CreateFakePlayer_f(const CCommand& args);
+
+void CC_DumpTriggersInMap_f(const CCommand& args);
