@@ -28,7 +28,17 @@ class ICommandLine
 
 class CCommandLine : public ICommandLine
 {
-	//
+  private:
+	enum
+	{
+		MAX_PARAMETER_LEN = 128,
+		MAX_PARAMETERS = 256,
+	};
+
+	char* m_pszCmdLine;
+	char pad[0x18];
+	int m_nParmCount;
+	char* m_ppParms[MAX_PARAMETERS];
 };
 
 inline CCommandLine* (*CommandLine)();
