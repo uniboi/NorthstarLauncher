@@ -160,6 +160,7 @@ add_library(PrimeDLL SHARED
             "squirrel/squirrelautobind.h"
             "squirrel/squirrelclasstypes.h"
             "squirrel/squirreldatatypes.h"
+            "tier0/commandline.cpp"
             "tier0/commandline.h"
             "tier0/dbg.cpp"
             "tier0/dbg.h"
