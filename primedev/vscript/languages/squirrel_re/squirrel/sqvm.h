@@ -3,6 +3,11 @@
 #include "vscript/languages/squirrel_re/include/squirrel.h"
 #include "vscript/languages/squirrel_re/squirrel/sqstring.h"
 
+struct SQVM;
+
+inline void (*o_SQVM__GetScriptLineClient)(const char* pszFile, int iLine, const char* pszBuffer, int iBufferSize);
+inline void (*o_SQVM__GetScriptLineServer)(const char* pszFile, int iLine, const char* pszBuffer, int iBufferSize);
+
 enum class ScriptContext : int
 {
 	INVALID = -1,
@@ -36,6 +41,8 @@ struct alignas(8) SQVM
 
 		return pszError;
 	}
+
+	void GetScriptLine(const SQChar* pszFile, int iLine, const SQChar* pszBuffer, int iBufferSize);
 
 	void* vftable;
 	int uiRef;

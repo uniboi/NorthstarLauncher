@@ -8,6 +8,16 @@
 eLog VScript_GetNativeLogContext(ScriptContext nContext);
 const char* VScript_GetContextAsString(ScriptContext nContext);
 
+
+void SQVM::GetScriptLine(const SQChar* pszFile, int iLine, const SQChar* pszBuffer, int iBufferSize)
+{
+	if ((ScriptContext)sharedState->cSquirrelVM->vmContext == ScriptContext::SERVER)
+		o_SQVM__GetScriptLineServer(pszFile, iLine, pszBuffer, iBufferSize);
+	else
+		o_SQVM__GetScriptLineClient(pszFile, iLine, pszBuffer, iBufferSize);
+}
+
+
 void (*o_SQVM__FatalCompileErrorCallbackClient)(HSQUIRRELVM sqvm, const char* error, const char* file, int line, int column);
 void (*o_SQVM__FatalCompileErrorCallbackServer)(HSQUIRRELVM sqvm, const char* error, const char* file, int line, int column);
 
@@ -16,8 +26,13 @@ void h_SQVM__FatalCompileErrorCallback(HSQUIRRELVM sqvm, const char* error, cons
 	ScriptContext realContext = (ScriptContext)sqvm->sharedState->cSquirrelVM->vmContext;
 	eLog eContext = VScript_GetNativeLogContext(realContext);
 
-	Error(eContext, NO_ERROR, "COMPILE ERROR %s\n", error);
-	Error(eContext, NO_ERROR, "%s line [%i] column [%i]\n", file, line, column);
+	SQChar szBuffer[256];
+	memset(szBuffer, 0, 256);
+	sqvm->GetScriptLine(file, line, szBuffer, 255);
+
+	Error(eContext, NO_ERROR, "%s SCRIPT COMPILE ERROR: %s\n", sqvm->sharedState->szContextName, error);
+	Error(eContext, NO_ERROR, " -> %s\n", szBuffer);
+	Error(eContext, NO_ERROR, "%s line [%d] column [%d]\n", file, line, column);
 
 	// use disconnect to display an error message for the compile error
 	// kill dedicated server if we hit this
@@ -91,6 +106,8 @@ ON_DLL_LOAD("client.dll", SQVMClient, (CModule module))
 
 	o_SQVM__CreateCompilerClient = module.Offset(0x8AD0).RCast<void (*)(HSQUIRRELVM, void*, void*, SQBool)>();
 	HookAttach(&(PVOID&)o_SQVM__CreateCompilerClient, (PVOID)h_SQVM__CreateCompilerClient);
+
+	o_SQVM__GetScriptLineClient = module.Offset(0x78AF0).RCast<void (*)(const char*, int, const char*, int)>();
 }
 
 ON_DLL_LOAD("server.dll", SQVMServer, (CModule module))
@@ -103,4 +120,6 @@ ON_DLL_LOAD("server.dll", SQVMServer, (CModule module))
 
 	o_SQVM__CreateCompilerServer = module.Offset(0x8AA0).RCast<void (*)(HSQUIRRELVM, void*, void*, SQBool)>();
 	HookAttach(&(PVOID&)o_SQVM__CreateCompilerServer, (PVOID)h_SQVM__CreateCompilerServer);
+
+	o_SQVM__GetScriptLineServer = module.Offset(0x78A80).RCast<void (*)(const char*, int, const char*, int)>();
 }

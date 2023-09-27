@@ -99,7 +99,9 @@ struct SQSharedState
 	void* fnPrintCallback;
 	unsigned __int8 gap_4358[16];
 	void* logEntityFunction;
-	unsigned char gap_4370[40];
+	unsigned char gap_4370[1];
+	SQChar szContextName[8];
+	unsigned char gap[31];
 	SQObjectType _waitStringType;
 	SQString* _waitStringValue;
 	SQObjectType _SpinOffAndWaitForStringType;
