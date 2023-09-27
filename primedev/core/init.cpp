@@ -8,6 +8,7 @@
 #include "networksystem/atlas.h"
 #include "game/shared/vscript_shared.h"
 #include "game/server/ai_helper.h"
+#include "game/client/cdll_client_int.h"
 
 #include <string>
 
@@ -70,6 +71,25 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 
 	g_pTaskScheduler = new CTaskScheduler();
 
+	// Connect to the LatencyFleX service
+	// LatencyFleX is an open source vendor agnostic replacement for Nvidia Reflex input latency reduction technology.
+	// https://ishitatsuyuki.github.io/post/latencyflex/
+	{
+		HMODULE pLfxModule;
+
+		if (pLfxModule = LoadLibraryA("latencyflex_layer.dll"))
+		{
+			LatencyFlex_WaitAndBeginFrame = reinterpret_cast<void (*)()>(GetProcAddress(pLfxModule, "lfx_WaitAndBeginFrame"));
+			DevMsg(eLog::NS, "Succesfully initilased LatencyFlex!\n");
+		}
+		else if (pLfxModule = LoadLibraryA("latencyflex_wine.dll"))
+		{
+			LatencyFlex_WaitAndBeginFrame = reinterpret_cast<void (*)()>(GetProcAddress(pLfxModule, "winelfx_WaitAndBeginFrame"));
+			DevMsg(eLog::NS, "Succesfully initilased LatencyFlex!\n");
+		}
+	}
+
+	// FIXME [Fifty]: Doesnt seem to work
 	// Fix some users' failure to connect to respawn datacenters
 	SetEnvironmentVariableA("OPENSSL_ia32cap", "~0x200000200000000");
 
