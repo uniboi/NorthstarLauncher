@@ -167,20 +167,13 @@ LABEL_48:
 
 // prevent utf8 parser from crashing when provided bad data, which can be sent through user-controlled openinvites
 bool (*o_RSON_ParseUTF8)(INT64* a1, DWORD* a2, char* pszData);
-// clang-format off
-bool h_RSON_ParseUTF8(INT64* a1, DWORD* a2, char* strData) // 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 20 8B 1A
-// clang-format on
+
+bool h_RSON_ParseUTF8(INT64* a1, DWORD* a2, char* strData)
 {
 	static void* targetRetAddr = CModule("engine.dll").FindPatternSIMD("84 C0 75 2C 49 8B 16");
 
 	// only call if we're parsing utf8 data from the network (i.e. communities), otherwise we get perf issues
-	void* pReturnAddress =
-#ifdef _MSC_VER
-		_ReturnAddress()
-#else
-		__builtin_return_address(0)
-#endif
-		;
+	void* pReturnAddress = _ReturnAddress();
 
 	if (pReturnAddress == targetRetAddr && !CheckUTF8Valid(a1, a2, strData))
 		return false;
