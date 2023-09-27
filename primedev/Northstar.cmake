@@ -8,7 +8,6 @@ find_package(nlohmann_json REQUIRED)
 add_library(PrimeDLL SHARED
             "appframework/IAppSystem.h"
             "client/diskvmtfixes.cpp"
-            "client/languagehooks.cpp"
             "client/localchatwriter.cpp"
             "client/localchatwriter.h"
 			"codecs/bink/bink.cpp"
@@ -167,6 +166,7 @@ add_library(PrimeDLL SHARED
             "tier0/fasttimer.h"
             "tier0/filestream.cpp"
             "tier0/filestream.h"
+            "tier0/language.cpp"
             "tier0/memstd.cpp"
             "tier0/memstd.h"
             "tier0/platform.h"
