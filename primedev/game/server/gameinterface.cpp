@@ -2,7 +2,7 @@
 #include "game/server/enginecallback.h"
 #include "game/server/recipientfilter.h"
 
-#include "squirrel/squirrel.h"
+#include "vscript/vscript.h"
 #include "shared/exploit_fixes/ns_limits.h"
 #include "engine/server/server.h"
 #include "game/server/util_server.h"
@@ -19,9 +19,33 @@ void h_CServerGameDLL__OnReceivedSayTextMessage(CServerGameDLL* self, unsigned i
 	if (!g_pServerLimits->CheckChatLimits(g_pServer->GetClient(senderPlayerId - 1)))
 		return;
 
-	SQRESULT result = g_pSquirrel<ScriptContext::SERVER>->Call("CServerGameDLL_ProcessMessageStartThread", static_cast<int>(senderPlayerId) - 1, text, isTeam);
+	int nRetValue = SQRESULT_ERROR;
+	if (g_pServerVM && g_pServerVM->GetVM())
+	{
+		ScriptContext nContext = (ScriptContext)g_pServerVM->vmContext;
+		HSQUIRRELVM hVM = g_pServerVM->GetVM();
+		const char* pszFuncName = "CServerGameDLL_ProcessMessageStartThread";
 
-	if (result == SQRESULT_ERROR)
+		SQObject oFunction {};
+		int nResult = sq_getfunction(hVM, pszFuncName, &oFunction, 0);
+		if (nResult == 0)
+		{
+			sq_pushobject(hVM, &oFunction);
+			sq_pushroottable(hVM);
+
+			sq_pushinteger(hVM, static_cast<int>(senderPlayerId) - 1);
+			sq_pushstring(hVM, text, -1);
+			sq_pushbool(hVM, isTeam);
+
+			nRetValue = sq_call(hVM, 4, false, false);
+		}
+		else
+		{
+			Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", pszFuncName);
+		}
+	}
+
+	if (nRetValue == SQRESULT_ERROR)
 		o_CServerGameDLL__OnReceivedSayTextMessage(self, senderPlayerId, text, isTeam);
 }
 

@@ -2,8 +2,8 @@
 
 #include <sstream>
 #include <fstream>
-#include "squirrel/squirrel.h"
 #include "mods/modmanager.h"
+#include "tier0/taskscheduler.h"
 
 inline int MAX_FOLDER_SIZE = 52428800; // 50MB (50 * 1024 * 1024)
 inline fs::path g_svSavePath;
@@ -19,7 +19,6 @@ class SaveFileManager
 {
   public:
 	// Saves a file asynchronously.
-	template <ScriptContext context>
 	void SaveFileAsync(fs::path file, std::string contents)
 	{
 		auto mutex = std::ref(fileMutex);
@@ -70,13 +69,12 @@ class SaveFileManager
 	}
 
 	// Loads a file asynchronously.
-	template <ScriptContext context>
-	int LoadFileAsync(fs::path file)
+	int LoadFileAsync(fs::path file, ScriptContext nContext)
 	{
 		int handle = ++m_iLastRequestHandle;
 		auto mutex = std::ref(fileMutex);
 		std::thread readThread(
-			[mutex, file, handle]()
+			[mutex, file, handle, nContext]()
 			{
 				try
 				{
@@ -87,7 +85,43 @@ class SaveFileManager
 					{
 						Error(eLog::MODSYS, NO_ERROR, "A file was supposed to be loaded but we can't access it?!\n");
 
-						g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, false, "");
+						g_pTaskScheduler->AddTask(
+							[handle, nContext]()
+							{
+								CSquirrelVM* pVM = nullptr;
+								if (nContext == ScriptContext::SERVER)
+									pVM = g_pServerVM;
+								else if (nContext == ScriptContext::CLIENT)
+									pVM = g_pClientVM;
+								else if (nContext == ScriptContext::UI)
+									pVM = g_pUIVM;
+
+								if (pVM && pVM->GetVM())
+								{
+									ScriptContext nContext = (ScriptContext)pVM->vmContext;
+									HSQUIRRELVM hVM = pVM->GetVM();
+									const char* pszFuncName = "NSHandleLoadResult";
+
+									SQObject oFunction {};
+									int nResult = sq_getfunction(hVM, pszFuncName, &oFunction, 0);
+									if (nResult != 0)
+									{
+										Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", pszFuncName);
+										return;
+									}
+
+									// Push
+									sq_pushobject(hVM, &oFunction);
+									sq_pushroottable(hVM);
+
+									sq_pushinteger(hVM, handle);
+									sq_pushbool(hVM, false);
+									sq_pushstring(hVM, "", -1);
+
+									(void)sq_call(hVM, 4, false, false);
+								}
+							});
+						//g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, false, "");
 						mutex.get().unlock();
 						return;
 					}
@@ -95,7 +129,44 @@ class SaveFileManager
 					std::stringstream stringStream;
 					stringStream << fileStr.rdbuf();
 
-					g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, true, stringStream.str());
+					std::string svContents = stringStream.str();
+					g_pTaskScheduler->AddTask(
+						[handle, svContents, nContext]()
+						{
+							CSquirrelVM* pVM = nullptr;
+							if (nContext == ScriptContext::SERVER)
+								pVM = g_pServerVM;
+							else if (nContext == ScriptContext::CLIENT)
+								pVM = g_pClientVM;
+							else if (nContext == ScriptContext::UI)
+								pVM = g_pUIVM;
+
+							if (pVM && pVM->GetVM())
+							{
+								ScriptContext nContext = (ScriptContext)pVM->vmContext;
+								HSQUIRRELVM hVM = pVM->GetVM();
+								const char* pszFuncName = "NSHandleLoadResult";
+
+								SQObject oFunction {};
+								int nResult = sq_getfunction(hVM, pszFuncName, &oFunction, 0);
+								if (nResult != 0)
+								{
+									Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", pszFuncName);
+									return;
+								}
+
+								// Push
+								sq_pushobject(hVM, &oFunction);
+								sq_pushroottable(hVM);
+
+								sq_pushinteger(hVM, handle);
+								sq_pushbool(hVM, true);
+								sq_pushstring(hVM, svContents.c_str(), -1);
+
+								(void)sq_call(hVM, 4, false, false);
+							}
+						});
+					//g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, true, stringStream.str());
 
 					fileStr.close();
 					mutex.get().unlock();
@@ -107,7 +178,43 @@ class SaveFileManager
 				catch (std::exception ex)
 				{
 					Error(eLog::MODSYS, NO_ERROR, "LOAD FAILED!\n");
-					g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, false, "");
+					g_pTaskScheduler->AddTask(
+						[handle, nContext]()
+						{
+							CSquirrelVM* pVM = nullptr;
+							if (nContext == ScriptContext::SERVER)
+								pVM = g_pServerVM;
+							else if (nContext == ScriptContext::CLIENT)
+								pVM = g_pClientVM;
+							else if (nContext == ScriptContext::UI)
+								pVM = g_pUIVM;
+
+							if (pVM && pVM->GetVM())
+							{
+								ScriptContext nContext = (ScriptContext)pVM->vmContext;
+								HSQUIRRELVM hVM = pVM->GetVM();
+								const char* pszFuncName = "NSHandleLoadResult";
+
+								SQObject oFunction {};
+								int nResult = sq_getfunction(hVM, pszFuncName, &oFunction, 0);
+								if (nResult != 0)
+								{
+									Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", pszFuncName);
+									return;
+								}
+
+								// Push
+								sq_pushobject(hVM, &oFunction);
+								sq_pushroottable(hVM);
+
+								sq_pushinteger(hVM, handle);
+								sq_pushbool(hVM, false);
+								sq_pushstring(hVM, "", -1);
+
+								(void)sq_call(hVM, 4, false, false);
+							}
+						});
+					//g_pSquirrel<context>->AsyncCall("NSHandleLoadResult", handle, false, "");
 					mutex.get().unlock();
 					Error(eLog::MODSYS, NO_ERROR, "%s\n", ex.what());
 				}
@@ -118,7 +225,6 @@ class SaveFileManager
 	}
 
 	// Deletes a file asynchronously.
-	template <ScriptContext context>
 	void DeleteFileAsync(fs::path file)
 	{
 		// P.S. I don't like how we have to async delete calls but we do.

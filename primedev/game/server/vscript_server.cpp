@@ -1,7 +1,6 @@
-#include "squirrel/squirrelautobind.h"
-#include "squirrel/squirrelclasstypes.h"
-#include "squirrel/squirreldatatypes.h"
-#include "squirrel/squirrel.h"
+#include "game/server/vscript_server.h"
+
+#include "vscript/vscript.h"
 
 #include "game/server/player.h"
 #include "engine/server/server.h"
@@ -9,51 +8,54 @@
 #include "game/server/gameinterface.h"
 #include "originsdk/origin.h"
 
-ADD_SQFUNC("void", NSEarlyWritePlayerPersistenceForLeave, "entity player", "", ScriptContext::SERVER)
+SQRESULT Script_NSEarlyWritePlayerPersistenceForLeave(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<context>->template getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 
 	return SQRESULT_NULL;
 }
 
-ADD_SQFUNC("bool", NSIsWritingPlayerPersistence, "", "", ScriptContext::SERVER)
+SQRESULT Script_NSIsWritingPlayerPersistence(HSQUIRRELVM sqvm)
 {
-	g_pSquirrel<context>->pushbool(sqvm, false /*g_pMasterServerManager->m_bSavingPersistentData*/);
+	sq_pushbool(sqvm, false /*g_pMasterServerManager->m_bSavingPersistentData*/);
 	return SQRESULT_NOTNULL;
 }
 
-ADD_SQFUNC("bool", NSIsPlayerLocalPlayer, "entity player", "", ScriptContext::SERVER)
+SQRESULT Script_NSIsPlayerLocalPlayer(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->template getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 	if (!pPlayer)
 	{
 		Warning(eLog::NS, "NSIsPlayerLocalPlayer got null player\n");
 
-		g_pSquirrel<context>->pushbool(sqvm, false);
+		sq_pushbool(sqvm, false);
 		return SQRESULT_NOTNULL;
 	}
 
 	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
-	g_pSquirrel<context>->pushbool(sqvm, !strcmp(g_pLocalPlayerUserID, pClient->m_UID));
+	sq_pushbool(sqvm, !strcmp(g_pLocalPlayerUserID, pClient->m_UID));
 	return SQRESULT_NOTNULL;
 }
 
-ADD_SQFUNC("bool", NSIsDedicated, "", "", ScriptContext::SERVER)
+SQRESULT Script_NSIsDedicated(HSQUIRRELVM sqvm)
 {
-	g_pSquirrel<context>->pushbool(sqvm, IsDedicatedServer());
+	sq_pushbool(sqvm, IsDedicatedServer());
 	return SQRESULT_NOTNULL;
 }
 
-ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconnects the player from the server with the given reason", ScriptContext::SERVER)
+SQRESULT Script_NSDisconnectPlayer(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<context>->template getentity<CPlayer>(sqvm, 1);
-	const char* reason = g_pSquirrel<context>->getstring(sqvm, 2);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
+	const char* reason = sq_getstring(sqvm, 2);
 
 	if (!pPlayer)
 	{
 		Warning(eLog::NS, "Attempted to call NSDisconnectPlayer() with null player.\n");
 
-		g_pSquirrel<context>->pushbool(sqvm, false);
+		sq_pushbool(sqvm, false);
 		return SQRESULT_NOTNULL;
 	}
 
@@ -63,7 +65,7 @@ ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconne
 	{
 		Warning(eLog::NS, "NSDisconnectPlayer(): player entity has null CClient!\n");
 
-		g_pSquirrel<context>->pushbool(sqvm, false);
+		sq_pushbool(sqvm, false);
 		return SQRESULT_NOTNULL;
 	}
 
@@ -76,138 +78,144 @@ ADD_SQFUNC("bool", NSDisconnectPlayer, "entity player, string reason", "Disconne
 		CClient__Disconnect(pClient, 1, "Disconnected by the server.");
 	}
 
-	g_pSquirrel<context>->pushbool(sqvm, true);
+	sq_pushbool(sqvm, true);
 	return SQRESULT_NOTNULL;
 }
 
-// clang-format off
-ADD_SQFUNC("string", GetUserInfoKVString_Internal, "entity player, string key, string defaultValue = \"\"",
-	"Gets the string value of a given player's userinfo convar by name", ScriptContext::SERVER)
-// clang-format on
+SQRESULT Script_GetUserInfoKVString_Internal(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->template getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 	if (!pPlayer)
 	{
-		g_pSquirrel<ScriptContext::SERVER>->raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "player is null");
 		return SQRESULT_ERROR;
 	}
 
-	const char* pKey = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 2);
-	const char* pDefaultValue = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 3);
+	const char* pKey = sq_getstring(sqvm, 2);
+	const char* pDefaultValue = sq_getstring(sqvm, 3);
 
 	const char* pResult = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1)->m_ConVars->GetString(pKey, pDefaultValue);
-	g_pSquirrel<ScriptContext::SERVER>->pushstring(sqvm, pResult);
+	sq_pushstring(sqvm, pResult, -1);
 	return SQRESULT_NOTNULL;
 }
 
-// clang-format off
-ADD_SQFUNC("asset", GetUserInfoKVAsset_Internal, "entity player, string key, asset defaultValue = $\"\"",
-	"Gets the asset value of a given player's userinfo convar by name", ScriptContext::SERVER)
-// clang-format on
+SQRESULT Script_GetUserInfoKVAsset_Internal(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->template getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 	if (!pPlayer)
 	{
-		g_pSquirrel<ScriptContext::SERVER>->raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "player is null");
 		return SQRESULT_ERROR;
 	}
 
-	const char* pKey = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 2);
+	const char* pKey = sq_getstring(sqvm, 2);
 	const char* pDefaultValue;
-	g_pSquirrel<ScriptContext::SERVER>->getasset(sqvm, 3, &pDefaultValue);
+	sq_getasset(sqvm, 3, &pDefaultValue);
 
 	const char* pResult = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1)->m_ConVars->GetString(pKey, pDefaultValue);
-	g_pSquirrel<ScriptContext::SERVER>->pushasset(sqvm, pResult);
+	sq_pushasset(sqvm, pResult, -1);
 	return SQRESULT_NOTNULL;
 }
 
-// clang-format off
-ADD_SQFUNC("int", GetUserInfoKVInt_Internal, "entity player, string key, int defaultValue = 0",
-	"Gets the int value of a given player's userinfo convar by name", ScriptContext::SERVER)
-// clang-format on
+SQRESULT Script_GetUserInfoKVInt_Internal(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->template getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 	if (!pPlayer)
 	{
-		g_pSquirrel<ScriptContext::SERVER>->raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "player is null");
 		return SQRESULT_ERROR;
 	}
 
-	const char* pKey = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 2);
-	const int iDefaultValue = g_pSquirrel<ScriptContext::SERVER>->getinteger(sqvm, 3);
+	const char* pKey = sq_getstring(sqvm, 2);
+	const int iDefaultValue = sq_getinteger(sqvm, 3);
 
 	const int iResult = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1)->m_ConVars->GetInt(pKey, iDefaultValue);
-	g_pSquirrel<ScriptContext::SERVER>->pushinteger(sqvm, iResult);
+	sq_pushinteger(sqvm, iResult);
 	return SQRESULT_NOTNULL;
 }
 
-// clang-format off
-ADD_SQFUNC("float", GetUserInfoKVFloat_Internal, "entity player, string key, float defaultValue = 0",
-	"Gets the float value of a given player's userinfo convar by name", ScriptContext::SERVER)
-// clang-format on
+SQRESULT Script_GetUserInfoKVFloat_Internal(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 	if (!pPlayer)
 	{
-		g_pSquirrel<ScriptContext::SERVER>->raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "player is null");
 		return SQRESULT_ERROR;
 	}
 
-	const char* pKey = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 2);
-	const float flDefaultValue = g_pSquirrel<ScriptContext::SERVER>->getfloat(sqvm, 3);
+	const char* pKey = sq_getstring(sqvm, 2);
+	const float flDefaultValue = sq_getfloat(sqvm, 3);
 
 	const float flResult = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1)->m_ConVars->GetFloat(pKey, flDefaultValue);
-	g_pSquirrel<ScriptContext::SERVER>->pushfloat(sqvm, flResult);
+	sq_pushfloat(sqvm, flResult);
 	return SQRESULT_NOTNULL;
 }
 
-// clang-format off
-ADD_SQFUNC("bool", GetUserInfoKVBool_Internal, "entity player, string key, bool defaultValue = false",
-	"Gets the bool value of a given player's userinfo convar by name", ScriptContext::SERVER)
-// clang-format on
+SQRESULT Script_GetUserInfoKVBool_Internal(HSQUIRRELVM sqvm)
 {
-	const CPlayer* pPlayer = g_pSquirrel<ScriptContext::SERVER>->getentity<CPlayer>(sqvm, 1);
+	// FIXME [Fifty]: Verify we're given CPlayer*
+	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
 	if (!pPlayer)
 	{
-		g_pSquirrel<ScriptContext::SERVER>->raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "player is null");
 		return SQRESULT_ERROR;
 	}
 
-	const char* pKey = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 2);
-	const bool bDefaultValue = g_pSquirrel<ScriptContext::SERVER>->getbool(sqvm, 3);
+	const char* pKey = sq_getstring(sqvm, 2);
+	const bool bDefaultValue = sq_getbool(sqvm, 3);
 
 	const bool bResult = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1)->m_ConVars->GetInt(pKey, bDefaultValue);
-	g_pSquirrel<ScriptContext::SERVER>->pushbool(sqvm, bResult);
+	sq_pushbool(sqvm, bResult);
 	return SQRESULT_NOTNULL;
 }
 
-ADD_SQFUNC("void", NSSendMessage, "int playerIndex, string text, bool isTeam", "", ScriptContext::SERVER)
+SQRESULT Script_NSSendMessage(HSQUIRRELVM sqvm)
 {
-	int playerIndex = g_pSquirrel<ScriptContext::SERVER>->getinteger(sqvm, 1);
-	const char* text = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 2);
-	bool isTeam = g_pSquirrel<ScriptContext::SERVER>->getbool(sqvm, 3);
+	int playerIndex = sq_getinteger(sqvm, 1);
+	const char* text = sq_getstring(sqvm, 2);
+	bool isTeam = sq_getbool(sqvm, 3);
 
 	Chat_SendMessage(playerIndex, text, isTeam);
 
 	return SQRESULT_NULL;
 }
 
-ADD_SQFUNC("void", NSBroadcastMessage, "int fromPlayerIndex, int toPlayerIndex, string text, bool isTeam, bool isDead, int messageType", "", ScriptContext::SERVER)
+SQRESULT Script_NSBroadcastMessage(HSQUIRRELVM sqvm)
 {
-	int fromPlayerIndex = g_pSquirrel<ScriptContext::SERVER>->getinteger(sqvm, 1);
-	int toPlayerIndex = g_pSquirrel<ScriptContext::SERVER>->getinteger(sqvm, 2);
-	const char* text = g_pSquirrel<ScriptContext::SERVER>->getstring(sqvm, 3);
-	bool isTeam = g_pSquirrel<ScriptContext::SERVER>->getbool(sqvm, 4);
-	bool isDead = g_pSquirrel<ScriptContext::SERVER>->getbool(sqvm, 5);
-	int messageType = g_pSquirrel<ScriptContext::SERVER>->getinteger(sqvm, 6);
+	int fromPlayerIndex = sq_getinteger(sqvm, 1);
+	int toPlayerIndex = sq_getinteger(sqvm, 2);
+	const char* text = sq_getstring(sqvm, 3);
+	bool isTeam = sq_getbool(sqvm, 4);
+	bool isDead = sq_getbool(sqvm, 5);
+	int messageType = sq_getinteger(sqvm, 6);
 
 	if (messageType < 1)
 	{
-		g_pSquirrel<ScriptContext::SERVER>->raiseerror(sqvm, fmt::format("Invalid message type {}", messageType).c_str());
+		sq_raiseerror(sqvm, fmt::format("Invalid message type {}", messageType).c_str());
 		return SQRESULT_ERROR;
 	}
 
 	Chat_BroadcastMessage(fromPlayerIndex, toPlayerIndex, text, isTeam, isDead, (CustomMessageType)messageType);
 
 	return SQRESULT_NULL;
+}
+
+void VScript_RegisterServerFunctions(CSquirrelVM* vm)
+{
+	vm->RegisterFunction("NSEarlyWritePlayerPersistenceForLeave", "Script_NSEarlyWritePlayerPersistenceForLeave", "", "void", "entity player", Script_NSEarlyWritePlayerPersistenceForLeave);
+	vm->RegisterFunction("NSIsWritingPlayerPersistence", "Script_NSIsWritingPlayerPersistence", "", "bool", "", Script_NSIsWritingPlayerPersistence);
+	vm->RegisterFunction("NSIsPlayerLocalPlayer", "Script_NSIsPlayerLocalPlayer", "", "bool", "entity player", Script_NSIsPlayerLocalPlayer);
+	vm->RegisterFunction("NSIsDedicated", "Script_NSIsDedicated", "", "bool", "", Script_NSIsDedicated);
+	vm->RegisterFunction("NSDisconnectPlayer", "Script_NSDisconnectPlayer", "", "bool", "entity player, string reason", Script_NSDisconnectPlayer);
+	vm->RegisterFunction("GetUserInfoKVString_Internal", "Script_GetUserInfoKVString_Internal", "", "string", "entity player, string key, string defaultValue = \"\"", Script_GetUserInfoKVString_Internal);
+	vm->RegisterFunction("GetUserInfoKVAsset_Internal", "Script_GetUserInfoKVAsset_Internal", "", "asset", "entity player, string key, asset defaultValue = $\"\"", Script_GetUserInfoKVAsset_Internal);
+	vm->RegisterFunction("GetUserInfoKVInt_Internal", "Script_GetUserInfoKVInt_Internal", "", "int", "entity player, string key, int defaultValue = 0", Script_GetUserInfoKVInt_Internal);
+	vm->RegisterFunction("GetUserInfoKVFloat_Internal", "Script_GetUserInfoKVFloat_Internal", "", "float", "entity player, string key, float defaultValue = 0", Script_GetUserInfoKVFloat_Internal);
+	vm->RegisterFunction("GetUserInfoKVBool_Internal", "Script_GetUserInfoKVBool_Internal", "", "bool", "entity player, string key, bool defaultValue = false", Script_GetUserInfoKVBool_Internal);
+	vm->RegisterFunction("NSSendMessage", "Script_NSSendMessage", "", "void", "int playerIndex, string text, bool isTeam", Script_NSSendMessage);
+	vm->RegisterFunction("NSBroadcastMessage", "Script_NSBroadcastMessage", "", "void", "int fromPlayerIndex, int toPlayerIndex, string text, bool isTeam, bool isDead, int messageType", Script_NSBroadcastMessage);
 }

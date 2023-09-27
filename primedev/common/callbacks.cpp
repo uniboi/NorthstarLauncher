@@ -4,7 +4,6 @@
 #include "client/localchatwriter.h"
 #include "gameui/GameConsole.h"
 #include "mods/modmanager.h"
-#include "squirrel/squirrel.h"
 #include "networksystem/bansystem.h"
 #include "engine/client/client.h"
 #include "engine/server/server.h"
@@ -146,8 +145,34 @@ void CC_ns_fetchservers_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_ns_script_servertoclientstringcommand_f(const CCommand& arg)
 {
-	if (g_pSquirrel<ScriptContext::CLIENT>->m_pSQVM)
-		g_pSquirrel<ScriptContext::CLIENT>->Call("NSClientCodeCallback_RecievedServerToClientStringCommand", arg.ArgS());
+	if (g_pClientVM && g_pClientVM->GetVM())
+	{
+		ScriptContext nContext = (ScriptContext)g_pClientVM->vmContext;
+		HSQUIRRELVM hVM = g_pClientVM->GetVM();
+		const char* pszFuncName = "NSClientCodeCallback_RecievedServerToClientStringCommand";
+
+		SQObject oFunction {};
+		int nResult = sq_getfunction(hVM, pszFuncName, &oFunction, 0);
+		if (nResult != 0)
+		{
+			Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", pszFuncName);
+			return;
+		}
+
+		// Push
+		sq_pushobject(hVM, &oFunction);
+		sq_pushroottable(hVM);
+
+		sq_newarray(hVM, 0);
+
+		for (int i = 0; i < arg.ArgC(); i++)
+		{
+			sq_pushstring(hVM, arg.Arg(i), -1);
+			sq_arrayappend(hVM, -2);
+		}
+
+		(void)sq_call(hVM, arg.ArgC() + 1, false, false);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -305,7 +330,10 @@ void CC_setplaylistvaroverride_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_script_ui_f(const CCommand& args)
 {
-	g_pSquirrel<ScriptContext::UI>->ExecuteCode(args.ArgS());
+	if (g_pUIVM)
+		g_pUIVM->ExecuteBuffer(args.ArgS());
+	else
+		Error(eLog::UI, NO_ERROR, "UI VM is null!\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -313,7 +341,10 @@ void CC_script_ui_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_script_cl_f(const CCommand& args)
 {
-	g_pSquirrel<ScriptContext::CLIENT>->ExecuteCode(args.ArgS());
+	if (g_pClientVM)
+		g_pClientVM->ExecuteBuffer(args.ArgS());
+	else
+		Error(eLog::CLIENT, NO_ERROR, "CLIENT VM is null!\n");
 }
 
 //-----------------------------------------------------------------------------
@@ -321,7 +352,10 @@ void CC_script_cl_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_script_sv_f(const CCommand& args)
 {
-	g_pSquirrel<ScriptContext::SERVER>->ExecuteCode(args.ArgS());
+	if (g_pServerVM)
+		g_pServerVM->ExecuteBuffer(args.ArgS());
+	else
+		Error(eLog::SERVER, NO_ERROR, "SERVER VM is null!\n");
 }
 
 //-----------------------------------------------------------------------------

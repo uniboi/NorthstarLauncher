@@ -4,11 +4,12 @@
 #include "client/audio.h"
 #include "filesystem/basefilesystem.h"
 #include "rtech/pakapi.h"
-#include "squirrel/squirrel.h"
+#include "vscript/vscript.h"
 
 #include <regex>
 
 #include "tier0/filestream.h"
+#include "tier0/taskscheduler.h"
 
 ModManager* g_pModManager;
 
@@ -91,7 +92,7 @@ Mod::Mod(fs::path modDir, std::string& svModJson)
 				std::string svFunction = jsConCommand["Function"].get<std::string>();
 				std::string svContext = jsConCommand["Context"].get<std::string>();
 
-				ScriptContext eContext = ScriptContextFromString(svContext);
+				ScriptContext eContext = VScript_GetContextFromString(svContext);
 				if (eContext == ScriptContext::INVALID)
 					throw std::exception("custom_parse_error: ConCommand::Context is invalid");
 
@@ -243,25 +244,101 @@ ModManager::ModManager()
 template <ScriptContext context>
 void ModConCommandCallback_Internal(std::string name, const CCommand& command)
 {
-	if (g_pSquirrel<context>->m_pSQVM && g_pSquirrel<context>->m_pSQVM)
+	CSquirrelVM* pVM = nullptr;
+	if (context == ScriptContext::SERVER)
+		pVM = g_pServerVM;
+	else if (context == ScriptContext::CLIENT)
+		pVM = g_pClientVM;
+	else if (context == ScriptContext::UI)
+		pVM = g_pUIVM;
+
+	if (pVM && pVM->GetVM())
 	{
 		// FIXME [Fifty]: 'command.ArgC()' is user dependent, we've basically give the user the choice to script error on command
 		if (command.ArgC() == 1)
 		{
-			g_pSquirrel<context>->AsyncCall(name);
+			g_pTaskScheduler->AddTask(
+				[name]()
+				{
+					CSquirrelVM* pVM = nullptr;
+					if (context == ScriptContext::SERVER)
+						pVM = g_pServerVM;
+					else if (context == ScriptContext::CLIENT)
+						pVM = g_pClientVM;
+					else if (context == ScriptContext::UI)
+						pVM = g_pUIVM;
+
+					if (pVM && pVM->GetVM())
+					{
+						ScriptContext nContext = (ScriptContext)pVM->vmContext;
+						HSQUIRRELVM hVM = pVM->GetVM();
+
+						SQObject oFunction {};
+						int nResult = sq_getfunction(hVM, name.c_str(), &oFunction, 0);
+						if (nResult != 0)
+						{
+							Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", name.c_str());
+							return;
+						}
+
+						// Push
+						sq_pushobject(hVM, &oFunction);
+						sq_pushroottable(hVM);
+
+						(void)sq_call(hVM, 1, false, false);
+					}
+				});
 		}
 		else
 		{
-			std::vector<std::string> args;
-			args.reserve(command.ArgC());
+			std::vector<std::string> vArgs;
 			for (int i = 1; i < command.ArgC(); i++)
-				args.push_back(command.Arg(i));
-			g_pSquirrel<context>->AsyncCall(name, args);
+				vArgs.push_back(command.Arg(i));
+
+			g_pTaskScheduler->AddTask(
+				[name, vArgs]()
+				{
+					CSquirrelVM* pVM = nullptr;
+					if (context == ScriptContext::SERVER)
+						pVM = g_pServerVM;
+					else if (context == ScriptContext::CLIENT)
+						pVM = g_pClientVM;
+					else if (context == ScriptContext::UI)
+						pVM = g_pUIVM;
+
+					if (pVM && pVM->GetVM())
+					{
+						ScriptContext nContext = (ScriptContext)pVM->vmContext;
+						HSQUIRRELVM hVM = pVM->GetVM();
+
+						SQObject oFunction {};
+						int nResult = sq_getfunction(hVM, name.c_str(), &oFunction, 0);
+						if (nResult != 0)
+						{
+							Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", name.c_str());
+							return;
+						}
+
+						// Push
+						sq_pushobject(hVM, &oFunction);
+						sq_pushroottable(hVM);
+
+						sq_newarray(hVM, 0);
+
+						for (int i = 0; i < vArgs.size(); i++)
+						{
+							sq_pushstring(hVM, vArgs[i].c_str(), -1);
+							sq_arrayappend(hVM, -2);
+						}
+
+						(void)sq_call(hVM, vArgs.size() + 1, false, false);
+					}
+				});
 		}
 	}
 	else
 	{
-		Warning(eLog::MODSYS, "ConCommand `%s` was called while the associated Squirrel VM `%s` was unloaded\n", name.c_str(), GetContextName(context));
+		Warning(eLog::MODSYS, "ConCommand `%s` was called while the associated Squirrel VM `%s` was unloaded\n", name.c_str(), VScript_GetContextAsString(context));
 	}
 }
 

@@ -2,9 +2,8 @@
 
 #include "logging/logging.h"
 #include "core/memalloc.h"
-#include "squirrel/squirrel.h"
 #include "networksystem/bcrypt.h"
-
+#include "tier0/taskscheduler.h"
 #include "windows/libsys.h"
 #include "networksystem/atlas.h"
 #include "game/shared/vscript_shared.h"
@@ -57,11 +56,6 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	// Init loadlibrary callbacks
 	LibSys_Init();
 
-	// sq
-	g_pSquirrel<ScriptContext::CLIENT> = new SquirrelManager<ScriptContext::CLIENT>;
-	g_pSquirrel<ScriptContext::UI> = new SquirrelManager<ScriptContext::UI>;
-	g_pSquirrel<ScriptContext::SERVER> = new SquirrelManager<ScriptContext::SERVER>;
-
 	g_pScriptHttp = new CScriptHttp();
 
 	// Only run atlas client on client
@@ -73,6 +67,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	g_pAtlasServer = new CAtlasServer();
 
 	g_pAIHelper = new CAI_Helper();
+
+	g_pTaskScheduler = new CTaskScheduler();
 
 	// Fix some users' failure to connect to respawn datacenters
 	SetEnvironmentVariableA("OPENSSL_ia32cap", "~0x200000200000000");

@@ -3,7 +3,6 @@
 #include "tier1/convar.h"
 #include "tier1/cmd.h"
 #include "mathlib/bitbuf.h"
-#include "squirrel/squirrel.h"
 
 enum class TextMsgPrintType_t
 {
@@ -77,7 +76,7 @@ int h_fprintf(void* const stream, const char* const format, ...)
 	va_list va;
 	va_start(va, format);
 
-	SQChar buf[1024];
+	char buf[1024];
 	int charsWritten = vsnprintf_s(buf, _TRUNCATE, format, va);
 
 	if (charsWritten > 0)

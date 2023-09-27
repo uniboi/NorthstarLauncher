@@ -1,21 +1,22 @@
 #pragma once
 
-#include "squirrel/squirrel.h"
+#include "vscript/vscript.h"
+
+void VScript_RegisterSharedFunctions(CSquirrelVM* vm);
 
 //-----------------------------------------------------------------------------
 //
-template <ScriptContext context>
 class CScriptJson
 {
   public:
-	static void DecodeJson(HSquirrelVM* sqvm, nlohmann::json& jsObj);
+	static void DecodeJson(HSQUIRRELVM sqvm, nlohmann::json& jsObj);
 
 	static void EncodeJsonTable(SQTable* pTable, nlohmann::json& jsObj);
 	static void EncodeJsonArray(SQArray* pArray, nlohmann::json& jsObj);
 
   private:
-	static void DecodeTable(HSquirrelVM* sqvm, nlohmann::json& jsObj);
-	static void DecodeArray(HSquirrelVM* sqvm, nlohmann::json& jsObj);
+	static void DecodeTable(HSQUIRRELVM sqvm, nlohmann::json& jsObj);
+	static void DecodeArray(HSQUIRRELVM sqvm, nlohmann::json& jsObj);
 };
 
 //-----------------------------------------------------------------------------
@@ -117,8 +118,7 @@ class CScriptHttp
 
 	bool IsHttpDestinationHostAllowed(const std::string& host, std::string& outHostname, std::string& outAddress, std::string& outPort);
 
-	template <ScriptContext context>
-	int MakeHttpRequest(const HttpRequest_t& requestParameters);
+	int MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptContext nContext);
 
   private:
 	int m_iLastRequestHandle = 0;

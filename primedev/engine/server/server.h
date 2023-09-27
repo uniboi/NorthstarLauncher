@@ -26,7 +26,7 @@ class CServer : public IConnectionlessPacketHandler
 
 	inline const char* GetPassword() const { return m_szPassword; }
 
-	inline CClient* GetClient( int nIdx ) { return &m_Clients[nIdx]; }
+	inline CClient* GetClient( int nIdx ) { return &m_Clients[nIdx]; } // FIXME [Fifty]: Add bounds checking
 	// clang-format on
 
   public: // TODO: make private

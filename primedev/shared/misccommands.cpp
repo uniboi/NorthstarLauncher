@@ -3,7 +3,6 @@
 #include "shared/playlist.h"
 #include "engine/hoststate.h"
 #include "mods/modmanager.h"
-#include "squirrel/squirrel.h"
 
 // fixes up various cvar flags to have more sane values
 void FixupCvarFlags()

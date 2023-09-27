@@ -13,6 +13,12 @@ void h_CEngineVGui__Shutdown(void* self)
 	o_CEngineVGui__Shutdown(self);
 }
 
+ON_DLL_LOAD_CLIENT("client.dll", EngineVguiClient, (CModule module))
+{
+	// uiscript_reset concommand: don't loop forever if compilation fails
+	module.Offset(0x3C6E4C).NOP(6);
+}
+
 ON_DLL_LOAD_CLIENT("engine.dll", EngineVgui, (CModule module))
 {
 	o_CEngineVGui__Shutdown = module.Offset(0x249A70).RCast<void (*)(void*)>();

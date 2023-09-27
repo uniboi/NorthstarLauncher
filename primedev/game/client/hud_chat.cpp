@@ -1,7 +1,7 @@
 #include "game/client/hud_chat.h"
 
 #include "game/server/gameinterface.h"
-#include "squirrel/squirrel.h"
+#include "vscript/vscript.h"
 
 void (*o_CHudChat__AddGameLine)(void* self, const char* message, int inboxId, bool isTeam, bool isDead);
 
@@ -28,8 +28,35 @@ void h_CHudChat__AddGameLine(void* self, const char* message, int inboxId, bool 
 
 	RemoveAsciiControlSequences(const_cast<char*>(message), true);
 
-	SQRESULT result = g_pSquirrel<ScriptContext::CLIENT>->Call("CHudChat_ProcessMessageStartThread", static_cast<int>(senderId) - 1, payload, isTeam, isDead, type);
-	if (result == SQRESULT_ERROR)
+	int nRetValue = SQRESULT_ERROR;
+	if (g_pClientVM && g_pClientVM->GetVM())
+	{
+		ScriptContext nContext = (ScriptContext)g_pClientVM->vmContext;
+		HSQUIRRELVM hVM = g_pClientVM->GetVM();
+		const char* pszFuncName = "CHudChat_ProcessMessageStartThread";
+
+		SQObject oFunction {};
+		int nResult = sq_getfunction(hVM, pszFuncName, &oFunction, 0);
+		if (nResult == 0)
+		{
+			sq_pushobject(hVM, &oFunction);
+			sq_pushroottable(hVM);
+
+			sq_pushinteger(hVM, static_cast<int>(senderId) - 1);
+			sq_pushstring(hVM, payload, -1);
+			sq_pushbool(hVM, isTeam);
+			sq_pushbool(hVM, isDead);
+			sq_pushinteger(hVM, type);
+
+			nRetValue = sq_call(hVM, 6, false, false);
+		}
+		else
+		{
+			Error(VScript_GetNativeLogContext(nContext), NO_ERROR, "Call was unable to find function with name '%s'. Is it global?\n", pszFuncName);
+		}
+	}
+
+	if (nRetValue == SQRESULT_ERROR)
 		for (CHudChat* hud = *CHudChat::allHuds; hud != NULL; hud = hud->next)
 			o_CHudChat__AddGameLine(hud, message, inboxId, isTeam, isDead);
 }
