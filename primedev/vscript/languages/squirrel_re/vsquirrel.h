@@ -131,6 +131,7 @@ class CSquirrelVM
 	char* (*formatString)(__int64 a1, const char* format, ...);
 	BYTE gap_2D0[24];
 };
+static_assert(sizeof(CSquirrelVM) == 744);
 
 inline CSquirrelVM* g_pServerVM = nullptr;
 inline CSquirrelVM* g_pClientVM = nullptr;

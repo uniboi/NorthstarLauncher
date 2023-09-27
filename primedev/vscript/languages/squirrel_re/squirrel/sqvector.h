@@ -2,6 +2,7 @@
 
 #include "vscript/languages/squirrel_re/include/squirrel.h"
 
+// TODO [Fifty]: Verify size
 struct SQVector
 {
 	SQObjectType _Type;

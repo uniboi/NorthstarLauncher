@@ -11,3 +11,4 @@ struct SQArray
 	int _usedSlots;
 	int _allocated;
 };
+static_assert(sizeof(SQArray) == 0x40);

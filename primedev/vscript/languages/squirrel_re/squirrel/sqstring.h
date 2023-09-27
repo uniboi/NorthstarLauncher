@@ -2,6 +2,7 @@
 
 #include "vscript/languages/squirrel_re/include/squirrel.h"
 
+// NOTE [Fifty]: Variable sized struct
 struct alignas(8) SQString
 {
 	void* vftable;
@@ -14,3 +15,4 @@ struct alignas(8) SQString
 	char _hash[8];
 	char _val[1];
 };
+static_assert(sizeof(SQString) == 56); // [Fifty]: Game allocates 56 + strlen

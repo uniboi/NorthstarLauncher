@@ -5,6 +5,7 @@
 class CSquirrelVM;
 struct SQCompiler;
 
+// TODO [Fifty]: Verify size
 struct StringTable
 {
 	unsigned char gap_0[12];
@@ -116,3 +117,4 @@ struct SQSharedState
 	bool enableDebugInfo; // functionality stripped
 	unsigned char gap_43F1[23];
 };
+static_assert(sizeof(SQSharedState) == 17416);

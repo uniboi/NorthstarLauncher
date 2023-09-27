@@ -2,6 +2,7 @@
 
 #include "vscript/languages/squirrel_re/include/squirrel.h"
 
+// NOTE [Fifty]: Variable sized struct
 struct alignas(8) SQFunctionProto
 {
 	void* vftable;

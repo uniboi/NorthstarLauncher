@@ -24,7 +24,5 @@ struct alignas(8) SQTable
 	int size;
 	int field_48;
 	int _usedNodes;
-	unsigned char _gap_50[20];
-	int field_64;
-	unsigned char _gap_68[80];
 };
+static_assert(sizeof(SQTable) == 80);

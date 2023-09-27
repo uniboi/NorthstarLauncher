@@ -16,7 +16,9 @@ struct SQStructDef
 	SQTable* _variableNames;
 	unsigned char gap_[32];
 };
+static_assert(sizeof(SQStructDef) == 128);
 
+// NOTE [Fifty]: Variable sized struct
 struct SQStructInstance
 {
 	void* vftable;
@@ -28,5 +30,6 @@ struct SQStructInstance
 	SQSharedState* _sharedState;
 	unsigned int size;
 	BYTE gap_34[4];
-	SQObject data[1]; // This struct is dynamically sized, so this size is unknown
+	SQObject data[1];
 };
+static_assert(sizeof(SQStructInstance) == 72);

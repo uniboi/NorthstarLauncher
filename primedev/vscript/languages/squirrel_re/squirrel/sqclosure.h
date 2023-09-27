@@ -15,10 +15,8 @@ struct alignas(8) SQClosure
 	SQObject _function;
 	SQObject* _outervalues;
 	unsigned char gap_58[8];
-	unsigned char gap_60[96];
-	SQObject* objectPointer_C0;
-	unsigned char gap_C8[16];
 };
+static_assert(sizeof(SQClosure) == 96);
 
 struct alignas(8) SQNativeClosure
 {
@@ -40,5 +38,5 @@ struct alignas(8) SQNativeClosure
 	SQString* _name;
 	long long value_70;
 	long long value_78;
-	unsigned char justInCaseGap_80[300];
 };
+static_assert(sizeof(SQNativeClosure) == 128);
