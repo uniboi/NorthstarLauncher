@@ -59,6 +59,7 @@ add_library(PrimeDLL SHARED
             "engine/hoststate.h"
             "engine/ivdebugoverlay.h"
             "engine/sv_main.cpp"
+			"engine/sys_dll2.cpp"
             "engine/sys_engine.cpp"
 			"engine/vengineserver_impl.cpp"
 			"engine/vengineserver_impl.h"
