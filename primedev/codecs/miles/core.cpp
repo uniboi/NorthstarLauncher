@@ -3,11 +3,26 @@
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void (*o_MilesLog)(int level, const char* string);
+void (*o_MilesLog)(int level, const char* pszMsg);
 
-void h_MilesLog(int level, const char* string)
+void h_MilesLog(int level, const char* pszMsg)
 {
-	DevMsg(eLog::AUDIO, "%i - %s\n", level, string);
+	// TODO [Fifty]: Add a convar to disable this
+	eLogLevel eLevel = eLogLevel::LOG_ERROR;
+
+	switch (level)
+	{
+	case 1:
+		eLevel = eLogLevel::LOG_INFO;
+		break;
+	case 2:
+		eLevel = eLogLevel::LOG_WARN;
+		break;
+	default:
+		eLevel = eLogLevel::LOG_ERROR;
+	}
+
+	CoreMsg(eLog::AUDIO, eLevel, NO_ERROR, Log_GetContextString(eLog::AUDIO), "%s\n", pszMsg);
 }
 
 ON_DLL_LOAD_CLIENT("client.dll", AudioHooks, (CModule module))
