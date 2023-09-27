@@ -7,8 +7,6 @@ find_package(nlohmann_json REQUIRED)
 
 add_library(PrimeDLL SHARED
             "appframework/IAppSystem.h"
-            "client/audio.cpp"
-            "client/audio.h"
             "client/diskvmtfixes.cpp"
             "client/languagehooks.cpp"
             "client/latencyflex.cpp"
@@ -124,6 +122,8 @@ add_library(PrimeDLL SHARED
             "mathlib/quaternion.h"
             "mathlib/vector.h"
             "mathlib/vplane.h"
+            "mods/audio.cpp"
+            "mods/audio.h"
             "mods/compiled/kb_act.cpp"
             "mods/compiled/modkeyvalues.cpp"
             "mods/compiled/modpdef.cpp"

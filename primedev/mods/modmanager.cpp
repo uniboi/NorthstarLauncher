@@ -1,7 +1,7 @@
 #include "modmanager.h"
 #include "tier1/convar.h"
 #include "tier1/cmd.h"
-#include "client/audio.h"
+#include "mods/audio.h"
 #include "filesystem/basefilesystem.h"
 #include "rtech/pakapi.h"
 #include "vscript/vscript.h"
