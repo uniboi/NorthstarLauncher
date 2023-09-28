@@ -241,6 +241,7 @@ target_precompile_headers(PrimeDLL PRIVATE core/stdafx.h)
 
 target_compile_definitions(PrimeDLL PRIVATE
                            NORTHSTAR
+						   _CRT_SECURE_NO_WARNINGS
                            UNICODE
                            _UNICODE
                            CURL_STATICLIB
