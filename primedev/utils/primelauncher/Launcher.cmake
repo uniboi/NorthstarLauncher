@@ -29,6 +29,7 @@ target_precompile_headers(PrimeLauncher PRIVATE core/stdafx.h)
 
 target_compile_definitions(PrimeLauncher PRIVATE
                            LAUNCHER
+                           _CRT_SECURE_NO_WARNINGS
                            UNICODE
                            _UNICODE
 )

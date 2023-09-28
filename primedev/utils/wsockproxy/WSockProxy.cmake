@@ -55,6 +55,7 @@ target_include_directories(WSockProxy PRIVATE utils/wsockproxy utils)
 
 target_compile_definitions(WSockProxy PRIVATE
                            WSOCKPROXY
+                           _CRT_SECURE_NO_WARNINGS
                            UNICODE
                            _UNICODE
 )

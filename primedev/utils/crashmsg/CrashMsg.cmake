@@ -11,6 +11,7 @@ add_executable(CrashMsg
 target_precompile_headers(CrashMsg PRIVATE core/stdafx.h)
 
 target_compile_definitions(CrashMsg PRIVATE
+                           _CRT_SECURE_NO_WARNINGS
                            UNICODE
                            _UNICODE
 )
