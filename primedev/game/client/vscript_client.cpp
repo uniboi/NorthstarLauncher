@@ -75,6 +75,7 @@ enum eMainMenuPromoDataProperty
 
 SQRESULT Script_NSRequestCustomMainMenuPromos(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	// g_pMasterServerManager->RequestMainMenuPromos();
 	return SQRESULT_NULL;
 }
@@ -88,6 +89,7 @@ SQRESULT Script_NSHasCustomMainMenuPromoData(HSQUIRRELVM sqvm)
 SQRESULT Script_NSGetCustomMainMenuPromoData(HSQUIRRELVM sqvm)
 {
 	int nPromoDataKey = sq_getinteger(sqvm, 1);
+	NOTE_UNUSED(nPromoDataKey);
 	switch (sq_getinteger(sqvm, 1))
 	{
 	case eMainMenuPromoDataProperty::newInfoTitle1:
@@ -134,6 +136,7 @@ SQRESULT Script_NSIsMasterServerAuthenticated(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSRequestServerList(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	g_pAtlasClient->FetchRemoteGameServerList();
 	return SQRESULT_NULL;
 }
@@ -158,6 +161,7 @@ SQRESULT Script_NSGetServerCount(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSClearRecievedServerList(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	g_pAtlasClient->ClearRemoteGameServerList();
 	return SQRESULT_NULL;
 }
@@ -212,16 +216,19 @@ SQRESULT Script_NSWasAuthSuccessful(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSConnectToAuthedServer(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	return SQRESULT_NULL;
 }
 
 SQRESULT Script_NSTryAuthWithLocalServer(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	return SQRESULT_NULL;
 }
 
 SQRESULT Script_NSCompleteAuthWithLocalServer(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	return SQRESULT_NULL;
 }
 
@@ -304,6 +311,7 @@ SQRESULT Script_NSGetGameServers(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSPushGameStateData(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	// SQStructInstance* structInst = g_pSquirrel<ScriptContext::CLIENT>->m_pSQVM->GetVM()->_stackOfCurrentFunction[1]._VAL.asStructInstance;
 
 	return SQRESULT_NOTNULL;
@@ -311,6 +319,7 @@ SQRESULT Script_NSPushGameStateData(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSPushUIPresence(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	// SQStructInstance* structInst = g_pSquirrel<ScriptContext::UI>->m_pSQVM->GetVM()->_stackOfCurrentFunction[1]._VAL.asStructInstance;
 
 	return SQRESULT_NOTNULL;

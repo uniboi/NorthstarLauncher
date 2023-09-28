@@ -5,6 +5,8 @@ void (*o_CCommandLine_CreateCmdLine)(CCommandLine* self, const char* pszCommandL
 
 void h_CCommandLine_CreateCmdLine(CCommandLine* self, const char* pszCommandLine)
 {
+	NOTE_UNUSED(pszCommandLine);
+
 	if (!self->ParmCount())
 		Error(eLog::NS, EXIT_FAILURE, "Commandline not created in LauncherMain\n");
 

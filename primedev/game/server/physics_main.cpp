@@ -8,6 +8,7 @@
 //-----------------------------------------------------------------------------
 void Physics_RunBotThinkFunctions(bool bSimulate)
 {
+	NOTE_UNUSED(bSimulate);
 	// NOTE [Fifty]: running null commands on bots fixes bots being stuck in the air
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{

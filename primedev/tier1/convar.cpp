@@ -26,7 +26,7 @@ ConVar* ConVar::StaticCreate(const char* pszName, const char* pszDefaultValue, i
 	pConVar->m_ConCommandBase.s_pConCommandBases = (ConCommandBase*)g_pIConVar_Vtable;
 
 	conVarMalloc(&pConVar->m_pMalloc, 0, 0);
-	conVarRegister(pConVar, pszName, pszDefaultValue, nFlags, pszHelpString, 0, 0, 0, 0, 0);
+	conVarRegister(pConVar, pszName, pszDefaultValue, nFlags, pszHelpString, bMin, fMin, bMax, fMax, pCallback);
 
 	return pConVar;
 }
@@ -318,6 +318,7 @@ void ConVar::SetValue(Color clValue)
 //-----------------------------------------------------------------------------
 void ConVar::ChangeStringValue(const char* pszTempVal, float flOldValue)
 {
+	NOTE_UNUSED(flOldValue);
 	assert(!(m_ConCommandBase.m_nFlags & FCVAR_NEVER_AS_STRING));
 
 	char* pszOldValue = (char*)_malloca(m_Value.m_iStringLength);

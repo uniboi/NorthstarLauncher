@@ -12,7 +12,7 @@ SQRESULT Script_NSEarlyWritePlayerPersistenceForLeave(HSQUIRRELVM sqvm)
 {
 	// FIXME [Fifty]: Verify we're given CPlayer*
 	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-
+	NOTE_UNUSED(pPlayer);
 	return SQRESULT_NULL;
 }
 

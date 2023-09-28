@@ -12,6 +12,8 @@ extern "C"
 //-----------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+	NOTE_UNUSED(argc);
+	NOTE_UNUSED(argv);
 	g_pLauncher->InitCoreSubsystems();
 	g_pLauncher->WaitForDebugger();
 

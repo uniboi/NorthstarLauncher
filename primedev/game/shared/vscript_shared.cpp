@@ -438,6 +438,7 @@ SQRESULT Script_NSGetModConvarsByModName(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSReloadMods(HSQUIRRELVM sqvm)
 {
+	NOTE_UNUSED(sqvm);
 	g_pModManager->LoadMods();
 	return SQRESULT_NULL;
 }

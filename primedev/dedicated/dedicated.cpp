@@ -24,11 +24,13 @@ struct CDedicatedExports
 
 void Sys_Printf(CDedicatedExports* dedicated, const char* msg)
 {
+	NOTE_UNUSED(dedicated);
 	DevMsg(eLog::ENGINE, "[DEDICATED SERVER] %s\n", msg);
 }
 
 void RunServer(CDedicatedExports* dedicated)
 {
+	NOTE_UNUSED(dedicated);
 	DevMsg(eLog::ENGINE, "CDedicatedExports::RunServer(): starting\n");
 	DevMsg(eLog::ENGINE, "%s\n", CommandLine()->GetCmdLine());
 
@@ -45,7 +47,6 @@ void RunServer(CDedicatedExports* dedicated)
 	Cbuf_Execute();
 
 	// main loop
-	double frameTitle = 0;
 	while (g_pEngine->m_nQuitting == EngineQuitState::QUIT_NOTQUITTING)
 	{
 		double frameStart = Plat_FloatTime();
@@ -58,6 +59,7 @@ void RunServer(CDedicatedExports* dedicated)
 HANDLE consoleInputThreadHandle = NULL;
 DWORD WINAPI ConsoleInputThread(PVOID pThreadParameter)
 {
+	NOTE_UNUSED(pThreadParameter);
 	while (!g_pEngine || !g_pHostState || g_pHostState->m_iCurrentState != HostState_t::HS_RUN)
 		Sleep(1000);
 

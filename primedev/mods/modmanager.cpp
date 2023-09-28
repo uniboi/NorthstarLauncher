@@ -414,6 +414,7 @@ void ModManager::LoadMods()
 	}
 	catch (const std::exception& ex)
 	{
+		NOTE_UNUSED(ex);
 		Error(eLog::MODSYS, NO_ERROR, "Failed to parse enabledmods.json\n");
 	}
 
@@ -498,6 +499,7 @@ void ModManager::LoadMods()
 			}
 			catch (const std::exception& ex)
 			{
+				NOTE_UNUSED(ex);
 				mod.m_bEnabled = true;
 				Error(eLog::MODSYS, NO_ERROR, "enabledmods.json: '%s' has incorrect type ( expected bool )\n", mod.Name.c_str());
 			}
@@ -575,6 +577,7 @@ void ModManager::LoadMods()
 				}
 				catch (const std::exception& ex)
 				{
+					NOTE_UNUSED(ex);
 				}
 			}
 
@@ -622,6 +625,7 @@ void ModManager::LoadMods()
 				}
 				catch (const std::exception& ex)
 				{
+					NOTE_UNUSED(ex);
 				}
 			}
 

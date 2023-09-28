@@ -14,6 +14,7 @@ unsigned int (*o_CLZSS__SafeDecompress)(void* self, const unsigned char* pInput,
 
 unsigned int h_CLZSS__SafeDecompress(void* self, const unsigned char* pInput, unsigned char* pOutput, unsigned int unBufSize)
 {
+	NOTE_UNUSED(self);
 	unsigned int totalBytes = 0;
 	int getCmdByte = 0;
 	int cmdByte = 0;

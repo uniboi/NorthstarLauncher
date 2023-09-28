@@ -208,7 +208,6 @@ void h_DrawAllOverlays(bool bRender)
 	OverlayBase_t* pPrevOverlay = nullptr; // rsi
 	OverlayBase_t* pNextOverlay = nullptr; // rdi
 
-	int m_nCreationTick; // eax
 	bool bShouldDraw; // zf
 	int m_pUnk; // eax
 

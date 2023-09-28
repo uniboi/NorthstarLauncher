@@ -73,6 +73,8 @@ int (*o_fpritnf)(void* const stream, const char* const fmt, ...);
 
 int h_fprintf(void* const stream, const char* const format, ...)
 {
+	NOTE_UNUSED(stream);
+
 	va_list va;
 	va_start(va, format);
 
@@ -102,6 +104,7 @@ void (*o_CVEngineServer__Spew)(void* self, SpewType_t type, const char* fmt, va_
 
 void h_CVEngineServer__Spew(void* self, SpewType_t type, const char* format, va_list args)
 {
+	NOTE_UNUSED(self);
 	if (!Cvar_spewlog_enable->GetBool())
 		return;
 
@@ -206,8 +209,9 @@ void h_Status_ConMsg(const char* text, ...)
 
 bool (*o_CClientState__ProcessPrint)(void* self, uintptr_t msg);
 
-bool h_CClientState__ProcessPrint(void* thisptr, uintptr_t msg)
+bool h_CClientState__ProcessPrint(void* self, uintptr_t msg)
 {
+	NOTE_UNUSED(self);
 	char* text = *(char**)(msg + 0x20);
 
 	size_t endpos = strlen(text);

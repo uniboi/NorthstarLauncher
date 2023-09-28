@@ -23,6 +23,9 @@
 //-----------------------------------------------------------------------------
 void NS_ServerName_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
+	NOTE_UNUSED(pOldValue);
+	NOTE_UNUSED(flOldValue);
+	NOTE_UNUSED(cvar);
 	// update engine hostname cvar
 	Cvar_hostname->SetValue(Cvar_ns_server_name->GetString());
 }
@@ -32,6 +35,9 @@ void NS_ServerName_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 //-----------------------------------------------------------------------------
 void NS_ServerDesc_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
+	NOTE_UNUSED(pOldValue);
+	NOTE_UNUSED(flOldValue);
+	NOTE_UNUSED(cvar);
 	//
 }
 
@@ -40,6 +46,9 @@ void NS_ServerDesc_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 //-----------------------------------------------------------------------------
 void NS_ServerPass_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 {
+	NOTE_UNUSED(pOldValue);
+	NOTE_UNUSED(flOldValue);
+	NOTE_UNUSED(cvar);
 	//
 }
 
@@ -48,6 +57,7 @@ void NS_ServerPass_f(ConVar* cvar, const char* pOldValue, float flOldValue)
 //-----------------------------------------------------------------------------
 void CC_dump_datamap(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	HMODULE hServer = GetModuleHandleA("server.dll");
 	if (!hServer)
 	{
@@ -103,6 +113,7 @@ void CC_Log_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_ToggleConsole_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	if (g_pGameConsole->IsConsoleVisible())
 		g_pGameConsole->Hide();
 	else
@@ -114,6 +125,7 @@ void CC_ToggleConsole_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_ShowConsole_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	g_pGameConsole->Activate();
 }
 
@@ -122,6 +134,7 @@ void CC_ShowConsole_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_HideConsole_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	g_pGameConsole->Hide();
 }
 
@@ -130,6 +143,7 @@ void CC_HideConsole_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_reload_mods_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	g_pModManager->LoadMods();
 }
 //-----------------------------------------------------------------------------
@@ -137,6 +151,7 @@ void CC_reload_mods_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_ns_fetchservers_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	//
 }
 
@@ -194,6 +209,7 @@ void CC_dump_datatable_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_dump_datatables_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	// likely not a comprehensive list, might be missing a couple?
 	static const std::vector<const char*> VANILLA_DATATABLE_PATHS = {"datatable/burn_meter_rewards.rpak",
 																	 "datatable/burn_meter_store.rpak",
@@ -299,6 +315,7 @@ void CC_unban_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_clearbanlist_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	g_pBanSystem->ClearBanlist();
 }
 
@@ -492,6 +509,7 @@ void CC_CreateFakePlayer_f(const CCommand& args)
 //-----------------------------------------------------------------------------
 void CC_DumpTriggersInMap_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	DevMsg(eLog::ENGINE, "Dumping all triggers in this level: -----------------------------------\n");
 	std::unordered_set<std::string> uNames;
 	for (CBaseEntity* pEntity = CGlobalEntityList__FirstEnt(gEntList, nullptr); pEntity; pEntity = CGlobalEntityList__FirstEnt(gEntList, pEntity))

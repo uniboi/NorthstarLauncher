@@ -17,8 +17,9 @@ uintmax_t GetSizeOfFolderContentsMinusFile(fs::path dir, std::string file)
 		{
 			result += fs::file_size(entry.path());
 		}
-		catch (fs::filesystem_error& e)
+		catch (fs::filesystem_error& ex)
 		{
+			NOTE_UNUSED(ex);
 			if (entry.is_directory())
 			{
 				result += GetSizeOfFolderContentsMinusFile(entry.path(), "");
@@ -39,8 +40,9 @@ uintmax_t GetSizeOfFolder(fs::path dir)
 		{
 			result += fs::file_size(entry.path());
 		}
-		catch (fs::filesystem_error& e)
+		catch (fs::filesystem_error& ex)
 		{
+			NOTE_UNUSED(ex);
 			if (entry.is_directory())
 			{
 				result += GetSizeOfFolderContentsMinusFile(entry.path(), "");

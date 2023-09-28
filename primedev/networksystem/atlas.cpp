@@ -578,6 +578,8 @@ void CAtlasServer::UnregisterSelf()
 			CURLcode nResult = CURLSubmitRequest(curl);
 			CURLCleanup(curl);
 
+			NOTE_UNUSED(nResult);
+
 			m_svAuthToken = "";
 			m_svID = "";
 		})
@@ -670,6 +672,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 			}
 			catch (const std::exception& ex)
 			{
+				NOTE_UNUSED(ex);
 				Error(eLog::MS, NO_ERROR, "%s: Failed parsing atlas connectionless packet json!\n", __FUNCTION);
 				return;
 			}
@@ -726,6 +729,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 					}
 					catch (const std::exception& ex)
 					{
+						NOTE_UNUSED(ex);
 					}
 					return;
 				}
@@ -785,6 +789,7 @@ void CAtlasServer::HandleConnectionlessPacket(netpacket_t* packet)
 					}
 					catch (const std::exception& ex)
 					{
+						NOTE_UNUSED(ex);
 					}
 					return;
 				}
@@ -971,6 +976,7 @@ void CAtlasServer::PushPersistence(CClient* pClient)
 			}
 			catch (const std::exception& ex)
 			{
+				NOTE_UNUSED(ex);
 			}
 
 			m_iPersistencePushes--;

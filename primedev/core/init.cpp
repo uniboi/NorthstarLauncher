@@ -16,6 +16,9 @@
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
+	NOTE_UNUSED(hModule);
+	NOTE_UNUSED(dwReason);
+	NOTE_UNUSED(lpReserved);
 	return TRUE;
 }
 

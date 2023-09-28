@@ -6,6 +6,7 @@ void (*o_CC_mat_crosshair_printmaterial_f)(const CCommand& args);
 
 void h_CC_mat_crosshair_printmaterial_f(const CCommand& args)
 {
+	NOTE_UNUSED(args);
 	CMaterialGlue* pMat = GetMaterialAtCrossHair();
 
 	if (!pMat)
