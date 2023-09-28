@@ -1025,4 +1025,4 @@ class CPlayer : public CBaseCombatCharacter
 };
 static_assert(sizeof(CPlayer) == 0x3468);
 
-inline void (*__fastcall CPlayer__RunNullCommand)(CPlayer* self);
+inline void (*CPlayer__RunNullCommand)(CPlayer* self);
