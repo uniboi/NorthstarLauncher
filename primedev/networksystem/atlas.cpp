@@ -846,11 +846,10 @@ void CAtlasServer::AuthenticateLocalClient(std::string svUID)
 		}
 
 		std::string svToken = jsResponse["authToken"].get<std::string>();
-		std::string svUID = jsResponse["id"].get<std::string>();
 
 		AuthInfo_t info;
 		info.m_svName = ""; // Local server
-		info.m_svUID = svUID;
+		info.m_svUID = jsResponse["id"].get<std::string>();
 		info.m_bValid = true;
 
 		int nSize = jsResponse["persistentData"].size();
