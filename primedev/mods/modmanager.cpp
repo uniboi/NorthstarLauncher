@@ -245,11 +245,11 @@ template <ScriptContext context>
 void ModConCommandCallback_Internal(std::string name, const CCommand& command)
 {
 	CSquirrelVM* pVM = nullptr;
-	if (context == ScriptContext::SERVER)
+	if constexpr(context == ScriptContext::SERVER)
 		pVM = g_pServerVM;
-	else if (context == ScriptContext::CLIENT)
+	else if constexpr (context == ScriptContext::CLIENT)
 		pVM = g_pClientVM;
-	else if (context == ScriptContext::UI)
+	else if constexpr (context == ScriptContext::UI)
 		pVM = g_pUIVM;
 
 	if (pVM && pVM->GetVM())
@@ -261,11 +261,11 @@ void ModConCommandCallback_Internal(std::string name, const CCommand& command)
 				[name]()
 				{
 					CSquirrelVM* pVM = nullptr;
-					if (context == ScriptContext::SERVER)
+					if constexpr (context == ScriptContext::SERVER)
 						pVM = g_pServerVM;
-					else if (context == ScriptContext::CLIENT)
+					else if constexpr (context == ScriptContext::CLIENT)
 						pVM = g_pClientVM;
-					else if (context == ScriptContext::UI)
+					else if constexpr (context == ScriptContext::UI)
 						pVM = g_pUIVM;
 
 					if (pVM && pVM->GetVM())
@@ -299,11 +299,11 @@ void ModConCommandCallback_Internal(std::string name, const CCommand& command)
 				[name, vArgs]()
 				{
 					CSquirrelVM* pVM = nullptr;
-					if (context == ScriptContext::SERVER)
+					if constexpr (context == ScriptContext::SERVER)
 						pVM = g_pServerVM;
-					else if (context == ScriptContext::CLIENT)
+					else if constexpr (context == ScriptContext::CLIENT)
 						pVM = g_pClientVM;
-					else if (context == ScriptContext::UI)
+					else if constexpr(context == ScriptContext::UI)
 						pVM = g_pUIVM;
 
 					if (pVM && pVM->GetVM())
