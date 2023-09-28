@@ -100,7 +100,7 @@ bool IsTriggerEntity(CBaseEntity* pEntity)
 // Input  : *pszClassName -
 // Output : The color for the given classname
 //-----------------------------------------------------------------------------
-Color& Trigger_GetColorByClassName(const char* pszClassName)
+Color Trigger_GetColorByClassName(const char* pszClassName)
 {
 	// 40 is the minimum as we subtract 40 to get a more saturated value for the outline
 	Color clrInvalid = Color(255, 255, 0);
