@@ -260,6 +260,10 @@ void CCrashHandler::ShowPopUpMessage()
 		si.cb = sizeof(si);
 		ZeroMemory(&pi, sizeof(pi));
 
+		// No guarantee the string was set
+		if (m_svCrashedOffset.empty())
+			m_svCrashedOffset = "UNKNOWN";
+
 		std::string svCmdLine = fmt::format("bin\\CrashMsg.exe {} {} {} {}", GetExceptionString(), m_svCrashedModule, m_svCrashedOffset, g_svProfileDir);
 
 		if (CreateProcessA(NULL, (LPSTR)svCmdLine.c_str(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
