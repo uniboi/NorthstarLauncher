@@ -1,17 +1,11 @@
 #pragma once
 
 #include "vscript/languages/squirrel_re/include/squirrel.h"
+#include "vscript/languages/squirrel_re/squirrel/sqobject.h"
 
 // NOTE [Fifty]: Variable sized struct
-struct alignas(8) SQFunctionProto
+struct alignas(8) SQFunctionProto : public SQCollectable
 {
-	void* vftable;
-	unsigned char gap_08[4];
-	int uiRef;
-	unsigned char gap_10[8];
-	void* pointer_18;
-	void* pointer_20;
-	void* sharedState;
 	void* pointer_30;
 	SQObjectType _fileNameType;
 	SQString* _fileName;
@@ -26,3 +20,5 @@ struct alignas(8) SQFunctionProto
 	int nDefaultParams;
 	unsigned char gap_EC[200];
 };
+// TODO [Fifty]: Find out the size of the base struct
+static_assert(offsetof(SQFunctionProto, _fileName) == 0x40); // Sanity this check for now

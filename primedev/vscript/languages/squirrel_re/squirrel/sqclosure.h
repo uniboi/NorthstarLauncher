@@ -1,16 +1,10 @@
 #pragma once
 
 #include "vscript/languages/squirrel_re/include/squirrel.h"
+#include "vscript/languages/squirrel_re/squirrel/sqobject.h"
 
-struct alignas(8) SQClosure
+struct alignas(8) SQClosure : public SQCollectable
 {
-	void* vftable;
-	unsigned char gap_08[4];
-	int uiRef;
-	void* pointer_10;
-	void* pointer_18;
-	void* pointer_20;
-	void* sharedState;
 	SQObject obj_30;
 	SQObject _function;
 	SQObject* _outervalues;
@@ -18,15 +12,8 @@ struct alignas(8) SQClosure
 };
 static_assert(sizeof(SQClosure) == 96);
 
-struct alignas(8) SQNativeClosure
+struct alignas(8) SQNativeClosure : public SQCollectable
 {
-	void* vftable;
-	int uiRef;
-	unsigned char gap_C[4];
-	long long value_10;
-	long long value_18;
-	long long value_20;
-	SQSharedState* sharedState;
 	char unknown_30;
 	unsigned char padding_34[7];
 	long long value_38;

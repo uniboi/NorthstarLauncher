@@ -1,8 +1,9 @@
 #pragma once
 
 #include "vscript/languages/squirrel_re/include/squirrel.h"
+#include "vscript/languages/squirrel_re/squirrel/sqobject.h"
 
-struct alignas(8) SQTable
+struct alignas(8) SQTable : public SQDelegable
 {
 	struct _HashNode
 	{
@@ -11,14 +12,6 @@ struct alignas(8) SQTable
 		_HashNode* next;
 	};
 
-	void* vftable;
-	unsigned char gap_08[4];
-	int uiRef;
-	unsigned char gap_10[8];
-	void* pointer_18;
-	void* pointer_20;
-	void* _sharedState;
-	long long field_30;
 	_HashNode* _nodes;
 	int _numOfNodes;
 	int size;

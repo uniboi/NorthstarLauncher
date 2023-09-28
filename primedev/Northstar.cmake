@@ -200,6 +200,7 @@ add_library(PrimeDLL SHARED
             "vscript/languages/squirrel_re/squirrel/sqcompiler.h"
             "vscript/languages/squirrel_re/squirrel/sqfunctionproto.h"
             "vscript/languages/squirrel_re/squirrel/sqlexer.h"
+            "vscript/languages/squirrel_re/squirrel/sqobject.h"
             "vscript/languages/squirrel_re/squirrel/sqopcodes.h"
             "vscript/languages/squirrel_re/squirrel/sqstate.h"
             "vscript/languages/squirrel_re/squirrel/sqstring.h"

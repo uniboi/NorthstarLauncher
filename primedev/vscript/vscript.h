@@ -7,6 +7,7 @@
 #include "vscript/languages/squirrel_re/squirrel/sqcompiler.h"
 #include "vscript/languages/squirrel_re/squirrel/sqfunctionproto.h"
 #include "vscript/languages/squirrel_re/squirrel/sqlexer.h"
+#include "vscript/languages/squirrel_re/squirrel/sqobject.h"
 #include "vscript/languages/squirrel_re/squirrel/sqopcodes.h"
 #include "vscript/languages/squirrel_re/squirrel/sqstate.h"
 #include "vscript/languages/squirrel_re/squirrel/sqstring.h"
