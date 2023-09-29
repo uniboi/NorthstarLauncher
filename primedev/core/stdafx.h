@@ -23,13 +23,9 @@
 
 inline std::string g_svProfileDir;
 
-#ifdef NORTHSTAR
-// clang-format off
-#define assert_msg(exp, msg) assert((exp, msg))
-//clang-format on
-#endif
-
 #include "tier0/utils.h"
+
+#include "core/assert.h"
 
 #ifdef NORTHSTAR
 #include "thirdparty/minhook/include/MinHook.h"

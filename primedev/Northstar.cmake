@@ -19,6 +19,7 @@ add_library(PrimeDLL SHARED
 			"common/callbacks.h"
             "common/globals_cvar.cpp"
             "common/globals_cvar.h"
+			"core/assert.h"
 			"core/init.cpp"
             "core/init.h"
             "core/hooks.cpp"

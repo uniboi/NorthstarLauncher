@@ -119,7 +119,7 @@ extern "C"
 	void* __cdecl _expand_base(void* const pBlock, size_t const nNewSize, int const nBlockUse)
 	{
 		// Expanding isn't supported!!!
-		assert(0);
+		Assert(0);
 		return NULL;
 	}
 	//-------------------------------------------------------------------------
@@ -205,7 +205,7 @@ extern "C"
 		NOTE_UNUSED(nSize);
 		NOTE_UNUSED(nAlign);
 
-		assert(0); // Unsupported function.
+		Assert(0); // Unsupported function.
 		Error(eLog::NONE, EXIT_FAILURE, "Unsupported function\n");
 
 		return NULL;
@@ -246,17 +246,17 @@ extern "C"
 	// aligned offset base ----------------------------------------------------
 	ALLOC_CALL void* __cdecl _aligned_offset_malloc_base(size_t const nSize, size_t const nAlign, size_t const nOffset)
 	{
-		assert(0);
+		Assert(0);
 		return NULL;
 	}
 	ALLOC_CALL void* __cdecl _aligned_offset_realloc_base(void* const pBlock, size_t const nSize, size_t const nAlign, size_t const nOffset)
 	{
-		assert(0);
+		Assert(0);
 		return NULL;
 	}
 	ALLOC_CALL void* __cdecl _aligned_offset_recalloc_base(void* const pBlock, size_t const nSize, size_t const nAlign, size_t const nOffset)
 	{
-		assert(0);
+		Assert(0);
 		return NULL;
 	}
 	// aligned offset ---------------------------------------------------------
@@ -430,7 +430,7 @@ extern "C"
 	//-------------------------------------------------------------------------
 	_CRT_ALLOC_HOOK __cdecl _CrtGetAllocHook(void)
 	{
-		assert(0);
+		Assert(0);
 		return NULL;
 	}
 	int __cdecl CheckBytes(unsigned char* pb, unsigned char bCheck, size_t nSize)
@@ -440,7 +440,7 @@ extern "C"
 	}
 	_CRT_DUMP_CLIENT __cdecl _CrtGetDumpClient(void)
 	{
-		assert(0);
+		Assert(0);
 		return NULL;
 	}
 	void __cdecl _printMemBlockData(_locale_t plocinfo, _CrtMemBlockHeader* pHead) {}

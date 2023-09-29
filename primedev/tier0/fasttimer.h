@@ -359,7 +359,7 @@ inline unsigned long CFastTimer::GetClockSpeed(void)
 inline CCycleCount const& CFastTimer::GetDuration(void) const
 {
 #ifdef DEBUG_FASTTIMER
-	assert(!m_bRunning);
+	Assert(!m_bRunning);
 #endif
 	return m_Duration;
 }
