@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <filesystem>
 #include <sstream>
+#include <mutex>
 
 #define EXPORT extern "C" __declspec(dllexport)
 
@@ -56,6 +57,12 @@ inline std::string g_svProfileDir;
 #include "common/callbacks.h"
 #endif
 
+#if defined(LAUNCHER) || defined(WSOCKPROXY)
+#include "thirdparty/spdlog/spdlog.h"
+#include "thirdparty/spdlog/sinks/base_sink.h"
+#include "thirdparty/spdlog/logger.h"
+#endif
+
 #include "mathlib/color.h"
 
 #include "logging/logging.h"
@@ -65,10 +72,6 @@ inline std::string g_svProfileDir;
 
 #ifdef NORTHSTAR
 #include "core/hooks.h"
-#endif
-
-#if defined(LAUNCHER) || defined(WSOCKPROXY)
-#include "thirdparty/spdlog/spdlog.h"
 #endif
 
 //-----------------------------------------------------------------------------

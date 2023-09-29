@@ -1,7 +1,4 @@
 #pragma once
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/base_sink.h"
-#include "spdlog/logger.h"
 
 #ifdef NORTHSTAR
 #include "mathlib/color.h"

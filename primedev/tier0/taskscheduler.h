@@ -1,7 +1,5 @@
 #pragma once
 
-#include <mutex>
-
 class CTaskScheduler
 {
   public:

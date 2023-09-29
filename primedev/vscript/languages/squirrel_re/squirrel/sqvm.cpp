@@ -42,7 +42,7 @@ void h_SQVM__FatalCompileErrorCallback(HSQUIRRELVM sqvm, const char* error, cons
 	}
 	else
 	{
-		Cbuf_AddText(Cbuf_GetCurrentPlayer(), fmt::format("disconnect \"Encountered {} script compilation error, see console for details.\"", VScript_GetContextAsString(realContext)).c_str(), cmd_source_t::kCommandSrcCode);
+		Cbuf_AddText(Cbuf_GetCurrentPlayer(), FormatA("disconnect \"Encountered %s script compilation error, see console for details.\"", VScript_GetContextAsString(realContext)).c_str(), cmd_source_t::kCommandSrcCode);
 
 		// likely temp: show console so user can see any errors, as error message wont display if ui is dead
 		// maybe we could disable all mods other than the coremods and try a reload before doing this?

@@ -195,7 +195,7 @@ SQRESULT Script_NSBroadcastMessage(HSQUIRRELVM sqvm)
 
 	if (messageType < 1)
 	{
-		sq_raiseerror(sqvm, fmt::format("Invalid message type {}", messageType).c_str());
+		sq_raiseerror(sqvm, FormatA("Invalid message type %i", messageType).c_str());
 		return SQRESULT_ERROR;
 	}
 

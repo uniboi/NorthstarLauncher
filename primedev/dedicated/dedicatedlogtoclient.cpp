@@ -26,7 +26,7 @@ void DediClientMsg(const char* pszMessage)
 	if (eSendPrints == eSendPrintsToClient::NONE)
 		return;
 
-	std::string sLogMessage = fmt::format("{}", pszMessage);
+	std::string sLogMessage = FormatA("%s", pszMessage);
 	for (int i = 0; i < g_pServerGlobalVariables->m_nMaxClients; i++)
 	{
 		CClient* pClient = g_pServer->GetClient(i);

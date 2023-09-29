@@ -25,17 +25,14 @@ SQRESULT Script_NSSaveFile(HSQUIRRELVM sqvm)
 	std::string fileName = sq_getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										fileName, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", fileName.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
 	std::string content = sq_getstring(sqvm, 2);
 	if (ContainsInvalidChars(content))
 	{
-		sq_raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
+		sq_raiseerror(sqvm, FormatA("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!").c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -45,10 +42,7 @@ SQRESULT Script_NSSaveFile(HSQUIRRELVM sqvm)
 	// this ain't a cloud service.
 	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + content.length() > MAX_FOLDER_SIZE)
 	{
-		sq_raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
-										"or increase the maximum folder size using the -maxfoldersize launch parameter.",
-										mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("The mod %s has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage, or increase the maximum folder size using the -maxfoldersize launch parameter.", mod->Name.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -71,10 +65,7 @@ SQRESULT Script_NSSaveJSONFile(HSQUIRRELVM sqvm)
 	std::string fileName = sq_getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										fileName, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", fileName.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -87,7 +78,7 @@ SQRESULT Script_NSSaveJSONFile(HSQUIRRELVM sqvm)
 
 	if (ContainsInvalidChars(svContent))
 	{
-		sq_raiseerror(sqvm, fmt::format("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!", mod->Name).c_str());
+		sq_raiseerror(sqvm, FormatA("File contents may not contain NUL/\\0 characters! Make sure your strings are valid!").c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -97,10 +88,7 @@ SQRESULT Script_NSSaveJSONFile(HSQUIRRELVM sqvm)
 	// this ain't a cloud service.
 	if (GetSizeOfFolderContentsMinusFile(dir, fileName) + svContent.length() > MAX_FOLDER_SIZE)
 	{
-		sq_raiseerror(sqvm, fmt::format("The mod {} has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage,"
-										"or increase the maximum folder size using the -maxfoldersize launch parameter.",
-										mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("The mod %s has reached the maximum folder size.\n\nAsk the mod developer to optimize their data usage, or increase the maximum folder size using the -maxfoldersize launch parameter.", mod->Name.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -123,10 +111,7 @@ SQRESULT Script_NS_InternalLoadFile(HSQUIRRELVM sqvm)
 	std::string fileName = sq_getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										fileName, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", fileName.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -144,10 +129,7 @@ SQRESULT Script_NSDoesFileExist(HSQUIRRELVM sqvm)
 	std::string fileName = sq_getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										fileName, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", fileName.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -164,10 +146,7 @@ SQRESULT Script_NSGetFileSize(HSQUIRRELVM sqvm)
 	std::string fileName = sq_getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										fileName, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", fileName.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 	try
@@ -194,10 +173,7 @@ SQRESULT Script_NSDeleteFile(HSQUIRRELVM sqvm)
 	std::string fileName = sq_getstring(sqvm, 1);
 	if (!IsPathSafe(fileName, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										fileName, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", fileName.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 
@@ -217,10 +193,7 @@ SQRESULT Script_NS_InternalGetAllFiles(HSQUIRRELVM sqvm)
 		path = dir / pathStr;
 	if (!IsPathSafe(pathStr, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										pathStr, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", pathStr.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 	try
@@ -251,10 +224,7 @@ SQRESULT Script_NSIsFolder(HSQUIRRELVM sqvm)
 		path = dir / pathStr;
 	if (!IsPathSafe(pathStr, dir))
 	{
-		sq_raiseerror(sqvm, fmt::format("File name invalid ({})! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's "
-										"save folder.",
-										pathStr, mod->Name)
-								.c_str());
+		sq_raiseerror(sqvm, FormatA("File name invalid (%s)! Make sure it does not contain any non-ASCII character, and results in a path inside your mod's save folder.", pathStr.c_str()).c_str());
 		return SQRESULT_ERROR;
 	}
 	try
@@ -1111,7 +1081,7 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 			if (!bAllowLocalHttp)
 			{
 				curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-				host = curl_slist_append(host, fmt::format("{}:{}:{}", hostname, resolvedPort, resolvedAddress).c_str());
+				host = curl_slist_append(host, FormatA("%s:%s:%s", hostname.c_str(), resolvedPort.c_str(), resolvedAddress.c_str()).c_str());
 				curl_easy_setopt(curl, CURLOPT_RESOLVE, host);
 			}
 
@@ -1164,12 +1134,12 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 
 						if (isFirstValue && !bUrlContainsQuery)
 						{
-							queryUrl.append(fmt::format("?{}={}", key, value));
+							queryUrl.append(FormatA("?%s=%s", key, value));
 							isFirstValue = false;
 						}
 						else
 						{
-							queryUrl.append(fmt::format("&{}={}", key, value));
+							queryUrl.append(FormatA("&%s=%s", key, value));
 						}
 
 						curl_free(value);
@@ -1208,14 +1178,14 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 			// Content-Type header for POST-like requests.
 			if (UsesCurlPostOptions(requestParameters.eMethod) && !requestParameters.svBody.empty())
 			{
-				headers = curl_slist_append(headers, fmt::format("Content-Type: {}", requestParameters.svContentType).c_str());
+				headers = curl_slist_append(headers, FormatA("Content-Type: %s", requestParameters.svContentType.c_str()).c_str());
 			}
 
 			for (const auto& kv : requestParameters.mpHeaders)
 			{
 				for (const std::string& headerValue : kv.second)
 				{
-					headers = curl_slist_append(headers, fmt::format("{}: {}", kv.first, headerValue).c_str());
+					headers = curl_slist_append(headers, FormatA("%s: %s", kv.first.c_str(), headerValue.c_str()).c_str());
 				}
 			}
 

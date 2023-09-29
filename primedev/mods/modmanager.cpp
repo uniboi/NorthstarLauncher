@@ -923,7 +923,7 @@ void ModManager::ReloadMapsList()
 	}
 
 	// get maps in game dir
-	for (fs::directory_entry file : fs::directory_iterator(fmt::format("{}/maps", "r2"))) // assume mod dir
+	for (fs::directory_entry file : fs::directory_iterator(FormatA("%s/maps", "r2"))) // assume mod dir
 	{
 		if (file.path().extension() == ".bsp")
 		{

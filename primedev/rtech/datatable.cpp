@@ -61,7 +61,7 @@ std::string DataTableToString(Datatable* datatable)
 			case DatatableType::VECTOR:
 			{
 				Vector3* pVector = (Vector3*)(pUntypedVal);
-				sCSVString += fmt::format("<{},{},{}>", pVector->x, pVector->y, pVector->z);
+				sCSVString += FormatA("<%f,%f,%f>", pVector->x, pVector->y, pVector->z);
 				break;
 			}
 
@@ -69,7 +69,7 @@ std::string DataTableToString(Datatable* datatable)
 			case DatatableType::ASSET:
 			case DatatableType::UNK_STRING:
 			{
-				sCSVString += fmt::format("\"{}\"", *(char**)pUntypedVal);
+				sCSVString += FormatA("\"%s\"", *(char**)pUntypedVal);
 				break;
 			}
 			}
@@ -88,7 +88,7 @@ void DumpDatatable(const char* pDatatablePath)
 		return;
 	}
 
-	std::string sOutputPath(fmt::format("{}/scripts/datatable/{}.csv", g_pEngineParms->szModName, fs::path(pDatatablePath).stem().string()));
+	std::string sOutputPath(FormatA("%s/scripts/datatable/%s.csv", g_pEngineParms->szModName, fs::path(pDatatablePath).stem().string().c_str()));
 	std::string sDatatableContents(DataTableToString(pDatatable));
 
 	fs::create_directories(fs::path(sOutputPath).remove_filename());

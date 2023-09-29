@@ -38,7 +38,7 @@ dtNavMesh* GetNavMeshForHull(int nHull)
 void CAI_Helper::SaveNetworkGraph(CAI_Network* aiNetwork)
 {
 	// FIXME [Fifty]: Use new classes for this, clean up
-	fs::path writePath(fmt::format("{}/maps/graphs", g_pEngineParms->szModName));
+	fs::path writePath(FormatA("%s/maps/graphs", g_pEngineParms->szModName));
 	writePath /= g_pServerGlobalVariables->m_pMapName;
 	writePath += ".ain";
 
