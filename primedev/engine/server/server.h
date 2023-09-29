@@ -50,7 +50,7 @@ class CServer : public IConnectionlessPacketHandler
 	bool m_bUseReputation;
 	bool m_bSimulating;
 	int m_nPad;
-	BFWrite m_Signon;
+	bf_write m_Signon;
 	CUtlMemory<int8_t> m_SignonBuffer;
 	int m_nServerClasses;
 	int m_nServerClassBits;

@@ -37,9 +37,9 @@ enum class SpewType_t
 };
 ICenterPrint* pInternalCenterPrint = NULL;
 
-void (*o_TextMsg)(BFRead* msg);
+void (*o_TextMsg)(bf_read* msg);
 
-void h_TextMsg(BFRead* msg)
+void h_TextMsg(bf_read* msg)
 {
 	TextMsgPrintType_t msg_dest = (TextMsgPrintType_t)msg->ReadByte();
 
@@ -242,7 +242,7 @@ ON_DLL_LOAD("engine.dll", EngineSpewFuncHooks, (CModule module))
 
 ON_DLL_LOAD_CLIENT("client.dll", ClientPrintHooks, (CModule module))
 {
-	o_TextMsg = module.Offset(0x198710).RCast<void (*)(BFRead*)>();
+	o_TextMsg = module.Offset(0x198710).RCast<void (*)(bf_read*)>();
 	HookAttach(&(PVOID&)o_TextMsg, (PVOID)h_TextMsg);
 
 	pInternalCenterPrint = module.Offset(0x216E940).RCast<ICenterPrint*>();

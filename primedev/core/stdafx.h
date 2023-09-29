@@ -15,8 +15,13 @@
 #include <sstream>
 
 #define EXPORT extern "C" __declspec(dllexport)
+
 #define ARRAY_SIZE(arr) ((sizeof(arr) / sizeof(*arr)))
+
 #define NOTE_UNUSED(var) (void)(var)
+
+#define FORCEINLINE __forceinline
+#define FORCEINLINE_TEMPLATE __forceinline
 
 // Get around version gate
 #define NORTHSTAR_USERAGENT "R2Northstar/0.0.0+dev"
@@ -26,6 +31,7 @@ inline std::string g_svProfileDir;
 #include "tier0/utils.h"
 
 #include "core/assert.h"
+#include "core/basetypes.h"
 
 #ifdef NORTHSTAR
 #include "thirdparty/minhook/include/MinHook.h"
