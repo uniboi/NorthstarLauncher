@@ -32,7 +32,7 @@ std::string Launcher_GetProfile()
 	if (strncmp(svProfile.substr(9, 1).c_str(), "\"", 1))
 	{
 		// Find space
-		int space = svProfile.find(" ");
+		size_t space = svProfile.find(" ");
 
 		svProfile = svProfile.substr(9, space - 9);
 	}
@@ -182,7 +182,7 @@ void CNorthstarLauncher::InitCoreSubsystems()
 	if (!FileExists("Titanfall2.exe"))
 	{
 		MessageBoxA(NULL, "Titanfall2.exe not found, make sure you installed northstar correctly.", "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	// TODO: Verify install dir
@@ -192,7 +192,7 @@ void CNorthstarLauncher::InitCoreSubsystems()
 	{
 		std::string svErrorMsg = FormatA("Profile: '%s' is invalid. Make sure you used valid characters!", g_svProfileDir.c_str());
 		MessageBoxA(NULL, svErrorMsg.c_str(), "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	// Load tier0.dll
@@ -205,13 +205,13 @@ void CNorthstarLauncher::InitCoreSubsystems()
 					"Failed to load tier0.dll. The file exists. This means you're missing x64 msvc 2012 redistributables.\n\nPlease verify your "
 					"files and try again.",
 					"Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	if (!hTier0)
 	{
 		MessageBoxA(NULL, "Failed to load tier0.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	CommandLine = reinterpret_cast<CCommandLine* (*)()>(GetProcAddress(hTier0, "CommandLine"));
@@ -269,7 +269,7 @@ void CNorthstarLauncher::InjectNorthstar()
 	if (!hNorthstar)
 	{
 		MessageBoxA(NULL, "Failed to load Prime.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	// Get 'NorthstarPrime_Initilase'
@@ -279,7 +279,7 @@ void CNorthstarLauncher::InjectNorthstar()
 	if (!NorthstarPrime_Initilase)
 	{
 		MessageBoxA(NULL, "Loaded Prime.dll doesn't export NorthstarPrime_Initilase!\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	//------------------------------------------------------
@@ -308,7 +308,7 @@ void CNorthstarLauncher::InjectNorthstar()
 	if (!hNTdll)
 	{
 		MessageBoxA(NULL, "Challenge Complete!\nHow Did We Get Here?", "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	DWORD(WINAPI * RtlGetVersion)(LPOSVERSIONINFOEXW);
@@ -357,7 +357,7 @@ void CNorthstarLauncher::InjectNorthstar()
 	if (!hLauncher)
 	{
 		MessageBoxA(NULL, "Failed to load launcher.dll.\n\nPlease verify your files and try again.", "Northstar Prime error", MB_ICONERROR);
-		TerminateProcess(GetCurrentProcess(), -1);
+		TerminateProcess(GetCurrentProcess(), EXIT_FAILURE);
 	}
 
 	int (*LauncherMain)(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow);
