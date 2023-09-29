@@ -125,7 +125,6 @@ SQRESULT Script_NSGetCustomMainMenuPromoData(HSQUIRRELVM sqvm)
 	}
 
 	return SQRESULT_NOTNULL;
-	return SQRESULT_NOTNULL;
 }
 
 SQRESULT Script_NSIsMasterServerAuthenticated(HSQUIRRELVM sqvm)
