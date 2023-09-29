@@ -30,6 +30,11 @@ message(STATUS "NS: Building to ${NS_BINARY_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/primedev/cmake")
 include(utils)
 
+# add_compile_options(
+#         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Debug>>:/MTd>
+#         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/MT>
+#     )
+
 include_directories(primedev)
 include_directories(primedev/thirdparty)
 

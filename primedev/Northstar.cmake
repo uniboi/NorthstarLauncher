@@ -24,8 +24,6 @@ add_library(PrimeDLL SHARED
             "core/hooks.cpp"
             "core/hooks.h"
             "core/macros.h"
-            "core/memalloc.cpp"
-            "core/memalloc.h"
             "dedicated/dedicated.cpp"
             "dedicated/dedicated.h"
             "dedicated/dedicatedlogtoclient.cpp"
@@ -118,6 +116,7 @@ add_library(PrimeDLL SHARED
             "mathlib/color.cpp"
             "mathlib/color.h"
             "mathlib/math_pfns.h"
+            "mathlib/mathlib.h"
             "mathlib/matrix.h"
             "mathlib/quaternion.h"
             "mathlib/vector.h"
@@ -245,11 +244,19 @@ target_compile_definitions(PrimeDLL PRIVATE
                            UNICODE
                            _UNICODE
                            CURL_STATICLIB
+# 						   CURL_STATIC_CRT
+)
+
+target_link_options(PrimeDLL PRIVATE
+                    "/MANIFEST:NO" # Don't create .manifest
+                    "/DEBUG"       # Create debug symbols even on release builds
+
+					# This is needed so we can override *_dbg alloc functions
+                    $<$<CONFIG:Debug>:/FORCE:MULTIPLE>
 )
 
 set_target_properties(PrimeDLL PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY ${NS_BINARY_DIR}
                       OUTPUT_NAME bin/x64_retail/Prime
                       COMPILE_FLAGS "/W4"
-                      LINK_FLAGS "/MANIFEST:NO /DEBUG"
 )

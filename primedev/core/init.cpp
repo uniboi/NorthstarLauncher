@@ -1,7 +1,6 @@
 #include "init.h"
 
 #include "logging/logging.h"
-#include "core/memalloc.h"
 #include "networksystem/bcrypt.h"
 #include "tier0/taskscheduler.h"
 #include "windows/libsys.h"
@@ -96,7 +95,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	// Fix some users' failure to connect to respawn datacenters
 	SetEnvironmentVariableA("OPENSSL_ia32cap", "~0x200000200000000");
 
-	curl_global_init_mem(CURL_GLOBAL_DEFAULT, _malloc_base, _free_base, _realloc_base, _strdup_base, _calloc_base);
+	//curl_global_init_mem(CURL_GLOBAL_DEFAULT, _malloc_base, _free_base, _realloc_base, _strdup_base, _calloc_base);
+	curl_global_init(CURL_GLOBAL_ALL);
 
 	// run callbacks for any libraries that are already loaded by now
 	CallAllPendingDLLLoadCallbacks();

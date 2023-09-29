@@ -11,7 +11,7 @@ ConCommandConstructorType ConCommandConstructor;
 //-----------------------------------------------------------------------------
 ConCommand* ConCommand::StaticCreate(const char* szName, const char* szHelpString, int nFlags, FnCommandCallback pCallback, FnCommandCompletionCallback pCommandCompletionCallback)
 {
-	ConCommand* pConCommand = reinterpret_cast<ConCommand*>(GlobalMemAllocSingleton()->m_vtable->Alloc(g_pMemAllocSingleton, sizeof(ConCommand)));
+	ConCommand* pConCommand = new ConCommand;
 	ConCommandConstructor(pConCommand, szName, pCallback, szHelpString, nFlags, nullptr);
 	pConCommand->m_pCompletionCallback = pCommandCompletionCallback;
 

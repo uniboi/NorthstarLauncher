@@ -41,7 +41,6 @@ inline std::string g_svProfileDir;
 #include "thirdparty/nlohmann/include/nlohmann/json.hpp"
 
 #include "tier0/memstd.h"
-#include "core/memalloc.h"
 #include "tier0/platform.h"
 #include "tier0/threadtools.h"
 

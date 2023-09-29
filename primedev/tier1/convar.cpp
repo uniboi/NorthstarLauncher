@@ -20,7 +20,7 @@ ConVar* ConVar::StaticCreate(const char* pszName, const char* pszDefaultValue, i
 {
 	DevMsg(eLog::ENGINE, "Registering Convar %s\n", pszName);
 
-	ConVar* pConVar = reinterpret_cast<ConVar*>(GlobalMemAllocSingleton()->m_vtable->Alloc(g_pMemAllocSingleton, sizeof(ConVar)));
+	ConVar* pConVar = new ConVar;
 
 	pConVar->m_ConCommandBase.m_pConCommandBaseVTable = g_pConVar_Vtable;
 	pConVar->m_ConCommandBase.s_pConCommandBases = (ConCommandBase*)g_pIConVar_Vtable;

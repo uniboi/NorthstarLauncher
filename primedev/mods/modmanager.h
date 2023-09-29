@@ -1,6 +1,5 @@
 #pragma once
-#include "tier1/convar.h"
-#include "core/memalloc.h"
+
 #include "vscript/vscript.h"
 
 #include <string>
