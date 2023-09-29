@@ -178,5 +178,6 @@ class ConVar
 	void* m_pMalloc {}; // 0x0070
 	char m_pPad80[10] {}; // 0x0080
 }; // Size: 0x0080
+static_assert(sizeof(ConVar) == 0x88);
 
 int ParseConVarFlagsString(std::string modName, std::string flags);

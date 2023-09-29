@@ -45,7 +45,7 @@ class VPlane
 //-----------------------------------------------------------------------------
 // Inlines.
 //-----------------------------------------------------------------------------
-inline VPlane::VPlane() {}
+inline VPlane::VPlane() : m_Normal(0.0f), m_Dist(0.0f) {}
 
 inline VPlane::VPlane(const Vector3& vNormal, float dist)
 {

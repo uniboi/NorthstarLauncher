@@ -114,6 +114,7 @@ class ConCommandBase
 	ConCommandBase* s_pConCommandBases; // 0x002C
 	IConCommandBaseAccessor* s_pAccessor; // 0x0034
 }; // Size: 0x0040
+static_assert(sizeof(ConCommandBase) == 0x40);
 
 // taken from ttf2sdk
 class ConCommand : public ConCommandBase
@@ -123,7 +124,7 @@ class ConCommand : public ConCommandBase
   public:
 	static ConCommand* StaticCreate(const char* szName, const char* szHelpString, int nFlags, FnCommandCallback pCallback, FnCommandCompletionCallback pCommandCompletionCallback);
 
-	ConCommand(void) {}; // !TODO: Rebuild engine constructor in SDK instead.
+	ConCommand(void) : m_pCommandCallback(nullptr), m_pCompletionCallback(nullptr), m_nCallbackFlags(0), pad_0054(0), unk0(0), unk1(0) {}; // !TODO: Rebuild engine constructor in SDK instead.
 	ConCommand(const char* szName, const char* szHelpString, int nFlags, void* pCallback, void* pCommandCompletionCallback);
 	void Init(void);
 	bool IsCommand(void) const;
@@ -131,7 +132,8 @@ class ConCommand : public ConCommandBase
 	FnCommandCallback m_pCommandCallback {}; // 0x0040 <- starts from 0x40 since we inherit ConCommandBase.
 	FnCommandCompletionCallback m_pCompletionCallback {}; // 0x0048 <- defaults to sub_180417410 ('xor eax, eax').
 	int m_nCallbackFlags {}; // 0x0050
-	char pad_0054[4]; // 0x0054
+	int pad_0054; // 0x0054
 	int unk0; // 0x0058
 	int unk1; // 0x005C
 }; // Size: 0x0060
+static_assert(sizeof(ConCommand) == 0x60);

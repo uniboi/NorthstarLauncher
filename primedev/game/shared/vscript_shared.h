@@ -38,7 +38,7 @@ class CScriptHttp
 	struct HttpRequest_t
 	{
 		// Method used for this http request.
-		Type eMethod;
+		Type eMethod = HTTP_GET;
 
 		// Base URL of this http request.
 		std::string svBaseUrl;
@@ -56,7 +56,7 @@ class CScriptHttp
 		std::string svBody;
 
 		// The timeout for the http request, in seconds. Must be between 1 and 60.
-		int nTimeout;
+		int nTimeout = 30;
 
 		// If set, the override to use for the User-Agent header.
 		std::string svUserAgent;
