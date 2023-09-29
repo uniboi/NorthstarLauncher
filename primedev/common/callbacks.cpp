@@ -404,10 +404,10 @@ void CC_find_f(const CCommand& arg)
 			strncpy_s(szLowerTerm, sizeof(szLowerTerm), arg.Arg(i + 1), sizeof(szLowerTerm) - 1);
 
 			for (int i = 0; szLowerName[i]; i++)
-				szLowerName[i] = tolower(szLowerName[i]);
+				szLowerName[i] = (char)tolower(szLowerName[i]);
 
 			for (int i = 0; szLowerTerm[i]; i++)
-				szLowerTerm[i] = tolower(szLowerTerm[i]);
+				szLowerTerm[i] = (char)tolower(szLowerTerm[i]);
 
 			if (strstr(szLowerName, szLowerTerm))
 			{
@@ -421,6 +421,8 @@ void CC_find_f(const CCommand& arg)
 			g_pCVar->PrintHelpString(pCmdBase->m_pszName);
 		}
 	}
+
+	delete pIter;
 }
 
 //-----------------------------------------------------------------------------
