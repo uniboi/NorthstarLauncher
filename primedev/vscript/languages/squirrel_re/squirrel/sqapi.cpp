@@ -11,6 +11,8 @@
 //-----------------------------------------------------------------------------
 const SQChar* sq_getstring(HSQUIRRELVM sqvm, SQInteger iStackpos)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_STRING);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getstringServer(sqvm, iStackpos);
@@ -23,6 +25,8 @@ const SQChar* sq_getstring(HSQUIRRELVM sqvm, SQInteger iStackpos)
 //-----------------------------------------------------------------------------
 SQInteger sq_getinteger(HSQUIRRELVM sqvm, SQInteger iStackpos)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_INTEGER);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getintegerServer(sqvm, iStackpos);
@@ -35,6 +39,8 @@ SQInteger sq_getinteger(HSQUIRRELVM sqvm, SQInteger iStackpos)
 //-----------------------------------------------------------------------------
 SQFloat sq_getfloat(HSQUIRRELVM sqvm, SQInteger iStackpos)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_FLOAT);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getfloatServer(sqvm, iStackpos);
@@ -47,6 +53,8 @@ SQFloat sq_getfloat(HSQUIRRELVM sqvm, SQInteger iStackpos)
 //-----------------------------------------------------------------------------
 SQBool sq_getbool(HSQUIRRELVM sqvm, SQInteger iStackpos)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_BOOL);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getboolServer(sqvm, iStackpos);
@@ -71,6 +79,8 @@ SQRESULT sq_get(HSQUIRRELVM sqvm, SQInteger iStackpos)
 //-----------------------------------------------------------------------------
 SQRESULT sq_getasset(HSQUIRRELVM sqvm, SQInteger iStackpos, const char** pResult)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_ASSET);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getassetServer(sqvm, iStackpos, pResult);
@@ -83,6 +93,8 @@ SQRESULT sq_getasset(HSQUIRRELVM sqvm, SQInteger iStackpos, const char** pResult
 //-----------------------------------------------------------------------------
 SQRESULT sq_getuserdata(HSQUIRRELVM sqvm, SQInteger iStackpos, void** pData, uint64_t* pId)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_USERDATA);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getuserdataServer(sqvm, iStackpos, pData, pId);
@@ -95,6 +107,8 @@ SQRESULT sq_getuserdata(HSQUIRRELVM sqvm, SQInteger iStackpos, void** pData, uin
 //-----------------------------------------------------------------------------
 SQFloat* sq_getvector(HSQUIRRELVM sqvm, SQInteger iStackpos)
 {
+	Assert(sqvm->_stackOfCurrentFunction[iStackpos]._Type == OT_VECTOR);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getvectorServer(sqvm, iStackpos);
@@ -107,6 +121,8 @@ SQFloat* sq_getvector(HSQUIRRELVM sqvm, SQInteger iStackpos)
 //-----------------------------------------------------------------------------
 SQBool sq_getthisentity(HSQUIRRELVM sqvm, void** ppEntity)
 {
+	Assert(sqvm->_stackOfCurrentFunction->_Type == 0x408000);
+
 	// FIXME [Fifty]: Reimplement this
 	if (sqvm->sharedState->cSquirrelVM->vmContext == (int)ScriptContext::SERVER)
 		return o_sq_getthisentityServer(sqvm, ppEntity);
