@@ -993,7 +993,6 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 
 							if (pVM && pVM->GetVM())
 							{
-								ScriptContext nContext = (ScriptContext)pVM->vmContext;
 								HSQUIRRELVM hVM = pVM->GetVM();
 								const char* pszFunction = "NSHandleFailedHttpRequest";
 
@@ -1041,7 +1040,6 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 
 						if (pVM && pVM->GetVM())
 						{
-							ScriptContext nContext = (ScriptContext)pVM->vmContext;
 							HSQUIRRELVM hVM = pVM->GetVM();
 							const char* pszFunction = "NSHandleFailedHttpRequest";
 
@@ -1234,7 +1232,6 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 
 						if (pVM && pVM->GetVM())
 						{
-							ScriptContext nContext = (ScriptContext)pVM->vmContext;
 							HSQUIRRELVM hVM = pVM->GetVM();
 							const char* pszFunction = "NSHandleSuccessfulHttpRequest";
 
@@ -1285,7 +1282,6 @@ int CScriptHttp::MakeHttpRequest(const HttpRequest_t& requestParameters, ScriptC
 
 						if (pVM && pVM->GetVM())
 						{
-							ScriptContext nContext = (ScriptContext)pVM->vmContext;
 							HSQUIRRELVM hVM = pVM->GetVM();
 							const char* pszFunction = "NSHandleFailedHttpRequest";
 

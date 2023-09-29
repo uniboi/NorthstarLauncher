@@ -98,7 +98,6 @@ class SaveFileManager
 
 								if (pVM && pVM->GetVM())
 								{
-									ScriptContext nContext = (ScriptContext)pVM->vmContext;
 									HSQUIRRELVM hVM = pVM->GetVM();
 									const char* pszFuncName = "NSHandleLoadResult";
 
@@ -143,7 +142,6 @@ class SaveFileManager
 
 							if (pVM && pVM->GetVM())
 							{
-								ScriptContext nContext = (ScriptContext)pVM->vmContext;
 								HSQUIRRELVM hVM = pVM->GetVM();
 								const char* pszFuncName = "NSHandleLoadResult";
 
