@@ -7,32 +7,6 @@
 // fixes up various cvar flags to have more sane values
 void FixupCvarFlags()
 {
-	if (CommandLine()->CheckParm("-allowdevcvars"))
-	{
-		// strip hidden and devonly cvar flags
-		int iNumCvarsAltered = 0;
-		for (auto& pair : g_pCVar->DumpToMap())
-		{
-			// strip flags
-			int flags = pair.second->GetFlags();
-			if (flags & FCVAR_DEVELOPMENTONLY)
-			{
-				flags &= ~FCVAR_DEVELOPMENTONLY;
-				iNumCvarsAltered++;
-			}
-
-			if (flags & FCVAR_HIDDEN)
-			{
-				flags &= ~FCVAR_HIDDEN;
-				iNumCvarsAltered++;
-			}
-
-			pair.second->m_nFlags = flags;
-		}
-
-		DevMsg(eLog::NS, "Removed %i hidden/devonly cvar flags\n", iNumCvarsAltered);
-	}
-
 	// make all engine client commands FCVAR_GAMEDLL_FOR_REMOTE_CLIENTS
 	// these are usually checked through CGameClient::IsEngineClientCommand, but we get more control over this if we just do it through
 	// cvar flags

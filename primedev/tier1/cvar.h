@@ -82,7 +82,6 @@ class ICvar : public IAppSystem
 class CCvar : public ICvar
 {
   public:
-	std::unordered_map<std::string, ConCommandBase*> DumpToMap();
 	std::string GetFlagsString(int nFlags, bool bConVar);
 	void PrintHelpString(const char* szName);
 };
