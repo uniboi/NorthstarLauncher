@@ -4,6 +4,8 @@
 #include "mathlib/color.h"
 #include "mathlib/vector.h"
 
+inline void* g_pCPlayer_VFTable = nullptr;
+
 class CBaseEntity;
 
 class IServerNetworkable
@@ -50,6 +52,11 @@ static_assert(sizeof(CCollisionProperty) == 112);
 class CBaseEntity // : public IServerEntity
 {
   public:
+	bool IsPlayer() const
+	{
+		return vftable == g_pCPlayer_VFTable;
+	}
+
 	void* vftable;
 
 	uint32_t m_RefEHandle; // 0x8 ( Size: 4 ) // handle

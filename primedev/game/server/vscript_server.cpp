@@ -10,9 +10,22 @@
 
 SQRESULT Script_NSEarlyWritePlayerPersistenceForLeave(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
+	{
+		sq_raiseerror(sqvm, "Given entity is null!");
+		return SQRESULT_ERROR;
+	}
+
+	if (!pEntity->IsPlayer())
+	{
+		sq_raiseerror(sqvm, "Given entity is not of type CPlayer!");
+		return SQRESULT_ERROR;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 	NOTE_UNUSED(pPlayer);
+
 	return SQRESULT_NULL;
 }
 
@@ -24,15 +37,24 @@ SQRESULT Script_NSIsWritingPlayerPersistence(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSIsPlayerLocalPlayer(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-	if (!pPlayer)
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
 	{
-		Warning(eLog::NS, "NSIsPlayerLocalPlayer got null player\n");
+		Error(eLog::NS, NO_ERROR, "NSIsPlayerLocalPlayer got null entity\n");
 
 		sq_pushbool(sqvm, false);
 		return SQRESULT_NOTNULL;
 	}
+
+	if (!pEntity->IsPlayer())
+	{
+		Error(eLog::NS, NO_ERROR, "NSIsPlayerLocalPlayer got non-player entity\n");
+
+		sq_pushbool(sqvm, false);
+		return SQRESULT_NOTNULL;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 
 	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
 	sq_pushbool(sqvm, !strcmp(g_pLocalPlayerUserID, pClient->m_UID));
@@ -47,23 +69,32 @@ SQRESULT Script_NSIsDedicated(HSQUIRRELVM sqvm)
 
 SQRESULT Script_NSDisconnectPlayer(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
 	const char* reason = sq_getstring(sqvm, 2);
 
-	if (!pPlayer)
+	if (!pEntity)
 	{
-		Warning(eLog::NS, "Attempted to call NSDisconnectPlayer() with null player.\n");
+		Error(eLog::NS, NO_ERROR, "Attempted to call NSDisconnectPlayer() with null entity.\n");
 
 		sq_pushbool(sqvm, false);
 		return SQRESULT_NOTNULL;
 	}
 
+	if (!pEntity->IsPlayer())
+	{
+		Error(eLog::NS, NO_ERROR, "Attempted to call NSDisconnectPlayer() with non-player entity.\n");
+
+		sq_pushbool(sqvm, false);
+		return SQRESULT_NOTNULL;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
+
 	// Shouldn't happen but I like sanity checks.
 	CClient* pClient = g_pServer->GetClient(pPlayer->m_Network.m_edict - 1);
 	if (!pClient)
 	{
-		Warning(eLog::NS, "NSDisconnectPlayer(): player entity has null CClient!\n");
+		Error(eLog::NS, NO_ERROR, "NSDisconnectPlayer(): player entity has null CClient!\n");
 
 		sq_pushbool(sqvm, false);
 		return SQRESULT_NOTNULL;
@@ -84,13 +115,20 @@ SQRESULT Script_NSDisconnectPlayer(HSQUIRRELVM sqvm)
 
 SQRESULT Script_GetUserInfoKVString_Internal(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-	if (!pPlayer)
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
 	{
-		sq_raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "Given entity is null!");
 		return SQRESULT_ERROR;
 	}
+
+	if (!pEntity->IsPlayer())
+	{
+		sq_raiseerror(sqvm, "Given entity is not a player!");
+		return SQRESULT_ERROR;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 
 	const char* pKey = sq_getstring(sqvm, 2);
 	const char* pDefaultValue = sq_getstring(sqvm, 3);
@@ -102,13 +140,20 @@ SQRESULT Script_GetUserInfoKVString_Internal(HSQUIRRELVM sqvm)
 
 SQRESULT Script_GetUserInfoKVAsset_Internal(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-	if (!pPlayer)
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
 	{
-		sq_raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "Given entity is not null!");
 		return SQRESULT_ERROR;
 	}
+
+	if (!pEntity->IsPlayer())
+	{
+		sq_raiseerror(sqvm, "Given entity is not a player!");
+		return SQRESULT_ERROR;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 
 	const char* pKey = sq_getstring(sqvm, 2);
 	const char* pDefaultValue;
@@ -121,13 +166,20 @@ SQRESULT Script_GetUserInfoKVAsset_Internal(HSQUIRRELVM sqvm)
 
 SQRESULT Script_GetUserInfoKVInt_Internal(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-	if (!pPlayer)
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
 	{
-		sq_raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "Given entity is null!");
 		return SQRESULT_ERROR;
 	}
+
+	if (!pEntity->IsPlayer())
+	{
+		sq_raiseerror(sqvm, "Given entity is not a player!");
+		return SQRESULT_ERROR;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 
 	const char* pKey = sq_getstring(sqvm, 2);
 	const int iDefaultValue = sq_getinteger(sqvm, 3);
@@ -139,13 +191,20 @@ SQRESULT Script_GetUserInfoKVInt_Internal(HSQUIRRELVM sqvm)
 
 SQRESULT Script_GetUserInfoKVFloat_Internal(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-	if (!pPlayer)
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
 	{
-		sq_raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "Given entity is null!");
 		return SQRESULT_ERROR;
 	}
+
+	if (!pEntity->IsPlayer())
+	{
+		sq_raiseerror(sqvm, "Given entity is not a player!");
+		return SQRESULT_ERROR;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 
 	const char* pKey = sq_getstring(sqvm, 2);
 	const float flDefaultValue = sq_getfloat(sqvm, 3);
@@ -157,13 +216,20 @@ SQRESULT Script_GetUserInfoKVFloat_Internal(HSQUIRRELVM sqvm)
 
 SQRESULT Script_GetUserInfoKVBool_Internal(HSQUIRRELVM sqvm)
 {
-	// FIXME [Fifty]: Verify we're given CPlayer*
-	const CPlayer* pPlayer = (CPlayer*)sq_getentity(sqvm, 1);
-	if (!pPlayer)
+	const CBaseEntity* pEntity = sq_getentity(sqvm, 1);
+	if (!pEntity)
 	{
-		sq_raiseerror(sqvm, "player is null");
+		sq_raiseerror(sqvm, "Given entity is null!");
 		return SQRESULT_ERROR;
 	}
+
+	if (!pEntity->IsPlayer())
+	{
+		sq_raiseerror(sqvm, "Given entity is not a player!");
+		return SQRESULT_ERROR;
+	}
+
+	const CPlayer* pPlayer = (const CPlayer*)pEntity;
 
 	const char* pKey = sq_getstring(sqvm, 2);
 	const bool bDefaultValue = sq_getbool(sqvm, 3);

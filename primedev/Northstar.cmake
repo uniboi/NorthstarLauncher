@@ -83,6 +83,7 @@ add_library(PrimeDLL SHARED
             "game/server/baseanimating.h"
             "game/server/baseanimatingoverlay.h"
             "game/server/basecombatcharacter.h"
+            "game/server/baseentity.cpp"
             "game/server/baseentity.h"
             "game/server/basetoggle.h"
             "game/server/enginecallback.h"
