@@ -8,6 +8,7 @@
 #include "game/shared/vscript_shared.h"
 #include "game/server/ai_helper.h"
 #include "game/client/cdll_client_int.h"
+#include "mods/modmanager.h"
 
 #include <string>
 
@@ -72,6 +73,8 @@ bool NorthstarPrime_Initilase(LogMsgFn pLogMsg, const char* pszProfile)
 	g_pAIHelper = new CAI_Helper();
 
 	g_pTaskScheduler = new CTaskScheduler();
+
+	g_pModManager = new ModManager();
 
 	// Connect to the LatencyFleX service
 	// LatencyFleX is an open source vendor agnostic replacement for Nvidia Reflex input latency reduction technology.

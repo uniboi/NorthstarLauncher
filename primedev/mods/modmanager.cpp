@@ -237,8 +237,6 @@ ModManager::ModManager()
 	m_hPdefHash = STR_HASH("cfg\\server\\persistent_player_data_version_231.pdef" // this can have multiple versions, but we use 231 so that's what we hash
 	);
 	m_hKBActHash = STR_HASH("scripts\\kb_act.lst");
-
-	LoadMods();
 }
 
 template <ScriptContext context>
@@ -950,9 +948,4 @@ fs::path GetRemoteModFolderPath()
 fs::path GetCompiledAssetsPath()
 {
 	return fs::path(g_svProfileDir + COMPILED_ASSETS_SUFFIX);
-}
-
-ON_DLL_LOAD_RELIESON("engine.dll", ModManager, ConVar, (CModule module))
-{
-	g_pModManager = new ModManager;
 }
