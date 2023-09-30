@@ -124,6 +124,11 @@ SQRESULT Script_NS_InternalLoadFile(HSQUIRRELVM sqvm)
 SQRESULT Script_NSDoesFileExist(HSQUIRRELVM sqvm)
 {
 	Mod* mod = sq_getcallingmod(sqvm);
+	if (mod == nullptr)
+	{
+		sq_raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
 
 	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
 	std::string fileName = sq_getstring(sqvm, 1);
@@ -141,6 +146,11 @@ SQRESULT Script_NSDoesFileExist(HSQUIRRELVM sqvm)
 SQRESULT Script_NSGetFileSize(HSQUIRRELVM sqvm)
 {
 	Mod* mod = sq_getcallingmod(sqvm);
+	if (mod == nullptr)
+	{
+		sq_raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
 
 	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
 	std::string fileName = sq_getstring(sqvm, 1);
@@ -168,6 +178,11 @@ SQRESULT Script_NSGetFileSize(HSQUIRRELVM sqvm)
 SQRESULT Script_NSDeleteFile(HSQUIRRELVM sqvm)
 {
 	Mod* mod = sq_getcallingmod(sqvm);
+	if (mod == nullptr)
+	{
+		sq_raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
 
 	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
 	std::string fileName = sq_getstring(sqvm, 1);
@@ -186,6 +201,12 @@ SQRESULT Script_NS_InternalGetAllFiles(HSQUIRRELVM sqvm)
 {
 	// depth 1 because this should always get called from Northstar.Custom
 	Mod* mod = sq_getcallingmod(sqvm, 1);
+	if (mod == nullptr)
+	{
+		sq_raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
+
 	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
 	std::string pathStr = sq_getstring(sqvm, 1);
 	fs::path path = dir;
@@ -217,6 +238,12 @@ SQRESULT Script_NS_InternalGetAllFiles(HSQUIRRELVM sqvm)
 SQRESULT Script_NSIsFolder(HSQUIRRELVM sqvm)
 {
 	Mod* mod = sq_getcallingmod(sqvm);
+	if (mod == nullptr)
+	{
+		sq_raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
+
 	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
 	std::string pathStr = sq_getstring(sqvm, 1);
 	fs::path path = dir;
@@ -245,6 +272,12 @@ SQRESULT Script_NSIsFolder(HSQUIRRELVM sqvm)
 SQRESULT Script_NSGetTotalSpaceRemaining(HSQUIRRELVM sqvm)
 {
 	Mod* mod = sq_getcallingmod(sqvm);
+	if (mod == nullptr)
+	{
+		sq_raiseerror(sqvm, "Has to be called from a mod function!");
+		return SQRESULT_ERROR;
+	}
+
 	fs::path dir = g_svSavePath / fs::path(mod->m_ModDirectory).filename();
 	sq_pushinteger(sqvm, (MAX_FOLDER_SIZE - GetSizeOfFolder(dir)) / 1024);
 	return SQRESULT_NOTNULL;
@@ -477,7 +510,8 @@ SQRESULT Script_NSGetLocalPlayerUID(HSQUIRRELVM sqvm)
 SQRESULT Script_NSGetCurrentModName(HSQUIRRELVM sqvm)
 {
 	int depth = sq_getinteger(sqvm, 1);
-	if (auto mod = sq_getcallingmod(sqvm, depth); mod == nullptr)
+	Mod* mod = sq_getcallingmod(sqvm, depth);
+	if (mod == nullptr)
 	{
 		sq_raiseerror(sqvm, "NSGetModName was called from a non-mod script. This shouldn't be possible");
 		return SQRESULT_ERROR;
@@ -492,7 +526,8 @@ SQRESULT Script_NSGetCurrentModName(HSQUIRRELVM sqvm)
 SQRESULT Script_NSGetCallingModName(HSQUIRRELVM sqvm)
 {
 	int depth = sq_getinteger(sqvm, 1);
-	if (Mod* mod = sq_getcallingmod(sqvm, depth); mod == nullptr)
+	Mod* mod = sq_getcallingmod(sqvm, depth);
+	if (mod == nullptr)
 	{
 		sq_pushstring(sqvm, "Unknown", -1);
 	}
