@@ -74,9 +74,29 @@ void CC_dump_datamap(const CCommand& args)
 	// CTriggerMultiple: 0xB2E4C0
 	// CTriggerBrush: 0xB14650
 	// CWeaponX: 0xBAF1B0
-	datamap_t* pMap = mServer.Offset(0xBAF1B0).RCast<datamap_t*>();
+	datamap_t* pCTriggerHurt = mServer.Offset(0xB2DE80).RCast<datamap_t*>();
+	DataMap_Dump(pCTriggerHurt);
 
-	DataMap_Dump(pMap);
+	datamap_t* pCPlayer = mServer.Offset(0xB86460).RCast<datamap_t*>();
+	DataMap_Dump(pCPlayer);
+
+	datamap_t* pCFuncBrush = mServer.Offset(0xB145C0).RCast<datamap_t*>();
+	DataMap_Dump(pCFuncBrush);
+
+	datamap_t* pCBaseEntity = mServer.Offset(0xB63070).RCast<datamap_t*>();
+	DataMap_Dump(pCBaseEntity);
+
+	datamap_t* pCAI_NetworkManager = mServer.Offset(0xB51720).RCast<datamap_t*>();
+	DataMap_Dump(pCAI_NetworkManager);
+
+	datamap_t* pCTriggerMultiple = mServer.Offset(0xB2E4C0).RCast<datamap_t*>();
+	DataMap_Dump(pCTriggerMultiple);
+
+	datamap_t* pCTriggerBrush = mServer.Offset(0xB14650).RCast<datamap_t*>();
+	DataMap_Dump(pCTriggerBrush);
+
+	datamap_t* pCWeaponX = mServer.Offset(0xBAF1B0).RCast<datamap_t*>();
+	DataMap_Dump(pCWeaponX);
 }
 
 //-----------------------------------------------------------------------------
