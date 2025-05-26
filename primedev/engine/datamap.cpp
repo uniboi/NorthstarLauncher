@@ -6,13 +6,15 @@
 #include <sstream>
 #include <cstdarg>
 
+char staticTempBuffer[1024];
+
 const char* DataMap_UndefinedBufferTypeStr(int size)
 {
 	// just leak it idc
-	char* buf = (char*)malloc(sizeof("undefined[]") + 3);
-	memset(buf, 0, sizeof("undefined[]") + 3);
-	sprintf(buf, "[%d]_undefined", size);
-	return buf;
+	// char* buf = (char*)malloc(sizeof("undefined[]") + 6);
+	// memset(buf, 0, sizeof("undefined[]") + 6);
+	sprintf(staticTempBuffer, "[%d]_undefined", size);
+	return staticTempBuffer;
 }
 
 //-----------------------------------------------------------------------------
@@ -56,17 +58,24 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type, int size)
 	case FIELD_COLOR32:
 		return "Color32";
 	case FIELD_EMBEDDED:
-		return "embedded";
 	case FIELD_CUSTOM:
+		// case FIELD_UNKNOWN:
 		return DataMap_UndefinedBufferTypeStr(size);
 	case FIELD_CLASSPTR:
 		return "*CBaseEntity";
 	case FIELD_EHANDLE:
+	{
+		if (size == 4)
+			return "EHANDLE";
+
 		if (size == 5)
 			return "EHANDLE5"; // SmartAmmo_WeaponData has a couple 5 byte ehandles for some reason???
-		return "EHANDLE";
+
+		sprintf(staticTempBuffer, "[%d]EHANDLE", size / 4);
+		return staticTempBuffer;
+	}
 	case FIELD_EDICT:
-		return "*edict_t";
+		return "edict_t";
 	case FIELD_POSITION_VECTOR:
 		return "Vector3";
 	case FIELD_TIME:
@@ -76,7 +85,7 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type, int size)
 	case FIELD_MODELNAME:
 		return "ModelName";
 	case FIELD_SOUNDNAME:
-		return "soundName";
+		return "SoundName";
 	case FIELD_INPUT:
 		return "Input";
 	case FIELD_FUNCTION:
@@ -203,15 +212,90 @@ int DataMap_Alignment(datamap_t* pMap)
 	return 4;
 }
 
-typedescription_t* DataMap_DumpFields(datamap_t* pMap, std::string& svBuffer)
+typedescription_t* DataMap_LastPhysicalField(datamap_t* pMap)
+{
+	typedescription_t* lastPhysicalField = nullptr;
+	int nFields = pMap->dataNumFields;
+	for (int i = 0; i < nFields; i++)
+	{
+		typedescription_t* pCurDesc = &pMap->dataDesc[i];
+
+		if ((i > 0 && pCurDesc->fieldOffset == 0))
+			continue;
+		if (lastPhysicalField && pCurDesc->fieldOffset < lastPhysicalField->fieldOffset + lastPhysicalField->fieldSizeInBytes)
+			continue;
+		if (pCurDesc->fieldSizeInBytes == 0)
+			continue;
+
+		lastPhysicalField = pCurDesc;
+	}
+	return lastPhysicalField;
+}
+
+const char* TypeDesc_FieldName(const char* name)
+{
+	memset(staticTempBuffer, 0, 1024);
+	strcpy(staticTempBuffer, name);
+
+	for (int i = 0; i < sizeof(staticTempBuffer); i++)
+	{
+		char c = staticTempBuffer[i];
+		if (c == 0)
+			break;
+		if (c == '[' || c == ']' || c == '.')
+			staticTempBuffer[i] = '_';
+	}
+
+	return staticTempBuffer;
+}
+
+int TotalFieldSize(typedescription_t* field)
+{
+	switch (field->fieldType)
+	{
+	case FIELD_EMBEDDED:
+		return field->fieldSizeInBytes * field->fieldSize;
+	default:
+		return field->fieldSizeInBytes;
+	}
+}
+
+int DataMap_TotalSize(datamap_t* pMap, int alignment)
+{
+	if (!pMap)
+		return 0;
+
+	//// They fatfingered the type size of m_playerObserver
+	// if (strcmp(pMap->dataClassName, "CGlobalNonRewinding") == 0)
+	//{
+	//	return 0xbe0;
+	// }
+
+	typedescription_t* lastField = DataMap_LastPhysicalField(pMap);
+
+	if (!lastField)
+		return DataMap_TotalSize(pMap->pBaseMap, alignment);
+
+	// if ((lastField->fieldOffset + lastField->fieldSizeInBytes) % alignment == 0)
+	//	return lastField->fieldOffset + lastField->fieldSizeInBytes;
+	// return lastField->fieldOffset + (alignment - ((lastField->fieldOffset + lastField->fieldSizeInBytes) % alignment)) + lastField->fieldSizeInBytes;
+
+	if ((lastField->fieldOffset + TotalFieldSize(lastField)) % alignment == 0)
+		return lastField->fieldOffset + TotalFieldSize(lastField);
+	return lastField->fieldOffset + (alignment - ((lastField->fieldOffset + TotalFieldSize(lastField)) % alignment)) + TotalFieldSize(lastField);
+}
+
+typedescription_t* DataMap_DumpFields(datamap_t* pMap, CFileStream& fstream)
 {
 	if (DataMap_HasVTable(pMap))
-		svBuffer += "  vtable: *anyopaque,\n";
+	{
+		fstream.WriteString("    vtable: *anyopaque,\n");
+	}
 
 	if (pMap->pBaseMap)
 	{
 		// include the base class without any vtable members
-		svBuffer += FormatA("  %s: Inherit(%s),\n\n", pMap->pBaseMap->dataClassName, pMap->pBaseMap->dataClassName);
+		fstream.WriteString(FormatA("    %s: Inherit(%s),\n\n", pMap->pBaseMap->dataClassName, pMap->pBaseMap->dataClassName));
 	}
 
 	typedescription_t* lastPhysicalField = nullptr;
@@ -228,69 +312,88 @@ typedescription_t* DataMap_DumpFields(datamap_t* pMap, std::string& svBuffer)
 		if (pCurDesc->fieldSizeInBytes == 0)
 			continue;
 
-		lastPhysicalField = pCurDesc;
-
 		// padding
-		if (typedescription_t* pLast = DataMap_PreviousField(pMap, i); pLast && pLast->fieldOffset + pLast->fieldSizeInBytes < pCurDesc->fieldOffset)
+		// if (typedescription_t* pLast = DataMap_PreviousField(pMap, i); pLast && pLast->fieldOffset + pLast->fieldSizeInBytes < pCurDesc->fieldOffset)
+		if (lastPhysicalField && lastPhysicalField->fieldOffset + lastPhysicalField->fieldSizeInBytes < pCurDesc->fieldOffset)
 		{
-			int nPadBytes = pCurDesc->fieldOffset - (pLast->fieldOffset + pLast->fieldSizeInBytes);
+			int nPadBytes = pCurDesc->fieldOffset - (lastPhysicalField->fieldOffset + lastPhysicalField->fieldSizeInBytes);
 
-			// sometimes the calculation of field size is incorrect in the datamap (??) leading to huge gaps that are incorrect.
+			// sometimes the field size is incorrect in the datamap (??) leading to huge gaps that are incorrect.
 			// padding larger than the structure alignment wouldn't be inserted by the compiler hinting to a pad size calculation error.
 			// if (nPadBytes <= DataMap_Alignment(pMap))
 			if (nPadBytes <= 8)
 			{
-				svBuffer += FormatA("    gap_%x: [%i]_undefined,\n", pCurDesc->fieldOffset - nPadBytes, nPadBytes);
+				fstream.WriteString(FormatA("    gap_%x: [%i]_undefined,\n", pCurDesc->fieldOffset - nPadBytes, nPadBytes));
 			}
 		}
 
-		svBuffer += FormatA("    %s: ", pCurDesc->fieldName); // Print name
+		lastPhysicalField = pCurDesc;
 
-		// field type
-		if (pCurDesc->fieldSize != 1)
+		fstream.WriteString(FormatA("    %s: ", TypeDesc_FieldName(pCurDesc->fieldName)));
+
+		// if (false && pCurDesc->fieldSizeInBytes % MAX(pCurDesc->fieldSize, 1))
+		//{
+		//	// they messed up either fieldSizeinBytes or fieldSize
+		//	fstream.WriteString(DataMap_UndefinedBufferTypeStr(pCurDesc->fieldSizeInBytes));
+		//	fstream.WriteString(", // bruh ");
+		// }
+		// else
 		{
-			svBuffer += FormatA("[%d]", pCurDesc->fieldSize); // Print array size
-		}
-		if (pCurDesc->td) // Print Type
-		{
-			svBuffer += FormatA("%s", pCurDesc->td->dataClassName);
-		}
-		else
-		{
-			svBuffer += FormatA("%s", DataMap_GetFieldTypeStr(pCurDesc->fieldType, pCurDesc->fieldSizeInBytes / pCurDesc->fieldSize));
+			int undividable = pCurDesc->fieldSizeInBytes % MAX(pCurDesc->fieldSize, 1);
+			if (undividable && pCurDesc->fieldType == FIELD_UNKNOWN)
+			{
+				fstream.WriteString(DataMap_UndefinedBufferTypeStr(pCurDesc->fieldSizeInBytes));
+			}
+			else
+			{
+				if (pCurDesc->fieldSize > 1)
+				{
+					fstream.WriteString(FormatA("[%d]", pCurDesc->fieldSize));
+				}
+
+				if (pCurDesc->td) // Print Type
+				{
+					if (pCurDesc->fieldSizeInBytes == 8 && DataMap_TotalSize(pCurDesc->td, 8) > 8)
+						fstream.WriteString("*");
+					fstream.WriteString(FormatA("%s", pCurDesc->td->dataClassName));
+				}
+				else
+				{
+					// if (undividable)
+					//	fstream.WriteString(DataMap_UndefinedBufferTypeStr(pCurDesc->fieldSizeInBytes));
+					// else
+					fstream.WriteString(FormatA("%s", DataMap_GetFieldTypeStr(pCurDesc->fieldType, pCurDesc->fieldSizeInBytes / MAX(pCurDesc->fieldSize, 1))));
+				}
+			}
+
+			if (undividable)
+				fstream.WriteString(", // undividable");
 		}
 
-		svBuffer += FormatA(", // +0x%x size: 0x%x (0x%x * 0x%x) %i\n", pCurDesc->fieldOffset, pCurDesc->fieldSizeInBytes, pCurDesc->fieldSize, pCurDesc->fieldSizeInBytes / pCurDesc->fieldSize, pCurDesc->fieldType);
+		fstream.WriteString(FormatA(", // +0x%x size: 0x%x (0x%x * 0x%x) type %i\n", pCurDesc->fieldOffset, pCurDesc->fieldSizeInBytes, pCurDesc->fieldSize, pCurDesc->fieldSizeInBytes / MAX(pCurDesc->fieldSize, 1), pCurDesc->fieldType));
 	}
 
 	return lastPhysicalField;
 }
 
-int DataMap_TotalSize(int lastFieldOffset, int lastFieldSize, int alignment)
-{
-	if ((lastFieldOffset + lastFieldSize) % alignment == 0)
-		return lastFieldOffset + lastFieldSize;
-	return lastFieldOffset + (alignment - ((lastFieldOffset + lastFieldSize) % alignment)) + lastFieldSize;
-}
-
-void DataMap_DumpEmbeddedMaps(datamap_t*, std::string&, std::unordered_set<std::string>&);
+void DataMap_DumpEmbeddedMaps(datamap_t*, std::unordered_set<std::string>&, CFileStream&);
 
 //-----------------------------------------------------------------------------
 // Purpose: Dumps a datamap_t pointer to a std::string passed by ref
 // Input  : *pMap -
 //          &svBuffer -
 //-----------------------------------------------------------------------------
-void DataMap_DumpStr(datamap_t* pMap, std::string& svBuffer, std::unordered_set<std::string>& structs)
+void DataMap_DumpStr(datamap_t* pMap, std::unordered_set<std::string>& structs, CFileStream& fstream)
 {
 	if (structs.count(pMap->dataClassName) == 0)
 	{
-		svBuffer += FormatA("pub const %s = extern struct {\n", pMap->dataClassName);
-		typedescription_t* lastField = DataMap_DumpFields(pMap, svBuffer);
-		svBuffer += "\n    test {\n";
+		fstream.WriteString(FormatA("pub const %s = extern struct {\n", pMap->dataClassName));
+		DataMap_DumpFields(pMap, fstream);
+		fstream.WriteString("\n    test {\n");
 
 		int alignment = DataMap_Alignment(pMap);
-		int totalSize = DataMap_TotalSize(lastField->fieldOffset, lastField->fieldSizeInBytes, alignment);
-		svBuffer += FormatA("        try std.testing.expect(@sizeOf(@This()) == 0x%x);\n", totalSize);
+		int totalSize = DataMap_TotalSize(pMap, alignment);
+		fstream.WriteString(FormatA("        try std.testing.expect(@sizeOf(@This()) == 0x%x);\n", totalSize));
 
 		int nFields = pMap->dataNumFields;
 		typedescription_t* lastPhysicalField = nullptr;
@@ -307,19 +410,18 @@ void DataMap_DumpStr(datamap_t* pMap, std::string& svBuffer, std::unordered_set<
 
 			lastPhysicalField = pCurDesc;
 
-			svBuffer += FormatA("        try std.testing.expect(@offsetOf(@This(), \"%s\") == 0x%x);\n", pCurDesc->fieldName, pCurDesc->fieldOffset);
+			fstream.WriteString(FormatA("        try std.testing.expect(@offsetOf(@This(), \"%s\") == 0x%x);\n", TypeDesc_FieldName(pCurDesc->fieldName), pCurDesc->fieldOffset));
 		}
 
-		svBuffer += "    }\n";
-		svBuffer += "};\n\n";
+		fstream.WriteString("    }\n};\n\n");
 
 		structs.insert(pMap->dataClassName);
 	}
 
-	DataMap_DumpEmbeddedMaps(pMap, svBuffer, structs);
+	DataMap_DumpEmbeddedMaps(pMap, structs, fstream);
 }
 
-void DataMap_DumpEmbeddedMaps(datamap_t* pMap, std::string& svBuffer, std::unordered_set<std::string>& structs)
+void DataMap_DumpEmbeddedMaps(datamap_t* pMap, std::unordered_set<std::string>& structs, CFileStream& fstream)
 {
 	int nFields = pMap->dataNumFields;
 	for (int i = 0; i < nFields; i++)
@@ -328,14 +430,14 @@ void DataMap_DumpEmbeddedMaps(datamap_t* pMap, std::string& svBuffer, std::unord
 
 		if (pCurDesc->td && structs.count(pCurDesc->td->dataClassName) == 0)
 		{
-			DataMap_DumpStr(pCurDesc->td, svBuffer, structs);
+			DataMap_DumpStr(pCurDesc->td, structs, fstream);
 		}
 	}
 
 	if (pMap->pBaseMap && structs.count(pMap->pBaseMap->dataClassName) == 0)
 	{
-		DataMap_DumpStr(pMap->pBaseMap, svBuffer, structs);
-		DataMap_DumpEmbeddedMaps(pMap->pBaseMap, svBuffer, structs);
+		DataMap_DumpStr(pMap->pBaseMap, structs, fstream);
+		DataMap_DumpEmbeddedMaps(pMap->pBaseMap, structs, fstream);
 	}
 }
 
@@ -343,35 +445,24 @@ void DataMap_DumpEmbeddedMaps(datamap_t* pMap, std::string& svBuffer, std::unord
 // Purpose: Dumps a datamap_t pointer to disk
 // Input  : *pMap -
 //-----------------------------------------------------------------------------
-void DataMap_Dump(datamap_t* pMap)
+void DataMap_Dump(std::vector<datamap_t*> maps)
 {
-	if (!pMap)
-	{
-		Error(eLog::ENGINE, NO_ERROR, "Datamap is null!");
-		return;
-	}
-
-	DevMsg(eLog::NS, "Dumping datamap\n");
-
-	std::string svAddTypes; // Additional types used in this map
-	std::string svMapFile; // This map
+	DevMsg(eLog::NS, "Dumping %i datamaps\n", maps.size());
 
 	std::unordered_set<std::string> structs = {};
 
-	// dump our map
-	DataMap_DumpStr(pMap, svMapFile, structs);
-
 	// Write it to disk
 	CFileStream fStream;
-	fStream.Open(FormatA("%s\\Map_%s.txt", g_pEngineParms->szModName, pMap->dataClassName).c_str(), CFileStream::WRITE);
-	fStream.WriteString(svAddTypes);
-	fStream.WriteString(svMapFile);
+	// fStream.Open(FormatA("%s\\Map_%s.txt", g_pEngineParms->szModName, pMap->dataClassName).c_str(), CFileStream::WRITE);
+	fStream.Open(FormatA("%s\\Datamaps.txt", g_pEngineParms->szModName), CFileStream::WRITE);
+
+	for (datamap_t* pMap : maps)
+	{
+		DataMap_DumpStr(pMap, structs, fStream);
+		// DevMsg(eLog::NS, "Succesfully dumped %s\n", pMap->dataClassName);
+	}
+
+	DevMsg(eLog::NS, "Successfully dumped datamaps\n");
+
 	fStream.Close();
-
-	DevMsg(eLog::NS, "Succesfully dumped %s\n", pMap->dataClassName);
-
-	// if (pMap->pBaseMap)
-	//{
-	//	DataMap_Dump(pMap->pBaseMap);
-	// }
 }

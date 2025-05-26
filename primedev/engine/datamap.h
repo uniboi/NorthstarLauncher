@@ -12,7 +12,7 @@ const char* DataMap_GetSizeTypeStr(int iBytes);
 
 //-----------------------------------------------------------------------------
 //
-void DataMap_Dump(datamap_t* pMap);
+void DataMap_Dump(std::vector<datamap_t*> pMap);
 
 //-----------------------------------------------------------------------------
 // field types
@@ -58,6 +58,8 @@ enum fieldtype_t
 	FIELD_INTEGER64, // 64bit integer
 
 	FIELD_VECTOR4D, // 4 floats
+
+	FIELD_UNKNOWN,
 
 	FIELD_TYPECOUNT, // MUST BE LAST
 };
