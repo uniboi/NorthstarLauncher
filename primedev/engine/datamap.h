@@ -7,8 +7,8 @@ enum fieldtype_t;
 
 //-----------------------------------------------------------------------------
 // Helpers
-const char* DataMap_GetFieldTypeStr(fieldtype_t type);
-const char* DataMap_GetSizeTypeStr(int iBytes);
+const char* DataMap_GetFieldTypeStr(fieldtype_t type, int*);
+const char* DataMap_GetSizeTypeStr(int iBytes, int*);
 
 //-----------------------------------------------------------------------------
 //
