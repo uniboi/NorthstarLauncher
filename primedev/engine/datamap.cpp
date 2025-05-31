@@ -13,7 +13,7 @@ const char* DataMap_UndefinedBufferTypeStr(int size)
 	// just leak it idc
 	// char* buf = (char*)malloc(sizeof("undefined[]") + 6);
 	// memset(buf, 0, sizeof("undefined[]") + 6);
-	sprintf(staticTempBuffer, "[%d]_undefined", size);
+	sprintf(staticTempBuffer, "[%d]valve.@\"undefined\"", size);
 	return staticTempBuffer;
 }
 
@@ -21,9 +21,11 @@ const char* DataMap_UndefinedBufferTypeStr(int size)
 // Purpose: Returns a string from fieldtype_t enum entry
 // Input  : type -
 //-----------------------------------------------------------------------------
-const char* DataMap_GetFieldTypeStr(fieldtype_t type, int size)
+const char* DataMap_GetFieldTypeStr(typedescription_t* desc)
 {
-	switch (type)
+	int size = desc->fieldSizeInBytes / MAX(desc->fieldSize, 1);
+
+	switch (desc->fieldType)
 	{
 	case FIELD_VOID:
 	{
@@ -43,9 +45,9 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type, int size)
 	case FIELD_STRING:
 		return "[*:0]u8";
 	case FIELD_VECTOR:
-		return "Vector3";
+		return "m.Vector3";
 	case FIELD_QUATERNION:
-		return "Quaternion";
+		return "m.Quaternion";
 	case FIELD_INTEGER:
 		// return "i32";
 		return DataMap_GetSizeTypeStr(size);
@@ -56,58 +58,61 @@ const char* DataMap_GetFieldTypeStr(fieldtype_t type, int size)
 	case FIELD_CHARACTER:
 		return "u8";
 	case FIELD_COLOR32:
-		return "Color32";
+		return "valve.Color32";
 	case FIELD_EMBEDDED:
 	case FIELD_CUSTOM:
 		// case FIELD_UNKNOWN:
 		return DataMap_UndefinedBufferTypeStr(size);
 	case FIELD_CLASSPTR:
-		return "*CBaseEntity";
+		return "*server.CBaseEntity";
 	case FIELD_EHANDLE:
 	{
-		if (size == 4)
-			return "EHANDLE";
+		// don't use calculated type size bc respawn fucked up for some ehandle arrays
+		// if (desc->fieldSizeInBytes == 4)
+		//	return "valve.EHANDLE";
 
-		if (size == 5)
-			return "EHANDLE5"; // SmartAmmo_WeaponData has a couple 5 byte ehandles for some reason???
+		if (desc->fieldSize == 1 && desc->fieldSizeInBytes > 4)
+		{
+			sprintf(staticTempBuffer, "[%d]valve.EHANDLE", desc->fieldSizeInBytes / 4);
+			return staticTempBuffer;
+		}
 
-		sprintf(staticTempBuffer, "[%d]EHANDLE", size / 4);
-		return staticTempBuffer;
+		return "valve.EHANDLE";
 	}
 	case FIELD_EDICT:
-		return "edict_t";
+		return "valve.edict_t";
 	case FIELD_POSITION_VECTOR:
-		return "Vector3";
+		return "m.Vector3";
 	case FIELD_TIME:
-		return "time";
+		return "valve.time";
 	case FIELD_TICK:
-		return "tick";
+		return "valve.tick";
 	case FIELD_MODELNAME:
-		return "ModelName";
+		return "valve.ModelName";
 	case FIELD_SOUNDNAME:
-		return "SoundName";
+		return "valve.SoundName";
 	case FIELD_INPUT:
-		return "Input";
+		return "valve.Input";
 	case FIELD_FUNCTION:
-		return "Func";
+		return "valve.Func";
 	case FIELD_VMATRIX:
-		return "Matrix";
+		return "valve.Matrix";
 	case FIELD_VMATRIX_WORLDSPACE:
-		return "MatrixWrld";
+		return "valve.MatrixWrld";
 	case FIELD_MATRIX3X4_WORLDSPACE:
-		return "Matrix3x4";
+		return "valve.Matrix3x4";
 	case FIELD_INTERVAL:
-		return "Interval";
+		return "valve.Interval";
 	case FIELD_MODELINDEX:
-		return "ModelIndex";
+		return "valve.ModelIndex";
 	case FIELD_MATERIALINDEX:
-		return "MatIndex";
+		return "valve.MatIndex";
 	case FIELD_VECTOR2D:
-		return "Vector2";
+		return "m.Vector2";
 	case FIELD_INTEGER64:
 		return "i64";
 	case FIELD_VECTOR4D:
-		return "Vector4";
+		return "m.Vector4";
 	}
 
 	if (size == 0x8)
@@ -295,7 +300,7 @@ typedescription_t* DataMap_DumpFields(datamap_t* pMap, CFileStream& fstream)
 	if (pMap->pBaseMap)
 	{
 		// include the base class without any vtable members
-		fstream.WriteString(FormatA("    %s: Inherit(%s),\n\n", pMap->pBaseMap->dataClassName, pMap->pBaseMap->dataClassName));
+		fstream.WriteString(FormatA("    %s: abi.Inherit(server.%s),\n\n", pMap->pBaseMap->dataClassName, pMap->pBaseMap->dataClassName));
 	}
 
 	typedescription_t* lastPhysicalField = nullptr;
@@ -323,7 +328,7 @@ typedescription_t* DataMap_DumpFields(datamap_t* pMap, CFileStream& fstream)
 			// if (nPadBytes <= DataMap_Alignment(pMap))
 			if (nPadBytes <= 8)
 			{
-				fstream.WriteString(FormatA("    gap_%x: [%i]_undefined,\n", pCurDesc->fieldOffset - nPadBytes, nPadBytes));
+				fstream.WriteString(FormatA("    gap_%x: [%i]valve.@\"undefined\",\n", pCurDesc->fieldOffset - nPadBytes, nPadBytes));
 			}
 		}
 
@@ -348,26 +353,30 @@ typedescription_t* DataMap_DumpFields(datamap_t* pMap, CFileStream& fstream)
 			{
 				if (pCurDesc->fieldSize > 1)
 				{
-					fstream.WriteString(FormatA("[%d]", pCurDesc->fieldSize));
+					int fieldSize = pCurDesc->fieldSize;
+
+					// ehandles are always 4 byte.
+					// fieldSize is sometimes incorrect.
+					if (pCurDesc->fieldType == FIELD_EHANDLE && (pCurDesc->fieldSizeInBytes / MAX(pCurDesc->fieldSize, 1) != 4))
+					{
+						fieldSize = pCurDesc->fieldSizeInBytes / 4;
+						// fstream.WriteString(FormatA("digger %d %d ", pCurDesc->fieldSizeInBytes / 4, pCurDesc->fieldSizeInBytes / MAX(pCurDesc->fieldSize, 1)));
+					}
+
+					fstream.WriteString(FormatA("[%d]", fieldSize));
 				}
 
 				if (pCurDesc->td) // Print Type
 				{
 					if (pCurDesc->fieldSizeInBytes == 8 && DataMap_TotalSize(pCurDesc->td, 8) > 8)
 						fstream.WriteString("*");
-					fstream.WriteString(FormatA("%s", pCurDesc->td->dataClassName));
+					fstream.WriteString(FormatA("server.%s", pCurDesc->td->dataClassName));
 				}
 				else
 				{
-					// if (undividable)
-					//	fstream.WriteString(DataMap_UndefinedBufferTypeStr(pCurDesc->fieldSizeInBytes));
-					// else
-					fstream.WriteString(FormatA("%s", DataMap_GetFieldTypeStr(pCurDesc->fieldType, pCurDesc->fieldSizeInBytes / MAX(pCurDesc->fieldSize, 1))));
+					fstream.WriteString(FormatA("%s", DataMap_GetFieldTypeStr(pCurDesc)));
 				}
 			}
-
-			if (undividable)
-				fstream.WriteString(", // undividable");
 		}
 
 		fstream.WriteString(FormatA(", // +0x%x size: 0x%x (0x%x * 0x%x) type %i\n", pCurDesc->fieldOffset, pCurDesc->fieldSizeInBytes, pCurDesc->fieldSize, pCurDesc->fieldSizeInBytes / MAX(pCurDesc->fieldSize, 1), pCurDesc->fieldType));
@@ -413,12 +422,30 @@ void DataMap_DumpStr(datamap_t* pMap, std::unordered_set<std::string>& structs, 
 			fstream.WriteString(FormatA("        try std.testing.expect(@offsetOf(@This(), \"%s\") == 0x%x);\n", TypeDesc_FieldName(pCurDesc->fieldName), pCurDesc->fieldOffset));
 		}
 
-		fstream.WriteString("    }\n};\n\n");
+		fstream.WriteString("    }\n};\n");
 
 		structs.insert(pMap->dataClassName);
 	}
 
 	DataMap_DumpEmbeddedMaps(pMap, structs, fstream);
+}
+
+void DataMap_DumpMap(datamap_t* pMap, std::unordered_set<std::string>& structs)
+{
+	if (structs.count(pMap->dataClassName) > 0)
+		return;
+
+	CFileStream fStream;
+	fStream.Open(FormatA("%s\\datamaps\\%s.zig", g_pEngineParms->szModName, pMap->dataClassName), CFileStream::WRITE);
+	DataMap_DumpStr(pMap, structs, fStream);
+
+	fStream.WriteString("\nconst std = @import(\"std\");\n"
+						"const valve = @import(\"../vsource.zig\");\n"
+						"const abi = @import(\"../abi.zig\");\n"
+						"const m = @import(\"../math/vector.zig\");\n"
+						"const server = @import(\"../server.zig\");");
+
+	fStream.Close();
 }
 
 void DataMap_DumpEmbeddedMaps(datamap_t* pMap, std::unordered_set<std::string>& structs, CFileStream& fstream)
@@ -430,15 +457,77 @@ void DataMap_DumpEmbeddedMaps(datamap_t* pMap, std::unordered_set<std::string>& 
 
 		if (pCurDesc->td && structs.count(pCurDesc->td->dataClassName) == 0)
 		{
-			DataMap_DumpStr(pCurDesc->td, structs, fstream);
+			// DataMap_DumpStr(pCurDesc->td, structs, fstream);
+			DataMap_DumpMap(pCurDesc->td, structs);
 		}
 	}
 
 	if (pMap->pBaseMap && structs.count(pMap->pBaseMap->dataClassName) == 0)
 	{
-		DataMap_DumpStr(pMap->pBaseMap, structs, fstream);
-		DataMap_DumpEmbeddedMaps(pMap->pBaseMap, structs, fstream);
+		DataMap_DumpMap(pMap->pBaseMap, structs);
+		// CFileStream baseMapStream;
+		// baseMapStream.Open(FormatA("%s\\datamaps\\%s.zig", g_pEngineParms->szModName, pMap->pBaseMap->dataClassName), CFileStream::WRITE);
+
+		// DataMap_DumpStr(pMap->pBaseMap, structs, baseMapStream);
+		// DataMap_DumpEmbeddedMaps(pMap->pBaseMap, structs, baseMapStream);
+
+		// baseMapStream.WriteString("\nconst std = @import(\"std\");\n"
+		//						  "const valve = @import(\"../vsource.zig\");\n"
+		//						  "const abi = @import(\"../abi.zig\");\n"
+		//						  "const m = @import(\"../math/vector.zig\");\n"
+		//						  "const server = @import(\"../server.zig\");");
+
+		// baseMapStream.Close();
 	}
+}
+
+void DataMap_WriteIndexImport(datamap_t* pMap, std::unordered_set<std::string>& structs, CFileStream& fstream)
+{
+	if (structs.count(pMap->dataClassName) > 0)
+		return;
+	structs.insert(pMap->dataClassName);
+
+	fstream.WriteString(FormatA("pub const %s = @import(\"./server/%s.zig\").%s;\n", pMap->dataClassName, pMap->dataClassName, pMap->dataClassName));
+
+	if (pMap->pBaseMap)
+		DataMap_WriteIndexImport(pMap->pBaseMap, structs, fstream);
+
+	int nFields = pMap->dataNumFields;
+	for (int i = 0; i < nFields; i++)
+	{
+		typedescription_t* pCurDesc = &pMap->dataDesc[i];
+
+		if (pCurDesc->td && structs.count(pCurDesc->td->dataClassName) == 0)
+		{
+			DataMap_WriteIndexImport(pCurDesc->td, structs, fstream);
+		}
+	}
+}
+
+void DataMap_WriteIndex(std::vector<datamap_t*>& maps)
+{
+	CFileStream fstream;
+	fstream.Open(FormatA("%s\\datamaps\\_server.zig", g_pEngineParms->szModName), CFileStream::WRITE);
+
+	std::unordered_set<std::string> structs = {};
+
+	for (datamap_t* pMap : maps)
+	{
+		// if (structs.count(pMap->dataClassName) > 0)
+		//	continue;
+
+		// structs.insert(pMap->dataClassName);
+
+		// fstream.WriteString(FormatA("pub const %s = @import(\"%s\").%s;\n", pMap->dataClassName, pMap->dataClassName, pMap->dataClassName));
+
+		DataMap_WriteIndexImport(pMap, structs, fstream);
+	}
+
+	fstream.WriteString("\ntest {\n"
+						"    std.testing.refAllDecls(@This());\n"
+						"}\n\n"
+						"const std = @import(\"std\");\n");
+	fstream.Close();
 }
 
 //-----------------------------------------------------------------------------
@@ -452,17 +541,34 @@ void DataMap_Dump(std::vector<datamap_t*> maps)
 	std::unordered_set<std::string> structs = {};
 
 	// Write it to disk
-	CFileStream fStream;
-	// fStream.Open(FormatA("%s\\Map_%s.txt", g_pEngineParms->szModName, pMap->dataClassName).c_str(), CFileStream::WRITE);
-	fStream.Open(FormatA("%s\\Datamaps.txt", g_pEngineParms->szModName), CFileStream::WRITE);
+	// CFileStream fStream;
+	// fStream.Open(FormatA("%s\\Datamaps.txt", g_pEngineParms->szModName), CFileStream::WRITE);
 
 	for (datamap_t* pMap : maps)
 	{
-		DataMap_DumpStr(pMap, structs, fStream);
+		// if (structs.count(pMap->dataClassName) > 0)
+		//	continue;
+
+		// CFileStream fStream;
+		// fStream.Open(FormatA("%s\\datamaps\\%s.zig", g_pEngineParms->szModName, pMap->dataClassName), CFileStream::WRITE);
+		// DataMap_DumpStr(pMap, structs, fStream);
+
+		// fStream.WriteString("\nconst std = @import(\"std\");\n"
+		//						  "const valve = @import(\"../vsource.zig\");\n"
+		//						  "const abi = @import(\"../abi.zig\");\n"
+		//						  "const m = @import(\"../math/vector.zig\");\n"
+		//						  "const server = @import(\"../server.zig\");");
+
+		// fStream.Close();
+
 		// DevMsg(eLog::NS, "Succesfully dumped %s\n", pMap->dataClassName);
+
+		DataMap_DumpMap(pMap, structs);
 	}
+
+	DataMap_WriteIndex(maps);
 
 	DevMsg(eLog::NS, "Successfully dumped datamaps\n");
 
-	fStream.Close();
+	// fStream.Close();
 }
