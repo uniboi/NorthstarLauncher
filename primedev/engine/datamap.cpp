@@ -440,9 +440,9 @@ void DataMap_DumpMap(datamap_t* pMap, std::unordered_set<std::string>& structs)
 	DataMap_DumpStr(pMap, structs, fStream);
 
 	fStream.WriteString("\nconst std = @import(\"std\");\n"
-						"const valve = @import(\"../vsource.zig\");\n"
-						"const abi = @import(\"../abi.zig\");\n"
-						"const m = @import(\"../math/vector.zig\");\n"
+						"const valve = @import(\"../../../vsource.zig\");\n"
+						"const abi = @import(\"../../../abi.zig\");\n"
+						"const m = @import(\"../../../math/vector.zig\");\n"
 						"const server = @import(\"../server.zig\");");
 
 	fStream.Close();
@@ -513,13 +513,6 @@ void DataMap_WriteIndex(std::vector<datamap_t*>& maps)
 
 	for (datamap_t* pMap : maps)
 	{
-		// if (structs.count(pMap->dataClassName) > 0)
-		//	continue;
-
-		// structs.insert(pMap->dataClassName);
-
-		// fstream.WriteString(FormatA("pub const %s = @import(\"%s\").%s;\n", pMap->dataClassName, pMap->dataClassName, pMap->dataClassName));
-
 		DataMap_WriteIndexImport(pMap, structs, fstream);
 	}
 
@@ -540,35 +533,12 @@ void DataMap_Dump(std::vector<datamap_t*> maps)
 
 	std::unordered_set<std::string> structs = {};
 
-	// Write it to disk
-	// CFileStream fStream;
-	// fStream.Open(FormatA("%s\\Datamaps.txt", g_pEngineParms->szModName), CFileStream::WRITE);
-
 	for (datamap_t* pMap : maps)
 	{
-		// if (structs.count(pMap->dataClassName) > 0)
-		//	continue;
-
-		// CFileStream fStream;
-		// fStream.Open(FormatA("%s\\datamaps\\%s.zig", g_pEngineParms->szModName, pMap->dataClassName), CFileStream::WRITE);
-		// DataMap_DumpStr(pMap, structs, fStream);
-
-		// fStream.WriteString("\nconst std = @import(\"std\");\n"
-		//						  "const valve = @import(\"../vsource.zig\");\n"
-		//						  "const abi = @import(\"../abi.zig\");\n"
-		//						  "const m = @import(\"../math/vector.zig\");\n"
-		//						  "const server = @import(\"../server.zig\");");
-
-		// fStream.Close();
-
-		// DevMsg(eLog::NS, "Succesfully dumped %s\n", pMap->dataClassName);
-
 		DataMap_DumpMap(pMap, structs);
 	}
 
 	DataMap_WriteIndex(maps);
 
 	DevMsg(eLog::NS, "Successfully dumped datamaps\n");
-
-	// fStream.Close();
 }
